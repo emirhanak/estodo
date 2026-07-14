@@ -632,6 +632,7 @@ class _SideNavigation extends ConsumerWidget {
                 ),
                 SliverReorderableList(
                   itemCount: sortedLists.length,
+                  // ignore: deprecated_member_use
                   onReorder: (oldIndex, newIndex) async {
                     final mutable = List<TaskList>.from(sortedLists);
                     final ix = newIndex > oldIndex ? newIndex - 1 : newIndex;

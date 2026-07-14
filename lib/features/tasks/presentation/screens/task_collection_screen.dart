@@ -206,6 +206,7 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
     if (allowReorder && tasks.length > 1) {
       return SliverReorderableList(
         itemCount: tasks.length,
+        // ignore: deprecated_member_use
         onReorder: (oldIndex, newIndex) async {
           final mutable = List<TodoTask>.from(tasks);
           final ix = newIndex > oldIndex ? newIndex - 1 : newIndex;
