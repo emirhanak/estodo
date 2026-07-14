@@ -1,0 +1,49 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+node_modules/
+.firebase/
+*-debug.log
+
+# Local assistant/tooling settings
+.claude/
+
+# Firebase native config. Keep local copies out of public repos.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
+# Apple signing material
+*.p8
+*.p12
+*.mobileprovision
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Firebase environment files (examples stay public)
+config/firebase.dev.json
+config/firebase.prod.json

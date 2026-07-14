@@ -1,0 +1,168 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validUser(userId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'email',
+        'displayName',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.id == userId
+      && (request.resource.data.email == null
+        || request.resource.data.email is string)
+      && (request.resource.data.displayName == null
+        || request.resource.data.displayName is string);
+    }
+
+    function validTask() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'userId',
+        'listId',
+        'title',
+        'notes',
+        'priority',
+        'dueAt',
+        'reminderAt',
+        'isCompleted',
+        'isImportant',
+        'isMyDay',
+        'myDayDate',
+        'completedAt',
+        'createdAt',
+        'updatedAt',
+        'position',
+        'recurrence',
+        'steps'
+      ])
+      && request.resource.data.userId == request.auth.uid
+      && request.resource.data.title is string
+      && request.resource.data.title.size() > 0
+      && request.resource.data.title.size() <= 240
+      && request.resource.data.priority in ['low', 'medium', 'high']
+      && request.resource.data.isCompleted is bool
+      && request.resource.data.isImportant is bool
+      && request.resource.data.isMyDay is bool;
+    }
+
+    function validList() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'userId',
+        'name',
+        'color',
+        'sortOption',
+        'sortAscending',
+        'position',
+        'groupId',
+        'background',
+        'memberIds',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.userId == request.auth.uid
+      && request.resource.data.name is string
+      && request.resource.data.name.size() > 0
+      && request.resource.data.name.size() <= 80
+      && request.resource.data.sortOption in [
+        'manual',
+        'importance',
+        'dueDate',
+        'alphabetical',
+        'creationDate',
+        'myDay'
+      ]
+      && request.resource.data.sortAscending is bool
+      && request.resource.data.position is int
+      && request.resource.data.memberIds is list;
+    }
+
+    function validGroup() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'userId',
+        'name',
+        'isCollapsed',
+        'position',
+        'createdAt',
+        'updatedAt'
+      ])
+      && request.resource.data.userId == request.auth.uid
+      && request.resource.data.name is string
+      && request.resource.data.name.size() > 0
+      && request.resource.data.name.size() <= 80
+      && request.resource.data.isCollapsed is bool
+      && request.resource.data.position is int;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && validUser(userId);
+      allow delete: if isOwner(userId);
+
+      match /tasks/{taskId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validTask();
+      }
+
+      match /lists/{listId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validList();
+      }
+
+      match /devices/{token} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly(['token', 'platform', 'updatedAt'])
+          && request.resource.data.token == token;
+      }
+
+      match /list_groups/{groupId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validGroup();
+      }
+
+      match /list_memberships/{listId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'ownerId',
+            'listId',
+            'joinedAt'
+          ])
+          && request.resource.data.listId == listId;
+      }
+    }
+
+    match /share_lookup/{listId} {
+      allow get: if signedIn();
+      allow list: if signedIn()
+        && resource.data.ownerId == request.auth.uid;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'ownerId',
+          'listId',
+          'createdAt'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.listId == listId;
+      allow delete: if signedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
