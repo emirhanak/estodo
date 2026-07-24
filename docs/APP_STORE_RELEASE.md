@@ -40,9 +40,33 @@ Copy `config/firebase.dev.example.json` to `config/firebase.prod.json`, fill in
 the production Firebase values, and keep the file local. Confirm that the iOS
 bundle ID is `com.estodo.app`.
 
-## 4. Configure and test on a Mac
+## 4. Configure the Codemagic build
 
-App Store uploads currently require Xcode 26 or later with an iOS 26 SDK.
+The first TestFlight build is produced on Codemagic, so a local Mac is not
+required. The repository contains `codemagic.yaml`; signing files and Firebase
+configuration stay encrypted in Codemagic and are never committed.
+
+1. Connect only the `emirhanak/estodo` repository to Codemagic.
+2. In App Store Connect, create a dedicated API key named
+   `estodo-app-store` with the App Manager role.
+3. Add the key in Codemagic under Developer Portal integrations using the same
+   name: `estodo-app-store`.
+4. Generate or fetch an Apple Distribution certificate and an App Store
+   provisioning profile for `com.estodo.app`.
+5. Create a Codemagic environment variable group named `estodo_firebase`.
+6. Add `FIREBASE_DART_DEFINES_B64`, containing the Base64-encoded
+   `config/firebase.prod.json`, as a Secret variable.
+7. Add `IOS_FIREBASE_SECRET`, containing the complete
+   `GoogleService-Info.plist`, as a Secret variable.
+8. Start the `estodo iOS - TestFlight` workflow manually.
+
+Codemagic runs analysis and tests, builds a signed IPA, and uploads it to App
+Store Connect. The workflow intentionally does not submit the app to App Store
+review automatically.
+
+## 5. Test later on a Mac
+
+Use a compatible MacBook for later native iOS development and device testing.
 
 1. Install current stable Flutter, CocoaPods, and Xcode.
 2. Open `ios/Runner.xcworkspace`, not `Runner.xcodeproj`.
@@ -65,7 +89,7 @@ flutter build ipa --release --dart-define-from-file=config/firebase.prod.json
 
 The IPA is generated under `build/ios/ipa/`.
 
-## 5. Create the App Store Connect record
+## 6. Create the App Store Connect record
 
 Create a new iOS app before uploading the IPA:
 
@@ -79,7 +103,7 @@ Create a new iOS app before uploading the IPA:
 The exact app name is confirmed only when App Store Connect accepts the new app
 record. Add an English localization after creating the Turkish record.
 
-## 6. Complete product and privacy information
+## 7. Complete product and privacy information
 
 Provide final, publicly accessible URLs without placeholders:
 
@@ -109,9 +133,9 @@ Upload real iPhone screenshots showing:
 
 Screenshots and descriptions must match the submitted build.
 
-## 7. TestFlight and review
+## 8. TestFlight and review
 
-1. Upload the IPA using Xcode Organizer or Transporter.
+1. Upload the IPA using the Codemagic workflow.
 2. Wait for processing and resolve export-compliance questions.
 3. Test the build with TestFlight on at least one physical iPhone.
 4. Create a dedicated reviewer account containing sample tasks and provide its
