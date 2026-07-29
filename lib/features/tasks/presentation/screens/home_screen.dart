@@ -103,14 +103,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
     final canAddTask = switch (_section) {
-      HomeSection.completed || HomeSection.search || HomeSection.settings =>
+      HomeSection.completed ||
+      HomeSection.search ||
+      HomeSection.settings =>
         false,
       _ => true,
     };
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 820;
+        final wide = constraints.maxWidth >= 720;
+        final navigationWidth = constraints.maxWidth < 900 ? 264.0 : 296.0;
         final navigation = _SideNavigation(
           section: _section,
           selectedListId: _selectedListId,
@@ -129,7 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 children: [
                   Container(
-                    width: 296,
+                    width: navigationWidth,
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme
@@ -369,7 +372,8 @@ class _SortMenuButton extends ConsumerWidget {
       tooltip: l10n.sortBy,
       icon: const Icon(Icons.sort_rounded),
       onSelected: (option) async {
-        final ascending = option == list.sortOption ? !list.sortAscending : true;
+        final ascending =
+            option == list.sortOption ? !list.sortAscending : true;
         await ref.read(taskControllerProvider).changeListSort(
               list,
               option: option,
@@ -489,11 +493,11 @@ class _SideNavigation extends ConsumerWidget {
           .length,
       HomeSection.important:
           tasks.where((task) => !task.isCompleted && task.isImportant).length,
-      HomeSection.planned: tasks
-          .where((task) => !task.isCompleted && task.dueAt != null)
+      HomeSection.planned:
+          tasks.where((task) => !task.isCompleted && task.dueAt != null).length,
+      HomeSection.tasks: tasks
+          .where((task) => !task.isCompleted && task.listId == null)
           .length,
-      HomeSection.tasks:
-          tasks.where((task) => !task.isCompleted && task.listId == null).length,
       HomeSection.completed: tasks.where((task) => task.isCompleted).length,
     };
 
@@ -535,10 +539,9 @@ class _SideNavigation extends ConsumerWidget {
                     alignment: Alignment.centerLeft,
                     placeholderBuilder: (_) => Text(
                       'estodo',
-                      style:
-                          Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ),
@@ -625,8 +628,7 @@ class _SideNavigation extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 18, vertical: 12),
                       child: Divider(
-                          color:
-                              scheme.outlineVariant.withValues(alpha: 0.4)),
+                          color: scheme.outlineVariant.withValues(alpha: 0.4)),
                     ),
                   ]),
                 ),
