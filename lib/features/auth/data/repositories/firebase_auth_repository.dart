@@ -24,7 +24,9 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Stream<AppUser?> authStateChanges() {
-    return _auth.authStateChanges().asyncMap((user) async {
+    // Unlike authStateChanges, userChanges also emits after profile updates
+    // such as updateDisplayName. This keeps every screen on the current user.
+    return _auth.userChanges().asyncMap((user) async {
       if (user == null) return null;
       await _ensureUserDocument(user);
       return _mapUser(user);

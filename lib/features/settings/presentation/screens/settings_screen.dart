@@ -370,7 +370,17 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (newName == null || newName.isEmpty) return;
-    await ref.read(authRepositoryProvider).updateDisplayName(newName);
+    try {
+      await ref.read(authRepositoryProvider).updateDisplayName(newName);
+      // Start a fresh subscription as an immediate fallback. The repository's
+      // userChanges stream also keeps other screens in sync with this update.
+      ref.invalidate(authStateProvider);
+    } on FirebaseAuthException {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.errorTryAgain)),
+      );
+    }
   }
 }
 
