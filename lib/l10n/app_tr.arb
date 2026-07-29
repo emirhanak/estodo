@@ -134,6 +134,9 @@
   "authErrorEmailInUse": "Bu e-posta adresiyle zaten bir hesap var.",
   "authErrorWeakPassword": "Daha güçlü bir şifre kullan.",
   "authErrorRecentLoginRequired": "Hesabını silmeden önce çıkış yapıp tekrar giriş yap.",
+  "authErrorNetwork": "Bağlantı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.",
+  "authErrorTooManyRequests": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+  "authErrorGuestUnavailable": "Misafir erişimi geçici olarak kullanılamıyor. Kısa süre sonra tekrar dene.",
   "authErrorDefault": "Kimlik doğrulama başarısız.",
   "errorCouldNotLoadTasks": "Görevler yüklenemedi",
   "errorTryAgain": "Bir şeyler ters gitti. Tekrar dene."

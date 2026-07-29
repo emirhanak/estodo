@@ -83,7 +83,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       'email-already-in-use' => l10n.authErrorEmailInUse,
       'weak-password' => l10n.authErrorWeakPassword,
       'requires-recent-login' => l10n.authErrorRecentLoginRequired,
-      _ => error.message ?? l10n.authErrorDefault,
+      'network-request-failed' => l10n.authErrorNetwork,
+      'too-many-requests' => l10n.authErrorTooManyRequests,
+      'operation-not-allowed' => l10n.authErrorGuestUnavailable,
+      _ => l10n.authErrorDefault,
     };
   }
 

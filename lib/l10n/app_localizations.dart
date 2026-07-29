@@ -902,6 +902,24 @@ abstract class AppLocalizations {
   /// **'Please sign out and sign in again before deleting your account.'**
   String get authErrorRecentLoginRequired;
 
+  /// No description provided for @authErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect. Check your internet connection and try again.'**
+  String get authErrorNetwork;
+
+  /// No description provided for @authErrorTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a moment and try again.'**
+  String get authErrorTooManyRequests;
+
+  /// No description provided for @authErrorGuestUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest access is temporarily unavailable. Try again shortly.'**
+  String get authErrorGuestUnavailable;
+
   /// No description provided for @authErrorDefault.
   ///
   /// In en, this message translates to:

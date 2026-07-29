@@ -436,6 +436,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please sign out and sign in again before deleting your account.';
 
   @override
+  String get authErrorNetwork =>
+      'Unable to connect. Check your internet connection and try again.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Too many attempts. Wait a moment and try again.';
+
+  @override
+  String get authErrorGuestUnavailable =>
+      'Guest access is temporarily unavailable. Try again shortly.';
+
+  @override
   String get authErrorDefault => 'Authentication failed.';
 
   @override

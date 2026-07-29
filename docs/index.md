@@ -5,11 +5,12 @@ personal reminders.
 
 ## Help
 
-For general help or feedback, open an issue in the public estodo GitHub
-repository. Do not include passwords, authentication codes, private task
-content, meeting details, or other personal information.
+For help, feedback, account requests, or privacy requests, email
+**flashemirhan@gmail.com**. Do not include passwords, authentication codes,
+private task content, meeting details, or other personal information.
 
-For account or privacy requests, email **flashemirhan@gmail.com**.
+You can also review known issues in the public
+[estodo issue tracker](https://github.com/emirhanak/estodo/issues).
 
 ## Policies and account controls
 

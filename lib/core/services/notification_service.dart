@@ -64,7 +64,6 @@ class NotificationService {
     );
 
     await _createAndroidChannel();
-    await _requestPermissions();
 
     FirebaseMessaging.onMessage.listen(_showForegroundPush);
 
@@ -103,6 +102,8 @@ class NotificationService {
   }
 
   Future<void> _requestPermissions() async {
+    if (_permissionsGranted) return;
+
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -143,6 +144,7 @@ class NotificationService {
     required DateTime reminderAt,
   }) async {
     await initialize();
+    await _requestPermissions();
 
     if (!_permissionsGranted) return;
 

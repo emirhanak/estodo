@@ -440,6 +440,18 @@ class AppLocalizationsTr extends AppLocalizations {
       'Hesabını silmeden önce çıkış yapıp tekrar giriş yap.';
 
   @override
+  String get authErrorNetwork =>
+      'Bağlantı kurulamadı. İnternet bağlantını kontrol edip tekrar dene.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.';
+
+  @override
+  String get authErrorGuestUnavailable =>
+      'Misafir erişimi geçici olarak kullanılamıyor. Kısa süre sonra tekrar dene.';
+
+  @override
   String get authErrorDefault => 'Kimlik doğrulama başarısız.';
 
   @override
