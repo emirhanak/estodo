@@ -320,6 +320,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _createList() async {
     final draft = await showDialog<_ListDraft>(
       context: context,
+      useRootNavigator: true,
+      barrierColor: Colors.black54,
       builder: (context) => const _ListEditorDialog(),
     );
     if (draft == null) return;
@@ -332,6 +334,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _renameList(TaskList list) async {
     final draft = await showDialog<_ListDraft>(
       context: context,
+      useRootNavigator: true,
+      barrierColor: Colors.black54,
       builder: (context) => _ListEditorDialog(existing: list),
     );
     if (draft == null) return;

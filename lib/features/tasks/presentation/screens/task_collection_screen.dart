@@ -60,6 +60,7 @@ class TaskCollectionScreen extends ConsumerStatefulWidget {
 
 class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
   bool _completedExpanded = false;
+  DateTime _plannedDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -284,8 +285,36 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
     Color accent,
   ) {
     final l10n = AppLocalizations.of(context);
+    final widgets = <Widget>[
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Card(
+            clipBehavior: Clip.antiAlias,
+            child: CalendarDatePicker(
+              initialDate: _plannedDate,
+              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+              lastDate: DateTime.now().add(const Duration(days: 3650)),
+              onDateChanged: (date) => setState(() => _plannedDate = date),
+            ),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+          child: Text(
+            l10n.upcomingPlans,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+      ),
+    ];
     if (tasks.isEmpty) {
-      return [
+      widgets.add(
         SliverFillRemaining(
           hasScrollBody: false,
           child: EmptyState(
@@ -294,7 +323,8 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
             message: widget.emptyMessage,
           ),
         ),
-      ];
+      );
+      return widgets;
     }
     final groups = <PlannedBucket, List<TodoTask>>{};
     for (final task in tasks) {
@@ -303,7 +333,6 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
       groups.putIfAbsent(bucket, () => <TodoTask>[]).add(task);
     }
 
-    final widgets = <Widget>[];
     for (final bucket in PlannedBucket.values) {
       final entries = groups[bucket];
       if (entries == null || entries.isEmpty) continue;

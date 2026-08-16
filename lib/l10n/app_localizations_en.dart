@@ -74,6 +74,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addStep => 'Add step';
 
   @override
+  String get upcomingPlans => 'My upcoming plans';
+
+  @override
   String get remindMe => 'Remind me';
 
   @override

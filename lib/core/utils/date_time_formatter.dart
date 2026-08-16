@@ -15,13 +15,16 @@ class DateTimeFormatter {
     final target = DateTime(value.year, value.month, value.day);
     final diff = target.difference(today).inDays;
     final isTr = (locale ?? '').startsWith('tr');
+    final formatLocale = isTr ? 'tr_TR' : 'en_US';
     if (diff == 0) return isTr ? 'Bugün' : 'Today';
     if (diff == 1) return isTr ? 'Yarın' : 'Tomorrow';
     if (diff == -1) return isTr ? 'Dün' : 'Yesterday';
     if (diff > 1 && diff < 7) {
-      return DateFormat('EEEE', locale).format(value);
+      return DateFormat('EEEE', formatLocale).format(value);
     }
-    return DateFormat('EEE, MMM d', locale).format(value);
+    return isTr
+        ? DateFormat('d MMMM', formatLocale).format(value)
+        : DateFormat('EEE, MMM d', formatLocale).format(value);
   }
 
   static String reminderLabel(DateTime value, {String? locale}) {
@@ -29,7 +32,10 @@ class DateTimeFormatter {
   }
 
   static String fullDayLabel(DateTime value, {String? locale}) {
-    return DateFormat('EEEE, MMMM d', locale).format(value);
+    final isTr = (locale ?? '').startsWith('tr');
+    return isTr
+        ? DateFormat('EEEE d MMMM', 'tr_TR').format(value)
+        : DateFormat('EEEE, MMMM d', 'en_US').format(value);
   }
 
   static String timeLabel(DateTime value) => _timeLabel.format(value);

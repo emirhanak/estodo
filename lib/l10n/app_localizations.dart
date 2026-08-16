@@ -224,6 +224,12 @@ abstract class AppLocalizations {
   /// **'Add step'**
   String get addStep;
 
+  /// No description provided for @upcomingPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'My upcoming plans'**
+  String get upcomingPlans;
+
   /// No description provided for @remindMe.
   ///
   /// In en, this message translates to:

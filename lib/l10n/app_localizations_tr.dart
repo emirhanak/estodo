@@ -71,7 +71,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addNote => 'Not ekle';
 
   @override
-  String get addStep => 'Adım ekle';
+  String get addStep => 'Madde ekle';
+
+  @override
+  String get upcomingPlans => 'Yaklaşan planlarım';
 
   @override
   String get remindMe => 'Bana hatırlat';
