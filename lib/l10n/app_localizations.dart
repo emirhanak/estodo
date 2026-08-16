@@ -485,8 +485,62 @@ abstract class AppLocalizations {
   /// No description provided for @syncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Cloud sync with offline support'**
+  /// **'Cloud sync enabled'**
   String get syncDescription;
+
+  /// No description provided for @reportBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a bug'**
+  String get reportBug;
+
+  /// No description provided for @reportBugTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Found something wrong?'**
+  String get reportBugTitle;
+
+  /// No description provided for @reportBugBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened and help us improve estodo.'**
+  String get reportBugBody;
+
+  /// No description provided for @reportBugHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the issue or suggestion'**
+  String get reportBugHint;
+
+  /// No description provided for @sendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get sendFeedback;
+
+  /// No description provided for @feedbackThanksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback'**
+  String get feedbackThanksTitle;
+
+  /// No description provided for @feedbackThanksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback helps us improve the app.'**
+  String get feedbackThanksBody;
+
+  /// No description provided for @feedbackEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please describe the issue or suggestion.'**
+  String get feedbackEmpty;
+
+  /// No description provided for @feedbackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback could not be sent. Please try again.'**
+  String get feedbackError;
 
   /// No description provided for @version.
   ///

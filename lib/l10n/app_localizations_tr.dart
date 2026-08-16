@@ -205,7 +205,37 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sync => 'Eşitleme';
 
   @override
-  String get syncDescription => 'Bulut eşitlemesi ve çevrimdışı destek';
+  String get syncDescription => 'Bulut eşitlemesi açık';
+
+  @override
+  String get reportBug => 'Bug bildir';
+
+  @override
+  String get reportBugTitle => 'Bir sorun mu buldun?';
+
+  @override
+  String get reportBugBody =>
+      'Karşılaştığın sorunu yaz; estodo\'yu birlikte geliştirelim.';
+
+  @override
+  String get reportBugHint => 'Sorunu veya önerini yaz';
+
+  @override
+  String get sendFeedback => 'Gönder';
+
+  @override
+  String get feedbackThanksTitle => 'Geri bildiriminiz için teşekkür ederiz';
+
+  @override
+  String get feedbackThanksBody =>
+      'Dönüşleriniz uygulamanın geliştirilmesine katkı sağlıyor.';
+
+  @override
+  String get feedbackEmpty => 'Lütfen sorunu veya önerini yaz.';
+
+  @override
+  String get feedbackError =>
+      'Geri bildirim gönderilemedi. Lütfen tekrar dene.';
 
   @override
   String get version => 'Sürüm';

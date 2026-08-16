@@ -161,6 +161,43 @@ service cloud.firestore {
         && resource.data.ownerId == request.auth.uid;
     }
 
+    match /feedback/{feedbackId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'message',
+          'userId',
+          'userEmail',
+          'displayName',
+          'recipientEmail',
+          'locale',
+          'createdAt',
+          'status'
+        ])
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 4000
+        && request.resource.data.recipientEmail == 'flashemirhan@gmail.com'
+        && request.resource.data.status == 'new';
+      allow read, update, delete: if false;
+    }
+
+    match /mail/{mailId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'to',
+          'message',
+          'createdAt'
+        ])
+        && request.resource.data.to is list
+        && request.resource.data.to.size() == 1
+        && request.resource.data.to[0] == 'flashemirhan@gmail.com'
+        && request.resource.data.message is map
+        && request.resource.data.message.keys().hasOnly(['subject', 'text'])
+        && request.resource.data.message.subject is string
+        && request.resource.data.message.text is string;
+      allow read, update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

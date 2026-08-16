@@ -1,9 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/services/firebase_providers.dart';
 import '../../../../core/services/preferences_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -214,6 +217,19 @@ class SettingsScreen extends ConsumerWidget {
                 color: scheme.outlineVariant.withValues(alpha: 0.3),
               ),
               ListTile(
+                leading: SvgPicture.asset(
+                  'assets/branding/bug_report.svg',
+                  width: 24,
+                  height: 24,
+                ),
+                title: Text(l10n.reportBug),
+                onTap: () => _showBugReport(context, ref),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
                 leading: const Icon(Icons.info_outline_rounded),
                 title: Text(l10n.version),
                 subtitle: Text(
@@ -253,6 +269,152 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _showBugReport(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    final message = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.reportBugTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 4,
+          maxLines: 7,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: l10n.reportBugHint,
+            alignLabelWithHint: true,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(l10n.sendFeedback),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (message == null || !context.mounted) return;
+    if (message.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.feedbackEmpty)),
+      );
+      return;
+    }
+
+    final user = ref.read(authStateProvider).value;
+    try {
+      final firestore = ref.read(firestoreProvider);
+      final feedbackRef = firestore.collection('feedback').doc();
+      final mailRef = firestore.collection('mail').doc();
+      final createdAt = FieldValue.serverTimestamp();
+      final userEmail = user?.email ?? 'unknown';
+      final displayName = user?.displayName ?? 'unknown';
+      final feedbackData = {
+        'message': message,
+        'userId': user?.id,
+        'userEmail': userEmail,
+        'displayName': displayName,
+        'recipientEmail': 'flashemirhan@gmail.com',
+        'locale': Localizations.localeOf(context).languageCode,
+        'createdAt': createdAt,
+        'status': 'new',
+      };
+      final batch = firestore.batch()
+        ..set(feedbackRef, feedbackData)
+        // Compatible with Firebase's Trigger Email extension. Once enabled,
+        // this queue document is delivered to the configured recipient.
+        ..set(mailRef, {
+          'to': ['flashemirhan@gmail.com'],
+          'message': {
+            'subject': 'estodo bug bildirimi',
+            'text': 'Kullanıcı: $displayName <$userEmail>\n\n$message',
+          },
+          'createdAt': createdAt,
+        });
+      await batch.commit();
+      if (context.mounted) await _showFeedbackThanks(context);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.feedbackError)),
+      );
+    }
+  }
+
+  Future<void> _showFeedbackThanks(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final dialogFuture = showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'feedback-sent',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (context, _, __) => Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 340),
+            margin: const EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 52,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.feedbackThanksTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.feedbackThanksBody,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      transitionBuilder: (context, animation, _, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
+        );
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: curved, child: child),
+        );
+      },
+    );
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (context.mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+    await dialogFuture;
   }
 
   Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {

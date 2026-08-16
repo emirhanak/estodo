@@ -205,7 +205,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sync => 'Sync';
 
   @override
-  String get syncDescription => 'Cloud sync with offline support';
+  String get syncDescription => 'Cloud sync enabled';
+
+  @override
+  String get reportBug => 'Report a bug';
+
+  @override
+  String get reportBugTitle => 'Found something wrong?';
+
+  @override
+  String get reportBugBody =>
+      'Tell us what happened and help us improve estodo.';
+
+  @override
+  String get reportBugHint => 'Describe the issue or suggestion';
+
+  @override
+  String get sendFeedback => 'Send';
+
+  @override
+  String get feedbackThanksTitle => 'Thank you for your feedback';
+
+  @override
+  String get feedbackThanksBody => 'Your feedback helps us improve the app.';
+
+  @override
+  String get feedbackEmpty => 'Please describe the issue or suggestion.';
+
+  @override
+  String get feedbackError => 'Feedback could not be sent. Please try again.';
 
   @override
   String get version => 'Version';
