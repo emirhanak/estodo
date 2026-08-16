@@ -12,8 +12,8 @@ void main() {
       ),
     );
 
-    await tester.pump(const Duration(milliseconds: 950));
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 1400));
+    await tester.pump(const Duration(milliseconds: 750));
     await tester.pump();
 
     expect(find.text('Ana ekran'), findsOneWidget);

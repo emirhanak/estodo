@@ -549,6 +549,7 @@ class _SideNavigation extends ConsumerWidget {
     }
 
     return SafeArea(
+      bottom: false,
       child: Column(
         children: [
           Padding(
@@ -558,7 +559,7 @@ class _SideNavigation extends ConsumerWidget {
                 Expanded(
                   child: SvgPicture.asset(
                     'assets/branding/estodo_wordmark.svg',
-                    height: 28,
+                    height: 32,
                     fit: BoxFit.contain,
                     alignment: Alignment.centerLeft,
                     placeholderBuilder: (_) => Text(
