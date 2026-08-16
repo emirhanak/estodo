@@ -250,7 +250,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(l10n.version),
                 subtitle: Text(
                   packageInfo.when(
-                    data: (info) => '${info.version}+${info.buildNumber}',
+                    data: (info) => '${info.version}.${info.buildNumber}',
                     loading: () => l10n.loading,
                     error: (error, stackTrace) => l10n.unavailable,
                   ),

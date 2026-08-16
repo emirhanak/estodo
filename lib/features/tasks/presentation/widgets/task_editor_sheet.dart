@@ -127,12 +127,14 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
             isMyDay: _isMyDay,
             myDayDate: _isMyDay ? DateTimeFormatter.todayKey() : null,
             isCompleted: _isCompleted,
-            completedAt: _isCompleted
-                ? (existing.completedAt ?? DateTime.now())
-                : null,
+            completedAt:
+                _isCompleted ? (existing.completedAt ?? DateTime.now()) : null,
           ),
         );
-        if (!hadCompleted && _isCompleted && _recurrence != null && _dueAt != null) {
+        if (!hadCompleted &&
+            _isCompleted &&
+            _recurrence != null &&
+            _dueAt != null) {
           final nextDue = _recurrence!.nextOccurrence(_dueAt!);
           DateTime? nextReminder;
           if (_reminderAt != null) {
@@ -182,8 +184,12 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
 
   Future<void> _pickDueDate() async {
     final now = DateTime.now();
+    final locale = Localizations.localeOf(context);
     final picked = await showDatePicker(
       context: context,
+      locale: locale.languageCode == 'tr'
+          ? const Locale('tr', 'TR')
+          : const Locale('en', 'US'),
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 10),
       initialDate: _dueAt ?? now,
@@ -195,8 +201,12 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
 
   Future<void> _pickReminder() async {
     final now = DateTime.now();
+    final locale = Localizations.localeOf(context);
     final date = await showDatePicker(
       context: context,
+      locale: locale.languageCode == 'tr'
+          ? const Locale('tr', 'TR')
+          : const Locale('en', 'US'),
       firstDate: now,
       lastDate: DateTime(now.year + 10),
       initialDate: _reminderAt ?? _dueAt ?? now,
@@ -251,10 +261,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     final accent = _listId == null
         ? scheme.primary
         : Color(
-            lists
-                .where((l) => l.id == _listId)
-                .map((l) => l.color)
-                .firstWhere((_) => true, orElse: () => scheme.primary.toARGB32()),
+            lists.where((l) => l.id == _listId).map((l) => l.color).firstWhere(
+                (_) => true,
+                orElse: () => scheme.primary.toARGB32()),
           );
     final viewInsets = MediaQuery.viewInsetsOf(context);
     final l10n = AppLocalizations.of(context);
@@ -287,8 +296,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 onToggle: (step) {
                   setState(() {
                     _steps = _steps
-                        .map((s) =>
-                            s.id == step.id ? s.copyWith(isCompleted: !s.isCompleted) : s)
+                        .map((s) => s.id == step.id
+                            ? s.copyWith(isCompleted: !s.isCompleted)
+                            : s)
                         .toList();
                   });
                 },
@@ -299,7 +309,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 onRename: (step, newTitle) {
                   setState(() {
                     _steps = _steps
-                        .map((s) => s.id == step.id ? s.copyWith(title: newTitle) : s)
+                        .map((s) =>
+                            s.id == step.id ? s.copyWith(title: newTitle) : s)
                         .toList();
                   });
                 },
@@ -314,16 +325,16 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 accent: accent,
                 active: _isMyDay,
                 onTap: () => setState(() => _isMyDay = !_isMyDay),
-                onClear: _isMyDay
-                    ? () => setState(() => _isMyDay = false)
-                    : null,
+                onClear:
+                    _isMyDay ? () => setState(() => _isMyDay = false) : null,
               ),
               _ActionTile(
                 icon: Icons.notifications_active_outlined,
                 title: _reminderAt == null ? l10n.remindMe : l10n.reminder,
                 subtitle: _reminderAt == null
                     ? null
-                    : DateTimeFormatter.reminderLabel(_reminderAt!, locale: Localizations.localeOf(context).languageCode),
+                    : DateTimeFormatter.reminderLabel(_reminderAt!,
+                        locale: Localizations.localeOf(context).languageCode),
                 accent: accent,
                 active: _reminderAt != null,
                 onTap: _pickReminder,
@@ -336,7 +347,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 title: _dueAt == null ? l10n.addDueDate : l10n.dueLabel,
                 subtitle: _dueAt == null
                     ? null
-                    : DateTimeFormatter.dueLabel(_dueAt!, locale: Localizations.localeOf(context).languageCode),
+                    : DateTimeFormatter.dueLabel(_dueAt!,
+                        locale: Localizations.localeOf(context).languageCode),
                 accent: accent,
                 active: _dueAt != null,
                 onTap: _pickDueDate,
@@ -377,7 +389,11 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 accent: accent,
                 active: _listId != null,
                 onTap: () async {
-                  final picked = await _showListPicker(context, lists);
+                  final picked = await _showListPicker(
+                    context,
+                    lists,
+                    onCreateList: () => _createListFromEditor(context),
+                  );
                   if (picked != null) {
                     setState(() => _listId = picked == '' ? null : picked);
                   }
@@ -442,13 +458,11 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                         ),
                         actions: [
                           TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop(false),
+                            onPressed: () => Navigator.of(context).pop(false),
                             child: Text(l10n.cancel),
                           ),
                           FilledButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop(true),
+                            onPressed: () => Navigator.of(context).pop(true),
                             child: Text(l10n.delete),
                           ),
                         ],
@@ -489,10 +503,42 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
   }
 }
 
+Future<String?> _createListFromEditor(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final controller = TextEditingController();
+  final name = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.newList),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        decoration: InputDecoration(hintText: l10n.listName),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel)),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+          child: Text(l10n.save),
+        ),
+      ],
+    ),
+  );
+  controller.dispose();
+  if (name == null || name.isEmpty || !context.mounted) return null;
+  final list = await ProviderScope.containerOf(context, listen: false)
+      .read(taskControllerProvider)
+      .createList(name, 0xFF5B5FC7);
+  return list.id;
+}
+
 Future<String?> _showListPicker(
   BuildContext context,
-  List<TaskList> lists,
-) async {
+  List<TaskList> lists, {
+  required Future<String?> Function() onCreateList,
+}) async {
   final l10n = AppLocalizations.of(context);
   return showModalBottomSheet<String>(
     context: context,
@@ -507,6 +553,14 @@ Future<String?> _showListPicker(
               leading: const Icon(Icons.inbox_rounded),
               title: Text(l10n.tasks),
               onTap: () => Navigator.of(context).pop(''),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.add_rounded),
+              title: Text(l10n.newList),
+              onTap: () async {
+                Navigator.of(context).pop(await onCreateList());
+              },
             ),
             const Divider(height: 1),
             for (final list in lists)
@@ -566,8 +620,9 @@ class _TitleRow extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: scheme.onSurface,
-                decoration:
-                    completed ? TextDecoration.lineThrough : TextDecoration.none,
+                decoration: completed
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
               ),
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context).taskName,
@@ -778,7 +833,8 @@ class _PriorityRow extends StatelessWidget {
               ),
               segments: [
                 for (final p in TaskPriority.values)
-                  ButtonSegment(value: p, label: Text(p.label)),
+                  ButtonSegment(
+                      value: p, label: Text(_priorityLabel(p, context))),
               ],
               selected: {value},
               onSelectionChanged: (s) => onChanged(s.first),
@@ -788,6 +844,15 @@ class _PriorityRow extends StatelessWidget {
       ),
     );
   }
+}
+
+String _priorityLabel(TaskPriority priority, BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  return switch (priority) {
+    TaskPriority.low => l10n.low,
+    TaskPriority.medium => l10n.medium,
+    TaskPriority.high => l10n.high,
+  };
 }
 
 class _RecurrenceResult {

@@ -101,13 +101,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get priority => 'Öncelik';
 
   @override
-  String get low => 'Düşük';
+  String get low => 'Düşük öncelik';
 
   @override
-  String get medium => 'Orta';
+  String get medium => 'Orta öncelik';
 
   @override
-  String get high => 'Yüksek';
+  String get high => 'Yüksek öncelik';
 
   @override
   String get createTask => 'Görev oluştur';
@@ -211,7 +211,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get syncDescription => 'Bulut eşitlemesi açık';
 
   @override
-  String get reportBug => 'Bug bildir';
+  String get reportBug => 'Bug (Hata) bildir';
 
   @override
   String get reportBugTitle => 'Bir sorun mu buldun?';
@@ -265,7 +265,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get featureSuggestionTitle =>
-      'estodo’yu geliştirmek için fikrin varsa öner butonuna tıklayabilirsin. —->';
+      'estodo’yu geliştirmek için fikrin varsa öner butonuna tıklayabilirsin.';
 
   @override
   String get featureSuggestionHint => 'Nasıl çalışmasını isterdin?';
