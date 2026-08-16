@@ -81,7 +81,7 @@
   "aiTodoList": "AI ile To Do list yapma",
   "aiTodoListDescription": "Gününü anlat; estodo görevlerini senin için hazırlasın.",
   "featureSuggestionPrompt": "Tıklayarak geliştirilmesinde geliştiriciye öneride bulunabilirsiniz",
-  "featureSuggestionTitle": "Bu özelliği birlikte geliştirelim",
+  "featureSuggestionTitle": "estodo’yu geliştirmek için fikrin varsa öner butonuna tıklayabilirsin. —->",
   "featureSuggestionHint": "Nasıl çalışmasını isterdin?",
   "featureSuggestionEmpty": "Lütfen önerini yaz.",
   "version": "Sürüm",

@@ -261,7 +261,8 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tıklayarak geliştirilmesinde geliştiriciye öneride bulunabilirsiniz';
 
   @override
-  String get featureSuggestionTitle => 'Bu özelliği birlikte geliştirelim';
+  String get featureSuggestionTitle =>
+      'estodo’yu geliştirmek için fikrin varsa öner butonuna tıklayabilirsin. —->';
 
   @override
   String get featureSuggestionHint => 'Nasıl çalışmasını isterdin?';
