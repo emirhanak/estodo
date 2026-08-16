@@ -239,6 +239,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get comingSoon => 'Coming soon…';
 
   @override
+  String get futureFeaturesPrompt => 'Tap to see upcoming features';
+
+  @override
+  String get futureFeaturesTitle => 'Upcoming features';
+
+  @override
+  String get suggest => 'Suggest';
+
+  @override
   String get aiTodoList => 'Create a To Do list with AI';
 
   @override

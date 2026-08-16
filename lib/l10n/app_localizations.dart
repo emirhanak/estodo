@@ -548,6 +548,24 @@ abstract class AppLocalizations {
   /// **'Coming soon…'**
   String get comingSoon;
 
+  /// No description provided for @futureFeaturesPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see upcoming features'**
+  String get futureFeaturesPrompt;
+
+  /// No description provided for @futureFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming features'**
+  String get futureFeaturesTitle;
+
+  /// No description provided for @suggest.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest'**
+  String get suggest;
+
   /// No description provided for @aiTodoList.
   ///
   /// In en, this message translates to:

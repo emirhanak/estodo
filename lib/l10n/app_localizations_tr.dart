@@ -241,6 +241,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get comingSoon => 'Çok yakında…';
 
   @override
+  String get futureFeaturesPrompt => 'Gelecek özellikler için tıklayınız';
+
+  @override
+  String get futureFeaturesTitle => 'Gelecek özellikler';
+
+  @override
+  String get suggest => 'Öner';
+
+  @override
   String get aiTodoList => 'AI ile To Do list yapma';
 
   @override

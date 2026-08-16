@@ -238,11 +238,8 @@ class SettingsScreen extends ConsumerWidget {
                   color: accent,
                 ),
                 title: Text(l10n.comingSoon),
-                subtitle: Text(
-                  '${l10n.aiTodoList}\n${l10n.aiTodoListDescription}\n${l10n.featureSuggestionPrompt}',
-                ),
-                isThreeLine: true,
-                onTap: () => _showFeatureSuggestion(context, ref),
+                subtitle: Text(l10n.futureFeaturesPrompt),
+                onTap: () => _showComingSoon(context, ref),
               ),
               Divider(
                 height: 1,
@@ -287,6 +284,39 @@ class SettingsScreen extends ConsumerWidget {
           label: Text(l10n.deleteAccount),
         ),
       ],
+    );
+  }
+
+  Future<void> _showComingSoon(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final accent = ref.read(accentColorProvider);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.futureFeaturesTitle),
+        contentPadding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.auto_awesome_rounded, color: accent),
+              title: Text(l10n.aiTodoList),
+              subtitle: Text(l10n.aiTodoListDescription),
+            ),
+            ListTile(
+              leading: const Icon(Icons.lightbulb_outline_rounded),
+              title: Text(l10n.featureSuggestionTitle),
+              trailing: FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _showFeatureSuggestion(context, ref);
+                },
+                child: Text(l10n.suggest),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
