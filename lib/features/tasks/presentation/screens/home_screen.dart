@@ -151,17 +151,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
 
         if (wide) {
+          final navigationColor = Theme.of(context)
+              .colorScheme
+              .surfaceContainerHighest
+              .withValues(alpha: 0.4);
           return Scaffold(
+            // Paint the system-bar area with the same tone as the navigation
+            // rail, and let the content reach the iPad home-indicator edge.
+            backgroundColor: navigationColor,
             body: SafeArea(
+              top: true,
+              bottom: false,
               child: Row(
                 children: [
                   Container(
                     width: navigationWidth,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.4),
+                      color: navigationColor,
                     ),
                     child: navigation,
                   ),
