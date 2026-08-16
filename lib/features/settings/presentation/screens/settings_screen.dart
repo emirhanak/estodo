@@ -233,6 +233,22 @@ class SettingsScreen extends ConsumerWidget {
                 color: scheme.outlineVariant.withValues(alpha: 0.3),
               ),
               ListTile(
+                leading: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: accent,
+                ),
+                title: Text(l10n.comingSoon),
+                subtitle: Text(
+                  '${l10n.aiTodoList}\n${l10n.aiTodoListDescription}\n${l10n.featureSuggestionPrompt}',
+                ),
+                isThreeLine: true,
+                onTap: () => _showFeatureSuggestion(context, ref),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
                 leading: const Icon(Icons.info_outline_rounded),
                 title: Text(l10n.version),
                 subtitle: Text(
@@ -315,6 +331,72 @@ class SettingsScreen extends ConsumerWidget {
       return;
     }
 
+    await _submitFeedback(
+      context,
+      ref,
+      message: message,
+      type: 'bug',
+    );
+  }
+
+  Future<void> _showFeatureSuggestion(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final controller = TextEditingController();
+    final message = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.featureSuggestionTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 4,
+          maxLines: 7,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: l10n.featureSuggestionHint,
+            alignLabelWithHint: true,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(l10n.sendFeedback),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (message == null || !context.mounted) return;
+    if (message.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.featureSuggestionEmpty)),
+      );
+      return;
+    }
+    await _submitFeedback(
+      context,
+      ref,
+      message: message,
+      type: 'feature',
+    );
+  }
+
+  Future<void> _submitFeedback(
+    BuildContext context,
+    WidgetRef ref, {
+    required String message,
+    required String type,
+  }) async {
+    final l10n = AppLocalizations.of(context);
     final user = ref.read(authStateProvider).value;
     try {
       final userEmail = user?.email ?? 'unknown';
@@ -326,6 +408,8 @@ class SettingsScreen extends ConsumerWidget {
           'message': message,
           'userEmail': userEmail,
           'displayName': displayName,
+          'type': type,
+          'locale': Localizations.localeOf(context).languageCode,
         }),
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {

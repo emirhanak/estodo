@@ -27,6 +27,7 @@ export default {
     const message = typeof payload.message === 'string' ? payload.message.trim() : '';
     const userEmail = typeof payload.userEmail === 'string' ? payload.userEmail.trim() : '';
     const displayName = typeof payload.displayName === 'string' ? payload.displayName.trim() : 'unknown';
+    const type = payload.type === 'feature' ? 'feature' : 'bug';
 
     if (!message || message.length > 4000) {
       return json({ error: 'Message must be between 1 and 4000 characters.' }, 400);
@@ -44,8 +45,11 @@ export default {
       body: JSON.stringify({
         from: 'estodo <onboarding@resend.dev>',
         to: ['flashemirhan@gmail.com'],
-        subject: 'estodo bug bildirimi',
+        subject: type === 'feature'
+          ? 'estodo özellik önerisi'
+          : 'estodo bug bildirimi',
         text: [
+          `Bildirim türü: ${type === 'feature' ? 'Özellik önerisi' : 'Bug bildirimi'}`,
           `Kullanıcı: ${displayName} <${userEmail || 'unknown'}>`,
           '',
           message,

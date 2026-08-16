@@ -236,6 +236,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackError => 'Feedback could not be sent. Please try again.';
 
   @override
+  String get comingSoon => 'Coming soon…';
+
+  @override
+  String get aiTodoList => 'Create a To Do list with AI';
+
+  @override
+  String get aiTodoListDescription =>
+      'Describe your day and let estodo prepare the tasks for you.';
+
+  @override
+  String get featureSuggestionPrompt =>
+      'Tap to send the developer a suggestion and help shape this feature.';
+
+  @override
+  String get featureSuggestionTitle => 'Help us shape this feature';
+
+  @override
+  String get featureSuggestionHint => 'How would you like it to work?';
+
+  @override
+  String get featureSuggestionEmpty => 'Please write your suggestion.';
+
+  @override
   String get version => 'Version';
 
   @override

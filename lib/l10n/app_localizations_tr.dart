@@ -238,6 +238,29 @@ class AppLocalizationsTr extends AppLocalizations {
       'Geri bildirim gönderilemedi. Lütfen tekrar dene.';
 
   @override
+  String get comingSoon => 'Çok yakında…';
+
+  @override
+  String get aiTodoList => 'AI ile To Do list yapma';
+
+  @override
+  String get aiTodoListDescription =>
+      'Gününü anlat; estodo görevlerini senin için hazırlasın.';
+
+  @override
+  String get featureSuggestionPrompt =>
+      'Tıklayarak geliştirilmesinde geliştiriciye öneride bulunabilirsiniz';
+
+  @override
+  String get featureSuggestionTitle => 'Bu özelliği birlikte geliştirelim';
+
+  @override
+  String get featureSuggestionHint => 'Nasıl çalışmasını isterdin?';
+
+  @override
+  String get featureSuggestionEmpty => 'Lütfen önerini yaz.';
+
+  @override
   String get version => 'Sürüm';
 
   @override

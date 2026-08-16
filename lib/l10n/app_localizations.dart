@@ -542,6 +542,48 @@ abstract class AppLocalizations {
   /// **'Feedback could not be sent. Please try again.'**
   String get feedbackError;
 
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon…'**
+  String get comingSoon;
+
+  /// No description provided for @aiTodoList.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a To Do list with AI'**
+  String get aiTodoList;
+
+  /// No description provided for @aiTodoListDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your day and let estodo prepare the tasks for you.'**
+  String get aiTodoListDescription;
+
+  /// No description provided for @featureSuggestionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to send the developer a suggestion and help shape this feature.'**
+  String get featureSuggestionPrompt;
+
+  /// No description provided for @featureSuggestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help us shape this feature'**
+  String get featureSuggestionTitle;
+
+  /// No description provided for @featureSuggestionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like it to work?'**
+  String get featureSuggestionHint;
+
+  /// No description provided for @featureSuggestionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please write your suggestion.'**
+  String get featureSuggestionEmpty;
+
   /// No description provided for @version.
   ///
   /// In en, this message translates to:
