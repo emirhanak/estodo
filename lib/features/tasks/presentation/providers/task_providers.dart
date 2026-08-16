@@ -50,12 +50,12 @@ final listsProvider = StreamProvider<List<TaskList>>((ref) {
 
 final taskControllerProvider = Provider<TaskController>(TaskController.new);
 
-final myDayResetProvider = FutureProvider<void>((ref) async {
+final myDayCarryOverProvider = FutureProvider<void>((ref) async {
   final user = ref.watch(authStateProvider).value;
   if (user == null) return;
   await ref
       .watch(taskRepositoryProvider)
-      .resetExpiredMyDay(user.id, DateTimeFormatter.todayKey());
+      .carryOverExpiredMyDay(user.id, DateTimeFormatter.todayKey());
 });
 
 final deviceTokenRegistrationProvider = Provider<void>((ref) {
@@ -167,6 +167,12 @@ class TaskController {
     );
   }
 
+  Future<void> snoozeTask(TodoTask task, Duration duration) {
+    return updateTask(
+      task.copyWith(reminderAt: DateTime.now().add(duration)),
+    );
+  }
+
   Future<void> toggleImportant(TodoTask task) {
     return updateTask(task.copyWith(isImportant: !task.isImportant));
   }
@@ -210,7 +216,9 @@ class TaskController {
   }
 
   Future<void> deleteTask(TodoTask task) {
-    return _ref.read(taskRepositoryProvider).deleteTask(_requireUserId(), task.id);
+    return _ref
+        .read(taskRepositoryProvider)
+        .deleteTask(_requireUserId(), task.id);
   }
 
   Future<TaskList> createList(String name, int color) async {
@@ -264,7 +272,8 @@ class TaskController {
     }
   }
 
-  Future<void> bulkComplete(List<TodoTask> tasks, {required bool completed}) async {
+  Future<void> bulkComplete(List<TodoTask> tasks,
+      {required bool completed}) async {
     final now = DateTime.now();
     for (final task in tasks) {
       if (task.isCompleted == completed) continue;
@@ -277,14 +286,16 @@ class TaskController {
     }
   }
 
-  Future<void> bulkImportant(List<TodoTask> tasks, {required bool important}) async {
+  Future<void> bulkImportant(List<TodoTask> tasks,
+      {required bool important}) async {
     for (final task in tasks) {
       if (task.isImportant == important) continue;
       await updateTask(task.copyWith(isImportant: important));
     }
   }
 
-  Future<void> bulkMyDay(List<TodoTask> tasks, {required bool addToMyDay}) async {
+  Future<void> bulkMyDay(List<TodoTask> tasks,
+      {required bool addToMyDay}) async {
     for (final task in tasks) {
       final inMyDay = task.isInMyDay(DateTimeFormatter.todayKey());
       if (inMyDay == addToMyDay) continue;
@@ -315,7 +326,9 @@ class TaskController {
   }
 
   Future<void> deleteList(TaskList list) {
-    return _ref.read(taskRepositoryProvider).deleteList(_requireUserId(), list.id);
+    return _ref
+        .read(taskRepositoryProvider)
+        .deleteList(_requireUserId(), list.id);
   }
 
   String _requireUserId() {

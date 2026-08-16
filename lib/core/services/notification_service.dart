@@ -12,6 +12,13 @@ import '../constants/app_constants.dart';
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse response) {}
 
+class NotificationAction {
+  const NotificationAction({required this.taskId, required this.actionId});
+
+  final String taskId;
+  final String actionId;
+}
+
 class NotificationService {
   NotificationService({
     FlutterLocalNotificationsPlugin? localNotifications,
@@ -26,9 +33,13 @@ class NotificationService {
   var _permissionsGranted = false;
 
   final _tapController = StreamController<String>.broadcast();
+  final _actionController = StreamController<NotificationAction>.broadcast();
 
   /// Emits a taskId whenever the user taps a notification for a task.
   Stream<String> get onNotificationTap => _tapController.stream;
+
+  Stream<NotificationAction> get onNotificationAction =>
+      _actionController.stream;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -43,21 +54,37 @@ class NotificationService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinSettings = DarwinInitializationSettings(
+    final darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'task_reminder',
+          actions: [
+            DarwinNotificationAction.plain('complete', 'Tamamla'),
+            DarwinNotificationAction.plain('snooze_10m', '10 dk ertele'),
+          ],
+        ),
+      ],
     );
 
     await _localNotifications.initialize(
-      settings: const InitializationSettings(
+      settings: InitializationSettings(
         android: androidSettings,
         iOS: darwinSettings,
       ),
       onDidReceiveNotificationResponse: (response) {
         final taskId = response.payload;
         if (taskId != null && taskId.isNotEmpty) {
-          _tapController.add(taskId);
+          if (response.actionId == null || response.actionId!.isEmpty) {
+            _tapController.add(taskId);
+          } else {
+            _actionController.add(NotificationAction(
+              taskId: taskId,
+              actionId: response.actionId!,
+            ));
+          }
         }
       },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
@@ -165,8 +192,12 @@ class NotificationService {
           channelDescription: AppConstants.remindersChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
+          actions: [
+            AndroidNotificationAction('complete', 'Complete'),
+            AndroidNotificationAction('snooze_10m', 'Snooze 10m'),
+          ],
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(categoryIdentifier: 'task_reminder'),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: taskId,

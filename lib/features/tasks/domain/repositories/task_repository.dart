@@ -18,7 +18,7 @@ abstract interface class TaskRepository {
 
   Future<void> deleteList(String userId, String listId);
 
-  Future<void> resetExpiredMyDay(String userId, String todayKey);
+  Future<void> carryOverExpiredMyDay(String userId, String todayKey);
 
   Future<void> registerDeviceToken(String userId, String token);
 }

@@ -63,7 +63,7 @@ class TaskRemoteDataSource {
     await batch.commit();
   }
 
-  Future<void> resetExpiredMyDay(String userId, String todayKey) async {
+  Future<void> carryOverExpiredMyDay(String userId, String todayKey) async {
     final snapshot = await _userDoc(userId)
         .collection('tasks')
         .where('isMyDay', isEqualTo: true)
@@ -72,11 +72,12 @@ class TaskRemoteDataSource {
     final batch = _firestore.batch();
     var hasUpdates = false;
     for (final doc in snapshot.docs) {
-      if (doc.data()['myDayDate'] != todayKey) {
+      if (doc.data()['myDayDate'] != todayKey &&
+          doc.data()['isCompleted'] != true) {
         hasUpdates = true;
         batch.update(doc.reference, {
-          'isMyDay': false,
-          'myDayDate': null,
+          'isMyDay': true,
+          'myDayDate': todayKey,
           'updatedAt': Timestamp.fromDate(DateTime.now()),
         });
       }
@@ -139,8 +140,7 @@ class TaskRemoteDataSource {
     for (final doc in lists.docs) {
       batch.update(doc.reference, {'groupId': null});
     }
-    batch.delete(
-        _userDoc(userId).collection('list_groups').doc(groupId));
+    batch.delete(_userDoc(userId).collection('list_groups').doc(groupId));
     await batch.commit();
   }
 
@@ -217,10 +217,7 @@ class TaskRemoteDataSource {
   }
 
   Future<void> removeListMembership(String userId, String listId) {
-    return _userDoc(userId)
-        .collection('list_memberships')
-        .doc(listId)
-        .delete();
+    return _userDoc(userId).collection('list_memberships').doc(listId).delete();
   }
 
   DocumentReference<Map<String, dynamic>> _userDoc(String userId) {

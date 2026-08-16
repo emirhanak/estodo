@@ -85,21 +85,21 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<void> resetExpiredMyDay(String userId, String todayKey) async {
+  Future<void> carryOverExpiredMyDay(String userId, String todayKey) async {
     final tasks = await _local.getTasks(userId);
     for (final task in tasks.where(
-      (task) => task.isMyDay && task.myDayDate != todayKey,
+      (task) => task.isMyDay && task.myDayDate != todayKey && !task.isCompleted,
     )) {
       await _local.upsertTask(
         userId,
         task.copyWith(
-          isMyDay: false,
-          myDayDate: null,
+          isMyDay: true,
+          myDayDate: todayKey,
           updatedAt: DateTime.now(),
         ),
       );
     }
-    await _remote.resetExpiredMyDay(userId, todayKey);
+    await _remote.carryOverExpiredMyDay(userId, todayKey);
   }
 
   @override

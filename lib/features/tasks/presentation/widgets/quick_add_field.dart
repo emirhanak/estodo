@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../providers/task_providers.dart';
+import '../utils/quick_add_parser.dart';
 import 'task_editor_sheet.dart';
 
 class QuickAddPrefill {
@@ -54,12 +55,17 @@ class _QuickAddFieldState extends ConsumerState<QuickAddField> {
   Future<void> _submit() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    final parsed = parseQuickAdd(text);
+    if (parsed.title.isEmpty) return;
     final prefill = widget.prefill ?? const QuickAddPrefill();
     await ref.read(taskControllerProvider).createTask(
-          title: text,
+          title: parsed.title,
           listId: prefill.listId,
           isMyDay: prefill.isMyDay,
           isImportant: prefill.isImportant,
+          dueAt: parsed.dueAt,
+          reminderAt: parsed.reminderAt,
+          recurrence: parsed.recurrence,
         );
     _controller.clear();
     _focusNode.requestFocus();

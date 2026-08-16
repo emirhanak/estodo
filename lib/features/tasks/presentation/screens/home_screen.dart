@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/connectivity_provider.dart';
 import '../../../../core/services/notification_provider.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/preferences_provider.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -44,6 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   var _section = HomeSection.myDay;
   String? _selectedListId;
   StreamSubscription<String>? _notificationTapSub;
+  StreamSubscription<NotificationAction>? _notificationActionSub;
 
   @override
   void initState() {
@@ -51,13 +53,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final service = ref.read(notificationServiceProvider);
       _notificationTapSub = service.onNotificationTap.listen(_openTaskById);
+      _notificationActionSub =
+          service.onNotificationAction.listen(_handleNotificationAction);
     });
   }
 
   @override
   void dispose() {
     _notificationTapSub?.cancel();
+    _notificationActionSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> _handleNotificationAction(NotificationAction action) async {
+    final tasks = ref.read(tasksProvider).value;
+    TodoTask? task;
+    for (final candidate in tasks ?? const <TodoTask>[]) {
+      if (candidate.id == action.taskId) {
+        task = candidate;
+        break;
+      }
+    }
+    if (task == null || !mounted) return;
+    final controller = ref.read(taskControllerProvider);
+    switch (action.actionId) {
+      case 'complete':
+        await controller.toggleComplete(task);
+      case 'snooze_10m':
+        await controller.snoozeTask(task, const Duration(minutes: 10));
+    }
   }
 
   Future<void> _openTaskById(String taskId) async {
@@ -77,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(myDayResetProvider).whenOrNull(error: (_, __) {});
+    ref.watch(myDayCarryOverProvider).whenOrNull(error: (_, __) {});
     ref.watch(deviceTokenRegistrationProvider);
 
     final lists = ref.watch(listsProvider).value ?? const <TaskList>[];
