@@ -3,7 +3,7 @@
 ## Delete from the app
 
 Open **Settings**, select **Delete account**, confirm the warning, and verify
-your password when requested. estodo deletes the Firebase account, tasks,
+your password when requested. estodo deletes the cloud account, tasks,
 lists, device tokens, local task cache, and scheduled notifications.
 
 Guest users can use the same Settings action without a password.
@@ -17,7 +17,7 @@ and associated task data will be deleted within 30 days.
 ## Hesabı uygulamadan silme
 
 **Ayarlar** ekranını açın, **Hesabı sil** seçeneğine dokunun, uyarıyı onaylayın
-ve istendiğinde şifrenizi girin. estodo; Firebase hesabınızı, görevlerinizi,
+ve istendiğinde şifrenizi girin. estodo; bulut hesabınızı, görevlerinizi,
 listelerinizi, cihaz jetonlarınızı, yerel görev önbelleğini ve planlanmış
 bildirimleri siler.
 

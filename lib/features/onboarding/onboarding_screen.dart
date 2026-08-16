@@ -59,7 +59,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               icon: Icons.cloud_done_outlined,
               title: 'Synced everywhere',
               body:
-                  'Tasks sync via Firebase across your devices and work offline too.',
+                  'Tasks sync through the cloud across your devices and work offline too.',
             ),
           ];
   }

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/connectivity_provider.dart';
 import '../../../../core/services/notification_provider.dart';
@@ -533,7 +533,7 @@ class _SideNavigation extends ConsumerWidget {
               children: [
                 Expanded(
                   child: SvgPicture.asset(
-                    'assets/branding/estodo_uzun.svg',
+                    'assets/branding/estodo_wordmark.svg',
                     height: 28,
                     fit: BoxFit.contain,
                     alignment: Alignment.centerLeft,

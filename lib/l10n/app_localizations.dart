@@ -485,7 +485,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Firestore sync with offline support'**
+  /// **'Cloud sync with offline support'**
   String get syncDescription;
 
   /// No description provided for @version.

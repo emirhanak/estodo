@@ -205,7 +205,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sync => 'Eşitleme';
 
   @override
-  String get syncDescription => 'Firestore eşitlemesi ve çevrimdışı destek';
+  String get syncDescription => 'Bulut eşitlemesi ve çevrimdışı destek';
 
   @override
   String get version => 'Sürüm';

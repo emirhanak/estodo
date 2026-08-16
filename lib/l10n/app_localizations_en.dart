@@ -205,7 +205,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sync => 'Sync';
 
   @override
-  String get syncDescription => 'Firestore sync with offline support';
+  String get syncDescription => 'Cloud sync with offline support';
 
   @override
   String get version => 'Version';

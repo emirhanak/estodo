@@ -30,7 +30,7 @@ estodo, gününü düzene sokmak için tasarlanmış sade ve hızlı bir görev 
 
 ✦ Gizlilik
 
-Verilerin sana aittir. Reklam göstermez, verilerini satmayız. Görevlerin Google Firebase üzerinde güvenle saklanır ve yalnızca sana özeldir.
+Verilerin sana aittir. Reklam göstermez, verilerini satmayız. Görevlerin bulutta güvenle saklanır ve yalnızca sana özeldir.
 
 Gizlilik Politikası: https://gist.github.com/emirhanak/c8a2cfc7502e74d18acfc3bc4705cd51
 
@@ -68,7 +68,7 @@ Because your task list should make your day easier, not harder. Instead of pilin
 
 ✦ Privacy
 
-Your data belongs to you. We don't show ads. We don't sell your data. Tasks are stored securely on Google Firebase and visible only to you.
+Your data belongs to you. We don't show ads. We don't sell your data. Tasks are stored securely in the cloud and visible only to you.
 
 Privacy Policy: https://gist.github.com/emirhanak/c8a2cfc7502e74d18acfc3bc4705cd51
 

@@ -64,7 +64,7 @@
   "accentColor": "Vurgu rengi",
   "about": "Hakkında",
   "sync": "Eşitleme",
-  "syncDescription": "Firestore eşitlemesi ve çevrimdışı destek",
+  "syncDescription": "Bulut eşitlemesi ve çevrimdışı destek",
   "version": "Sürüm",
   "loading": "Yükleniyor…",
   "unavailable": "Kullanılamıyor",

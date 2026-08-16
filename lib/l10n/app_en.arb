@@ -70,7 +70,7 @@
   "accentColor": "Accent color",
   "about": "About",
   "sync": "Sync",
-  "syncDescription": "Firestore sync with offline support",
+  "syncDescription": "Cloud sync with offline support",
   "version": "Version",
   "loading": "Loading…",
   "unavailable": "Unavailable",
