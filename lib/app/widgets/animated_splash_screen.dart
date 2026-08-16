@@ -144,9 +144,9 @@ class _SplashVisual extends StatelessWidget {
               child: Transform.scale(
                 scale: logoScale,
                 child: SvgPicture.asset(
-                  'assets/branding/estodo.svg',
-                  width: 154,
-                  height: 154,
+                  'lib/app/icon/estodo.svg',
+                  width: 230,
+                  height: 92,
                   fit: BoxFit.contain,
                   semanticsLabel: 'estodo',
                 ),
