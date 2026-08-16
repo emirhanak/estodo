@@ -1,16 +1,19 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../app/theme/app_theme.dart';
-import '../../../../core/services/firebase_providers.dart';
 import '../../../../core/services/preferences_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/theme_mode_provider.dart';
+
+const _feedbackEndpoint = 'https://estodo-feedback.emirhanak.workers.dev';
 
 final packageInfoProvider = FutureProvider<PackageInfo>(
   (ref) => PackageInfo.fromPlatform(),
@@ -314,35 +317,20 @@ class SettingsScreen extends ConsumerWidget {
 
     final user = ref.read(authStateProvider).value;
     try {
-      final firestore = ref.read(firestoreProvider);
-      final feedbackRef = firestore.collection('feedback').doc();
-      final mailRef = firestore.collection('mail').doc();
-      final createdAt = FieldValue.serverTimestamp();
       final userEmail = user?.email ?? 'unknown';
       final displayName = user?.displayName ?? 'unknown';
-      final feedbackData = {
-        'message': message,
-        'userId': user?.id,
-        'userEmail': userEmail,
-        'displayName': displayName,
-        'recipientEmail': 'flashemirhan@gmail.com',
-        'locale': Localizations.localeOf(context).languageCode,
-        'createdAt': createdAt,
-        'status': 'new',
-      };
-      final batch = firestore.batch()
-        ..set(feedbackRef, feedbackData)
-        // Compatible with Firebase's Trigger Email extension. Once enabled,
-        // this queue document is delivered to the configured recipient.
-        ..set(mailRef, {
-          'to': ['flashemirhan@gmail.com'],
-          'message': {
-            'subject': 'estodo bug bildirimi',
-            'text': 'Kullanıcı: $displayName <$userEmail>\n\n$message',
-          },
-          'createdAt': createdAt,
-        });
-      await batch.commit();
+      final response = await http.post(
+        Uri.parse(_feedbackEndpoint),
+        headers: const {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': message,
+          'userEmail': userEmail,
+          'displayName': displayName,
+        }),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError('Feedback worker rejected the request.');
+      }
       if (context.mounted) await _showFeedbackThanks(context);
     } catch (_) {
       if (!context.mounted) return;
