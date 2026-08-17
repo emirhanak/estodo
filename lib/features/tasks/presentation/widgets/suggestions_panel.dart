@@ -26,19 +26,22 @@ class _SuggestionsPanelState extends ConsumerState<SuggestionsPanel> {
   @override
   Widget build(BuildContext context) {
     final today = DateTimeFormatter.todayKey();
-    final suggestions = widget.tasks.where((task) {
-      if (task.isCompleted) return false;
-      if (task.isInMyDay(today)) return false;
-      if (task.dueAt != null) {
-        final due = task.dueAt!;
-        if (due.isBefore(DateTime.now().add(const Duration(days: 3)))) {
-          return true;
-        }
-      }
-      final ageDays = DateTime.now().difference(task.createdAt).inDays;
-      if (ageDays >= 1 && ageDays <= 7) return true;
-      return false;
-    }).take(8).toList();
+    final suggestions = widget.tasks
+        .where((task) {
+          if (task.isCompleted) return false;
+          if (task.isInMyDay(today)) return false;
+          if (task.dueAt != null) {
+            final due = task.dueAt!;
+            if (due.isBefore(DateTime.now().add(const Duration(days: 3)))) {
+              return true;
+            }
+          }
+          final ageDays = DateTime.now().difference(task.createdAt).inDays;
+          if (ageDays >= 1 && ageDays <= 7) return true;
+          return false;
+        })
+        .take(8)
+        .toList();
 
     if (suggestions.isEmpty) return const SizedBox.shrink();
 
@@ -98,9 +101,8 @@ class _SuggestionsPanelState extends ConsumerState<SuggestionsPanel> {
                       _SuggestionTile(
                         task: task,
                         accent: widget.accent,
-                        onAdd: () => ref
-                            .read(taskControllerProvider)
-                            .toggleMyDay(task),
+                        onAdd: () =>
+                            ref.read(taskControllerProvider).toggleMyDay(task),
                       ),
                   ],
                 ),
@@ -161,7 +163,9 @@ class _SuggestionTile extends StatelessWidget {
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
         trailing: IconButton(
-          tooltip: 'Add to My Day',
+          tooltip: Localizations.localeOf(context).languageCode == 'tr'
+              ? 'Günüme ekle'
+              : 'Add to My Day',
           icon: Icon(Icons.add_circle_outline_rounded, color: accent),
           onPressed: onAdd,
         ),

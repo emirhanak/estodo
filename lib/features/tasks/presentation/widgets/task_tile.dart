@@ -266,11 +266,23 @@ class _TaskTileState extends ConsumerState<TaskTile> {
       );
     }
     if ((task.notes ?? '').isNotEmpty) {
-      items.add(_metaText(Icons.notes_rounded, 'Note', scheme, textStyle));
+      items.add(_metaText(
+        Icons.notes_rounded,
+        Localizations.localeOf(context).languageCode == 'tr' ? 'Not' : 'Note',
+        scheme,
+        textStyle,
+      ));
     }
     if (isMyDay) {
       items.add(
-        _metaText(Icons.wb_sunny_outlined, 'My Day', scheme, textStyle),
+        _metaText(
+          Icons.wb_sunny_outlined,
+          Localizations.localeOf(context).languageCode == 'tr'
+              ? 'Günüm'
+              : 'My Day',
+          scheme,
+          textStyle,
+        ),
       );
     }
     return items;

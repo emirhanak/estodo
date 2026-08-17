@@ -77,60 +77,60 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
       child: Stack(
         children: [
           tasksAsync.when(
-          data: (tasks) {
-            final filtered = tasks.where(widget.filter).toList();
-            final lists = listsAsync.value ?? const <TaskList>[];
-            return RefreshIndicator(
-              color: accent,
-              onRefresh: () async {
-                ref.invalidate(tasksProvider);
-                ref.invalidate(listsProvider);
-                await Future<void>.delayed(const Duration(milliseconds: 300));
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  if (widget.showMyDayBanner)
-                    SliverToBoxAdapter(child: MyDayBanner(accent: accent))
-                  else
-                    SliverToBoxAdapter(
-                      child: _Header(
-                        title: widget.title,
-                        subtitle: widget.subtitle,
-                        icon: widget.icon,
-                        accent: accent,
-                        actions: widget.headerActions,
+            data: (tasks) {
+              final filtered = tasks.where(widget.filter).toList();
+              final lists = listsAsync.value ?? const <TaskList>[];
+              return RefreshIndicator(
+                color: accent,
+                onRefresh: () async {
+                  ref.invalidate(tasksProvider);
+                  ref.invalidate(listsProvider);
+                  await Future<void>.delayed(const Duration(milliseconds: 300));
+                },
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    if (widget.showMyDayBanner)
+                      SliverToBoxAdapter(child: MyDayBanner(accent: accent))
+                    else if (MediaQuery.sizeOf(context).width >= 720)
+                      SliverToBoxAdapter(
+                        child: _Header(
+                          title: widget.title,
+                          subtitle: widget.subtitle,
+                          icon: widget.icon,
+                          accent: accent,
+                          actions: widget.headerActions,
+                        ),
                       ),
-                    ),
-                  if (widget.showSuggestions)
-                    SliverToBoxAdapter(
-                      child: SuggestionsPanel(accent: accent, tasks: tasks),
-                    ),
-                  if (widget.showQuickAdd && !selection.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: QuickAddField(
-                        accent: accent,
-                        prefill: widget.quickAddPrefill,
+                    if (widget.showSuggestions)
+                      SliverToBoxAdapter(
+                        child: SuggestionsPanel(accent: accent, tasks: tasks),
                       ),
-                    ),
-                  ..._buildContent(context, filtered, lists, accent),
-                  const SliverToBoxAdapter(child: SizedBox(height: 140)),
-                ],
-              ),
-            );
-          },
-          error: (_, __) => Builder(
-            builder: (context) {
-              final l10n = AppLocalizations.of(context);
-              return EmptyState(
-                icon: Icons.error_outline_rounded,
-                title: l10n.errorCouldNotLoadTasks,
-                message: l10n.errorTryAgain,
+                    if (widget.showQuickAdd && !selection.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: QuickAddField(
+                          accent: accent,
+                          prefill: widget.quickAddPrefill,
+                        ),
+                      ),
+                    ..._buildContent(context, filtered, lists, accent),
+                    const SliverToBoxAdapter(child: SizedBox(height: 140)),
+                  ],
+                ),
               );
             },
+            error: (_, __) => Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context);
+                return EmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: l10n.errorCouldNotLoadTasks,
+                  message: l10n.errorTryAgain,
+                );
+              },
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-        ),
           if (selection.isNotEmpty)
             Align(
               alignment: Alignment.bottomCenter,
@@ -399,8 +399,7 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
             ),
             collapsedBackgroundColor:
                 scheme.surfaceContainerHigh.withValues(alpha: 0.5),
-            backgroundColor:
-                scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+            backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
             title: Text(
               l10n.completedCount(completed.length),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(

@@ -39,6 +39,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get newList => 'Yeni liste';
 
   @override
+  String get listUnavailable => 'Liste kullanılamıyor';
+
+  @override
+  String get selectAnotherList => 'Kenar menüden başka bir liste seçin.';
+
+  @override
   String get renameList => 'Listeyi yeniden adlandır';
 
   @override

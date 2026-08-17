@@ -10,6 +10,8 @@
   "settings": "Ayarlar",
   "lists": "Listeler",
   "newList": "Yeni liste",
+  "listUnavailable": "Liste kullanılamıyor",
+  "selectAnotherList": "Kenar menüden başka bir liste seçin.",
   "renameList": "Listeyi yeniden adlandır",
   "deleteList": "Listeyi sil",
   "deleteListConfirmTitle": "Liste silinsin mi?",

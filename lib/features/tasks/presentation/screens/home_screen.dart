@@ -44,6 +44,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   var _section = HomeSection.myDay;
   String? _selectedListId;
+  bool _wideMenuOpen = true;
   StreamSubscription<String>? _notificationTapSub;
   StreamSubscription<NotificationAction>? _notificationActionSub;
 
@@ -163,12 +164,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               bottom: false,
               child: Row(
                 children: [
-                  Container(
-                    width: navigationWidth,
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    width: _wideMenuOpen ? navigationWidth : 78,
                     decoration: BoxDecoration(
                       color: navigationColor,
                     ),
-                    child: navigation,
+                    child: _SideNavigation(
+                      section: _section,
+                      selectedListId: _selectedListId,
+                      lists: lists,
+                      tasks: tasks,
+                      compact: !_wideMenuOpen,
+                      onToggleCompact: () =>
+                          setState(() => _wideMenuOpen = !_wideMenuOpen),
+                      onSelectSection: _selectSection,
+                      onSelectList: _selectList,
+                      onCreateList: _createList,
+                      onRenameList: _renameList,
+                      onDeleteList: _deleteList,
+                    ),
                   ),
                   Expanded(child: body),
                 ],
@@ -187,7 +203,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             leading: IconButton(
-              tooltip: 'Open menu',
+              tooltip: Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Menüyü aç'
+                  : 'Open menu',
               icon: const Icon(Icons.menu_rounded),
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
@@ -261,8 +279,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ? TaskCollectionScreen(
               title: l10n.list,
               icon: Icons.list_rounded,
-              emptyTitle: 'List unavailable',
-              emptyMessage: 'Select another list from the sidebar.',
+              emptyTitle: l10n.listUnavailable,
+              emptyMessage: l10n.selectAnotherList,
               filter: (_) => false,
             )
           : _CustomListScreen(list: selectedList),
@@ -318,6 +336,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _createList() async {
+    _scaffoldKey.currentState?.closeDrawer();
+    await Future<void>.delayed(const Duration(milliseconds: 180));
     final draft = await showDialog<_ListDraft>(
       context: context,
       useRootNavigator: true,
@@ -332,6 +352,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _renameList(TaskList list) async {
+    _scaffoldKey.currentState?.closeDrawer();
+    await Future<void>.delayed(const Duration(milliseconds: 180));
     final draft = await showDialog<_ListDraft>(
       context: context,
       useRootNavigator: true,
@@ -501,6 +523,8 @@ class _SideNavigation extends ConsumerWidget {
     required this.onCreateList,
     required this.onRenameList,
     required this.onDeleteList,
+    this.compact = false,
+    this.onToggleCompact,
   });
 
   final HomeSection section;
@@ -512,6 +536,8 @@ class _SideNavigation extends ConsumerWidget {
   final VoidCallback onCreateList;
   final ValueChanged<TaskList> onRenameList;
   final ValueChanged<TaskList> onDeleteList;
+  final bool compact;
+  final VoidCallback? onToggleCompact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -546,6 +572,7 @@ class _SideNavigation extends ConsumerWidget {
       required IconData icon,
       required String label,
       required String prefKey,
+      bool compact = false,
     }) {
       if (hidden.contains(prefKey)) return const SizedBox.shrink();
       return _NavTile(
@@ -554,6 +581,7 @@ class _SideNavigation extends ConsumerWidget {
         count: counts[target] ?? 0,
         selected: section == target,
         onTap: () => onSelectSection(target),
+        compact: compact,
       );
     }
 
@@ -565,24 +593,31 @@ class _SideNavigation extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
             child: Row(
               children: [
-                Expanded(
-                  child: SvgPicture.asset(
-                    'assets/branding/estodo_wordmark.svg',
-                    height: 32,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.centerLeft,
-                    placeholderBuilder: (_) => Text(
-                      'estodo',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                IconButton(
+                  tooltip: compact ? 'Menüyü aç' : 'Menüyü kapat',
+                  onPressed: onToggleCompact,
+                  icon: Icon(
+                      compact ? Icons.menu_rounded : Icons.menu_open_rounded),
+                ),
+                if (!compact)
+                  Expanded(
+                    child: SvgPicture.asset(
+                      'assets/branding/estodo_wordmark.svg',
+                      height: 32,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.centerLeft,
+                      placeholderBuilder: (_) => Text(
+                        'estodo',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
-          if (user != null)
+          if (user != null && !compact)
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
               child: Text(
@@ -612,10 +647,9 @@ class _SideNavigation extends ConsumerWidget {
                       Icon(Icons.search_rounded,
                           color: scheme.onSurfaceVariant, size: 20),
                       const SizedBox(width: 10),
-                      Text(
-                        l10n.search,
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
+                      if (!compact)
+                        Text(l10n.search,
+                            style: TextStyle(color: scheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -632,30 +666,35 @@ class _SideNavigation extends ConsumerWidget {
                       target: HomeSection.myDay,
                       icon: Icons.wb_sunny_outlined,
                       label: l10n.myDay,
+                      compact: compact,
                       prefKey: 'myDay',
                     ),
                     smartTile(
                       target: HomeSection.important,
                       icon: Icons.star_border_rounded,
                       label: l10n.important,
+                      compact: compact,
                       prefKey: 'important',
                     ),
                     smartTile(
                       target: HomeSection.planned,
                       icon: Icons.event_outlined,
                       label: l10n.planned,
+                      compact: compact,
                       prefKey: 'planned',
                     ),
                     smartTile(
                       target: HomeSection.tasks,
                       icon: Icons.inbox_outlined,
                       label: l10n.tasks,
+                      compact: compact,
                       prefKey: 'tasks',
                     ),
                     smartTile(
                       target: HomeSection.completed,
                       icon: Icons.check_circle_outline_rounded,
                       label: l10n.completed,
+                      compact: compact,
                       prefKey: 'completed',
                     ),
                     Padding(
@@ -704,7 +743,7 @@ class _SideNavigation extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.add_rounded),
-            title: Text(l10n.newList),
+            title: compact ? null : Text(l10n.newList),
             onTap: onCreateList,
           ),
           _NavTile(
@@ -712,6 +751,7 @@ class _SideNavigation extends ConsumerWidget {
             label: l10n.settings,
             selected: section == HomeSection.settings,
             onTap: () => onSelectSection(HomeSection.settings),
+            compact: compact,
           ),
         ],
       ),
@@ -726,6 +766,7 @@ class _NavTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.count,
+    this.compact = false,
   });
 
   final IconData icon;
@@ -733,15 +774,22 @@ class _NavTile extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final int? count;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
       child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
         selected: selected,
         leading: Icon(icon, size: 20),
-        title: Text(label),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: compact
+              ? const SizedBox.shrink()
+              : Text(label, key: ValueKey(label)),
+        ),
         trailing: count == null || count == 0
             ? null
             : Text(
@@ -801,7 +849,9 @@ class _CustomListTile extends StatelessWidget {
                 ),
               ),
             PopupMenuButton<_ListAction>(
-              tooltip: 'List actions',
+              tooltip: Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Liste işlemleri'
+                  : 'List actions',
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.more_horiz_rounded, size: 18),
               onSelected: (action) {

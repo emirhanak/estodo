@@ -433,10 +433,15 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     filled: false,
-                    icon: Icon(
+                    prefixIcon: Icon(
                       Icons.notes_rounded,
                       color: scheme.onSurfaceVariant,
                     ),
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
                 ),
               ),
@@ -734,7 +739,10 @@ class _StepsSection extends StatelessWidget {
                     onSubmitted: (_) => onAddStep(),
                     decoration: InputDecoration(
                       hintText: l10n.addStep,
-                      hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+                      hintStyle: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 14,
+                      ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -794,7 +802,9 @@ class _ActionTile extends StatelessWidget {
         trailing: onClear == null
             ? null
             : IconButton(
-                tooltip: 'Clear',
+                tooltip: Localizations.localeOf(context).languageCode == 'tr'
+                    ? 'Temizle'
+                    : 'Clear',
                 icon: const Icon(Icons.close_rounded),
                 onPressed: onClear,
               ),

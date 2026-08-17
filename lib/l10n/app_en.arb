@@ -10,6 +10,8 @@
   "settings": "Settings",
   "lists": "Lists",
   "newList": "New list",
+  "listUnavailable": "List unavailable",
+  "selectAnotherList": "Select another list from the sidebar.",
   "renameList": "Rename list",
   "deleteList": "Delete list",
   "deleteListConfirmTitle": "Delete list?",

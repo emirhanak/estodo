@@ -39,6 +39,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newList => 'New list';
 
   @override
+  String get listUnavailable => 'List unavailable';
+
+  @override
+  String get selectAnotherList => 'Select another list from the sidebar.';
+
+  @override
   String get renameList => 'Rename list';
 
   @override

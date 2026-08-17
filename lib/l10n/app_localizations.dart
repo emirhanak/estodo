@@ -158,6 +158,18 @@ abstract class AppLocalizations {
   /// **'New list'**
   String get newList;
 
+  /// No description provided for @listUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'List unavailable'**
+  String get listUnavailable;
+
+  /// No description provided for @selectAnotherList.
+  ///
+  /// In en, this message translates to:
+  /// **'Select another list from the sidebar.'**
+  String get selectAnotherList;
+
   /// No description provided for @renameList.
   ///
   /// In en, this message translates to:
