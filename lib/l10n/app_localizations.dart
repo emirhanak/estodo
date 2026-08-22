@@ -302,6 +302,126 @@ abstract class AppLocalizations {
   /// **'No plans for this day'**
   String get plannedDayEmpty;
 
+  /// No description provided for @plannedDayView.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get plannedDayView;
+
+  /// No description provided for @plannedWeekView.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get plannedWeekView;
+
+  /// No description provided for @plannedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get plannedToday;
+
+  /// No description provided for @plannedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get plannedNow;
+
+  /// No description provided for @plannedTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get plannedTimeline;
+
+  /// No description provided for @plannedUnscheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unscheduled'**
+  String get plannedUnscheduled;
+
+  /// No description provided for @plannedUnscheduledHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag onto the timeline or tap + to give it a time.'**
+  String get plannedUnscheduledHint;
+
+  /// No description provided for @plannedEmptyDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is open'**
+  String get plannedEmptyDayTitle;
+
+  /// No description provided for @plannedEmptyDayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a first block and give the day a shape.'**
+  String get plannedEmptyDayBody;
+
+  /// No description provided for @plannedEmptyWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled this week'**
+  String get plannedEmptyWeek;
+
+  /// No description provided for @plannedMinutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String plannedMinutesShort(int minutes);
+
+  /// No description provided for @plannedHoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h'**
+  String plannedHoursShort(int hours);
+
+  /// No description provided for @plannedRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left'**
+  String plannedRemaining(int minutes);
+
+  /// No description provided for @plannedFreeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min free'**
+  String plannedFreeMinutes(int minutes);
+
+  /// No description provided for @plannedAddAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at {time}'**
+  String plannedAddAt(String time);
+
+  /// No description provided for @plannedScheduledAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled for {time}'**
+  String plannedScheduledAt(String time);
+
+  /// No description provided for @plannedProgressSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String plannedProgressSummary(int done, int total);
+
+  /// No description provided for @plannedPickMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get plannedPickMonth;
+
+  /// No description provided for @plannedPreviousWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get plannedPreviousWeek;
+
+  /// No description provided for @plannedNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get plannedNextWeek;
+
   /// No description provided for @dueLabel.
   ///
   /// In en, this message translates to:

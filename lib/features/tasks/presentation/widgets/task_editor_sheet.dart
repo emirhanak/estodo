@@ -18,6 +18,7 @@ Future<void> showTaskEditorSheet(
   String? initialTitle,
   String? initialListId,
   DateTime? initialDueDate,
+  DateTime? initialStartAt,
   bool initialMyDay = false,
   bool initialImportant = false,
 }) {
@@ -32,6 +33,7 @@ Future<void> showTaskEditorSheet(
       initialTitle: initialTitle,
       initialListId: initialListId,
       initialDueDate: initialDueDate,
+      initialStartAt: initialStartAt,
       initialMyDay: initialMyDay,
       initialImportant: initialImportant,
     ),
@@ -45,6 +47,7 @@ class TaskEditorSheet extends ConsumerStatefulWidget {
     this.initialTitle,
     this.initialListId,
     this.initialDueDate,
+    this.initialStartAt,
     this.initialMyDay = false,
     this.initialImportant = false,
   });
@@ -53,6 +56,7 @@ class TaskEditorSheet extends ConsumerStatefulWidget {
   final String? initialTitle;
   final String? initialListId;
   final DateTime? initialDueDate;
+  final DateTime? initialStartAt;
   final bool initialMyDay;
   final bool initialImportant;
 
@@ -89,8 +93,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     _notesController.text = task?.notes ?? '';
     _listId = task?.listId ?? widget.initialListId;
     _priority = task?.priority ?? TaskPriority.medium;
-    _dueAt = task?.dueAt ?? widget.initialDueDate;
-    _startAt = task?.startAt;
+    _dueAt = task?.dueAt ?? widget.initialDueDate ?? widget.initialStartAt;
+    _startAt = task?.startAt ?? widget.initialStartAt;
     _durationMinutes = task?.durationMinutes;
     _reminderAt = task?.reminderAt;
     _recurrence = task?.recurrence;

@@ -19,6 +19,7 @@ import '../providers/selection_provider.dart';
 import '../providers/task_providers.dart';
 import '../widgets/quick_add_field.dart';
 import '../widgets/task_editor_sheet.dart';
+import 'planned_screen.dart';
 import 'search_screen.dart';
 import 'task_collection_screen.dart';
 
@@ -198,10 +199,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           key: _scaffoldKey,
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.surface,
-            title: Text(
-              _title(selectedList, AppLocalizations.of(context)),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            // The planned tab carries its own Structured-style date headline,
+            // so the app bar only keeps the menu affordance there.
+            toolbarHeight: _section == HomeSection.planned ? 48 : null,
+            title: _section == HomeSection.planned
+                ? null
+                : Text(
+                    _title(selectedList, AppLocalizations.of(context)),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
             leading: IconButton(
               tooltip: Localizations.localeOf(context).languageCode == 'tr'
                   ? 'Menüyü aç'
@@ -247,15 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           filter: (task) => task.isImportant,
           quickAddPrefill: const QuickAddPrefill(isImportant: true),
         ),
-      HomeSection.planned => TaskCollectionScreen(
-          title: l10n.planned,
-          icon: Icons.event_rounded,
-          emptyTitle: l10n.emptyPlannedTitle,
-          emptyMessage: l10n.emptyPlannedBody,
-          filter: (task) => !task.isCompleted && task.dueAt != null,
-          layout: CollectionLayout.planned,
-          showQuickAdd: false,
-        ),
+      HomeSection.planned => const PlannedScreen(),
       HomeSection.tasks => TaskCollectionScreen(
           title: l10n.tasks,
           icon: Icons.inbox_rounded,

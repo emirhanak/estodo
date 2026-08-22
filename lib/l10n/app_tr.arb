@@ -34,6 +34,50 @@
   "customDuration": "Özel süre",
   "minutes": "dakika",
   "plannedDayEmpty": "Bu gün için plan yok",
+  "plannedDayView": "Gün",
+  "plannedWeekView": "Hafta",
+  "plannedToday": "Bugün",
+  "plannedNow": "Şimdi",
+  "plannedTimeline": "Zaman çizelgesi",
+  "plannedUnscheduled": "Saati yok",
+  "plannedUnscheduledHint": "Zaman çizelgesine sürükle ya da + ile saat ver.",
+  "plannedEmptyDayTitle": "Bu gün boş",
+  "plannedEmptyDayBody": "İlk bloğu ekle, güne şeklini ver.",
+  "plannedEmptyWeek": "Bu hafta planlanmış bir şey yok",
+  "plannedMinutesShort": "{minutes} dk",
+  "@plannedMinutesShort": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedHoursShort": "{hours} sa",
+  "@plannedHoursShort": {
+    "placeholders": { "hours": { "type": "int" } }
+  },
+  "plannedRemaining": "{minutes} dk kaldı",
+  "@plannedRemaining": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedFreeMinutes": "{minutes} dk boş",
+  "@plannedFreeMinutes": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedAddAt": "{time} için ekle",
+  "@plannedAddAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "plannedScheduledAt": "{time} olarak planlandı",
+  "@plannedScheduledAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "plannedProgressSummary": "{total} görevin {done} tanesi tamam",
+  "@plannedProgressSummary": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "plannedPickMonth": "Tarih seç",
+  "plannedPreviousWeek": "Önceki hafta",
+  "plannedNextWeek": "Sonraki hafta",
   "dueLabel": "Son tarih",
   "repeat": "Tekrar",
   "repeats": "Tekrarlanıyor",

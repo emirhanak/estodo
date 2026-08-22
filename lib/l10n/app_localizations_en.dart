@@ -115,6 +115,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedDayEmpty => 'No plans for this day';
 
   @override
+  String get plannedDayView => 'Day';
+
+  @override
+  String get plannedWeekView => 'Week';
+
+  @override
+  String get plannedToday => 'Today';
+
+  @override
+  String get plannedNow => 'Now';
+
+  @override
+  String get plannedTimeline => 'Timeline';
+
+  @override
+  String get plannedUnscheduled => 'Unscheduled';
+
+  @override
+  String get plannedUnscheduledHint =>
+      'Drag onto the timeline or tap + to give it a time.';
+
+  @override
+  String get plannedEmptyDayTitle => 'This day is open';
+
+  @override
+  String get plannedEmptyDayBody =>
+      'Add a first block and give the day a shape.';
+
+  @override
+  String get plannedEmptyWeek => 'Nothing scheduled this week';
+
+  @override
+  String plannedMinutesShort(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String plannedHoursShort(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String plannedRemaining(int minutes) {
+    return '$minutes min left';
+  }
+
+  @override
+  String plannedFreeMinutes(int minutes) {
+    return '$minutes min free';
+  }
+
+  @override
+  String plannedAddAt(String time) {
+    return 'Add at $time';
+  }
+
+  @override
+  String plannedScheduledAt(String time) {
+    return 'Scheduled for $time';
+  }
+
+  @override
+  String plannedProgressSummary(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get plannedPickMonth => 'Pick a date';
+
+  @override
+  String get plannedPreviousWeek => 'Previous week';
+
+  @override
+  String get plannedNextWeek => 'Next week';
+
+  @override
   String get dueLabel => 'Due';
 
   @override

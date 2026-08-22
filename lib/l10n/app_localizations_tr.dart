@@ -115,6 +115,81 @@ class AppLocalizationsTr extends AppLocalizations {
   String get plannedDayEmpty => 'Bu gün için plan yok';
 
   @override
+  String get plannedDayView => 'Gün';
+
+  @override
+  String get plannedWeekView => 'Hafta';
+
+  @override
+  String get plannedToday => 'Bugün';
+
+  @override
+  String get plannedNow => 'Şimdi';
+
+  @override
+  String get plannedTimeline => 'Zaman çizelgesi';
+
+  @override
+  String get plannedUnscheduled => 'Saati yok';
+
+  @override
+  String get plannedUnscheduledHint =>
+      'Zaman çizelgesine sürükle ya da + ile saat ver.';
+
+  @override
+  String get plannedEmptyDayTitle => 'Bu gün boş';
+
+  @override
+  String get plannedEmptyDayBody => 'İlk bloğu ekle, güne şeklini ver.';
+
+  @override
+  String get plannedEmptyWeek => 'Bu hafta planlanmış bir şey yok';
+
+  @override
+  String plannedMinutesShort(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String plannedHoursShort(int hours) {
+    return '$hours sa';
+  }
+
+  @override
+  String plannedRemaining(int minutes) {
+    return '$minutes dk kaldı';
+  }
+
+  @override
+  String plannedFreeMinutes(int minutes) {
+    return '$minutes dk boş';
+  }
+
+  @override
+  String plannedAddAt(String time) {
+    return '$time için ekle';
+  }
+
+  @override
+  String plannedScheduledAt(String time) {
+    return '$time olarak planlandı';
+  }
+
+  @override
+  String plannedProgressSummary(int done, int total) {
+    return '$total görevin $done tanesi tamam';
+  }
+
+  @override
+  String get plannedPickMonth => 'Tarih seç';
+
+  @override
+  String get plannedPreviousWeek => 'Önceki hafta';
+
+  @override
+  String get plannedNextWeek => 'Sonraki hafta';
+
+  @override
   String get dueLabel => 'Son tarih';
 
   @override

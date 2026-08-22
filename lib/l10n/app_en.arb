@@ -37,6 +37,50 @@
   "customDuration": "Custom duration",
   "minutes": "minutes",
   "plannedDayEmpty": "No plans for this day",
+  "plannedDayView": "Day",
+  "plannedWeekView": "Week",
+  "plannedToday": "Today",
+  "plannedNow": "Now",
+  "plannedTimeline": "Timeline",
+  "plannedUnscheduled": "Unscheduled",
+  "plannedUnscheduledHint": "Drag onto the timeline or tap + to give it a time.",
+  "plannedEmptyDayTitle": "This day is open",
+  "plannedEmptyDayBody": "Add a first block and give the day a shape.",
+  "plannedEmptyWeek": "Nothing scheduled this week",
+  "plannedMinutesShort": "{minutes} min",
+  "@plannedMinutesShort": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedHoursShort": "{hours} h",
+  "@plannedHoursShort": {
+    "placeholders": { "hours": { "type": "int" } }
+  },
+  "plannedRemaining": "{minutes} min left",
+  "@plannedRemaining": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedFreeMinutes": "{minutes} min free",
+  "@plannedFreeMinutes": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedAddAt": "Add at {time}",
+  "@plannedAddAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "plannedScheduledAt": "Scheduled for {time}",
+  "@plannedScheduledAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "plannedProgressSummary": "{done} of {total} done",
+  "@plannedProgressSummary": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "plannedPickMonth": "Pick a date",
+  "plannedPreviousWeek": "Previous week",
+  "plannedNextWeek": "Next week",
   "dueLabel": "Due",
   "repeat": "Repeat",
   "repeats": "Repeats",
