@@ -338,12 +338,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _createList() async {
     _scaffoldKey.currentState?.closeDrawer();
     await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
     final draft = await showDialog<_ListDraft>(
       context: context,
       useRootNavigator: true,
       barrierColor: Colors.black54,
       builder: (context) => const _ListEditorDialog(),
     );
+    if (!mounted) return;
     if (draft == null) return;
     final list = await ref
         .read(taskControllerProvider)
@@ -354,12 +356,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _renameList(TaskList list) async {
     _scaffoldKey.currentState?.closeDrawer();
     await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
     final draft = await showDialog<_ListDraft>(
       context: context,
       useRootNavigator: true,
       barrierColor: Colors.black54,
       builder: (context) => _ListEditorDialog(existing: list),
     );
+    if (!mounted) return;
     if (draft == null) return;
     await ref.read(taskControllerProvider).updateList(
           list.copyWith(name: draft.name, color: draft.color),
