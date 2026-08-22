@@ -121,7 +121,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedWeekView => 'Week';
 
   @override
+  String get plannedMonthView => 'Month';
+
+  @override
   String get plannedToday => 'Today';
+
+  @override
+  String get plannedMoreActions => 'Planning actions';
+
+  @override
+  String get plannedSmartPlan => 'Smart plan';
+
+  @override
+  String plannedSmartPlanConfirm(int count) {
+    return 'Place $count unscheduled tasks into the best available slots on this day? Important and high-priority tasks are placed first.';
+  }
+
+  @override
+  String get plannedApplyPlan => 'Apply plan';
+
+  @override
+  String plannedSmartPlanDone(int count) {
+    return 'Smart-planned $count tasks.';
+  }
+
+  @override
+  String get plannedNothingToPlan =>
+      'There are no unscheduled tasks or enough free time on this day.';
+
+  @override
+  String get plannedImportCalendar => 'Import calendar (.ics)';
+
+  @override
+  String get plannedImport => 'Import';
+
+  @override
+  String plannedImportConfirm(int count) {
+    return 'Import $count calendar events as tasks?';
+  }
+
+  @override
+  String plannedImportDone(int count) {
+    return 'Imported $count calendar events.';
+  }
+
+  @override
+  String get plannedImportInvalid => 'Choose an iCalendar (.ics) file.';
+
+  @override
+  String get plannedImportEmpty =>
+      'No valid events were found in this calendar.';
+
+  @override
+  String get plannedImportFailed => 'The calendar could not be imported.';
 
   @override
   String get plannedNow => 'Now';

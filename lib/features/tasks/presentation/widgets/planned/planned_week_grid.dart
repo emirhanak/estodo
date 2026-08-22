@@ -18,6 +18,7 @@ class PlannedWeekGrid extends StatelessWidget {
     required this.onOpen,
     required this.onAddAt,
     required this.onSelectDay,
+    required this.onSchedule,
     this.pxPerMinute = 1.1,
   });
 
@@ -28,6 +29,7 @@ class PlannedWeekGrid extends StatelessWidget {
   final void Function(TodoTask task) onOpen;
   final void Function(DateTime start) onAddAt;
   final void Function(DateTime date) onSelectDay;
+  final void Function(TodoTask task, DateTime start) onSchedule;
   final double pxPerMinute;
 
   static const double _gutter = 46;
@@ -92,6 +94,7 @@ class PlannedWeekGrid extends StatelessWidget {
                       onOpen: onOpen,
                       onAddAt: onAddAt,
                       onSelectDay: onSelectDay,
+                      onSchedule: onSchedule,
                     ),
                   ),
                 if (days.any((d) => PlannedLayout.isSameDay(d.date, now)))
@@ -199,6 +202,7 @@ class _DayColumn extends StatelessWidget {
     required this.onOpen,
     required this.onAddAt,
     required this.onSelectDay,
+    required this.onSchedule,
   });
 
   final PlannedDay day;
@@ -211,54 +215,75 @@ class _DayColumn extends StatelessWidget {
   final void Function(TodoTask task) onOpen;
   final void Function(DateTime start) onAddAt;
   final void Function(DateTime date) onSelectDay;
+  final void Function(TodoTask task, DateTime start) onSchedule;
 
   @override
   Widget build(BuildContext context) {
     final isToday = PlannedLayout.isSameDay(day.date, now);
     final capsuleWidth = (width - 10).clamp(26.0, 78.0);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapUp: (details) {
-        onSelectDay(day.date);
-        final minute =
-            windowStart + (details.localPosition.dy / pxPerMinute).round();
-        final rounded = (minute ~/ 15) * 15;
-        onAddAt(
-          DateTime(day.date.year, day.date.month, day.date.day)
-              .add(Duration(minutes: rounded.clamp(0, 23 * 60 + 45))),
-        );
+    DateTime timeAt(Offset position) {
+      final minute = windowStart + (position.dy / pxPerMinute).round();
+      final rounded = (minute / 15).round() * 15;
+      return PlannedLayout.dayOf(day.date).add(
+        Duration(minutes: rounded.clamp(0, 23 * 60 + 45)),
+      );
+    }
+
+    return DragTarget<TodoTask>(
+      onAcceptWithDetails: (details) {
+        final box = context.findRenderObject() as RenderBox?;
+        final local = box?.globalToLocal(details.offset) ?? details.offset;
+        onSchedule(details.data, timeAt(local));
       },
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 240),
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color: selected
-                    ? accent.withValues(alpha: 0.07)
-                    : isToday
-                        ? accent.withValues(alpha: 0.04)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(18),
+      builder: (context, candidates, _) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapUp: (details) {
+          onSelectDay(day.date);
+          onAddAt(timeAt(details.localPosition));
+        },
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? accent.withValues(alpha: 0.07)
+                      : isToday
+                          ? accent.withValues(alpha: 0.04)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(18),
+                ),
               ),
             ),
-          ),
-          for (final entry in day.scheduled)
-            Positioned(
-              left: (width - capsuleWidth) / 2,
-              width: capsuleWidth,
-              top: (entry.startMinuteOfDay - windowStart) * pxPerMinute,
-              height: (entry.durationMinutes * pxPerMinute).clamp(30.0, 600.0),
-              child: _GridCapsule(
-                entry: entry,
-                now: now,
-                dimmed: !selected && !isToday,
-                onTap: () => onOpen(entry.task),
+            for (final entry in day.scheduled)
+              Positioned(
+                left: (width - capsuleWidth) / 2,
+                width: capsuleWidth,
+                top: (entry.startMinuteOfDay - windowStart) * pxPerMinute,
+                height:
+                    (entry.durationMinutes * pxPerMinute).clamp(30.0, 600.0),
+                child: _GridCapsule(
+                  entry: entry,
+                  now: now,
+                  dimmed: !selected && !isToday,
+                  onTap: () => onOpen(entry.task),
+                ),
               ),
-            ),
-        ],
+            if (candidates.isNotEmpty)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    border: Border.all(color: accent, width: 2),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -287,7 +312,7 @@ class _GridCapsule extends StatelessWidget {
         ? entry.color
         : PlannedCapsule.foregroundOn(entry.color);
 
-    return Padding(
+    final capsule = Padding(
       padding: const EdgeInsets.symmetric(vertical: 1.5),
       child: Tooltip(
         message:
@@ -349,6 +374,17 @@ class _GridCapsule extends StatelessWidget {
           ),
         ),
       ),
+    );
+    if (entry.isCompleted) return capsule;
+    return LongPressDraggable<TodoTask>(
+      data: entry.task,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: Material(
+        color: Colors.transparent,
+        child: SizedBox(width: 100, height: 52, child: capsule),
+      ),
+      childWhenDragging: Opacity(opacity: 0.25, child: capsule),
+      child: capsule,
     );
   }
 }

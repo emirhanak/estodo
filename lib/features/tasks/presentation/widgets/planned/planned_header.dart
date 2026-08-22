@@ -4,7 +4,9 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../utils/planned_layout.dart';
 import 'planned_format.dart';
 
-enum PlannedViewMode { day, week }
+enum PlannedViewMode { day, week, month }
+
+enum PlannedHeaderAction { smartPlan, importCalendar }
 
 /// Structured-style headline: big day + month, accent year, and the
 /// day / week switch.
@@ -17,6 +19,7 @@ class PlannedHeader extends StatelessWidget {
     required this.onModeChanged,
     required this.onPickDate,
     required this.onToday,
+    required this.onAction,
     this.compact = false,
   });
 
@@ -26,6 +29,7 @@ class PlannedHeader extends StatelessWidget {
   final ValueChanged<PlannedViewMode> onModeChanged;
   final VoidCallback onPickDate;
   final VoidCallback onToday;
+  final ValueChanged<PlannedHeaderAction> onAction;
   final bool compact;
 
   @override
@@ -141,6 +145,28 @@ class PlannedHeader extends StatelessWidget {
             compact: compact,
             onChanged: onModeChanged,
           ),
+          PopupMenuButton<PlannedHeaderAction>(
+            tooltip: l10n.plannedMoreActions,
+            onSelected: onAction,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: PlannedHeaderAction.smartPlan,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.auto_awesome_rounded),
+                  title: Text(l10n.plannedSmartPlan),
+                ),
+              ),
+              PopupMenuItem(
+                value: PlannedHeaderAction.importCalendar,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_month_rounded),
+                  title: Text(l10n.plannedImportCalendar),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -164,12 +190,12 @@ class _ModeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final segmentWidth = compact ? 44.0 : 102.0;
+    final segmentWidth = compact ? 38.0 : 76.0;
     const height = 38.0;
 
     return Container(
       height: height,
-      width: segmentWidth * 2,
+      width: segmentWidth * 3,
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(height / 2),
@@ -179,9 +205,11 @@ class _ModeSwitch extends StatelessWidget {
           AnimatedAlign(
             duration: const Duration(milliseconds: 240),
             curve: Curves.easeOutCubic,
-            alignment: mode == PlannedViewMode.day
-                ? Alignment.centerLeft
-                : Alignment.centerRight,
+            alignment: switch (mode) {
+              PlannedViewMode.day => Alignment.centerLeft,
+              PlannedViewMode.week => Alignment.center,
+              PlannedViewMode.month => Alignment.centerRight,
+            },
             child: Container(
               width: segmentWidth,
               height: height,
@@ -215,6 +243,14 @@ class _ModeSwitch extends StatelessWidget {
                 label: l10n.plannedWeekView,
                 selected: mode == PlannedViewMode.week,
                 onTap: () => onChanged(PlannedViewMode.week),
+              ),
+              _segment(
+                context,
+                width: segmentWidth,
+                icon: Icons.calendar_month_rounded,
+                label: l10n.plannedMonthView,
+                selected: mode == PlannedViewMode.month,
+                onTap: () => onChanged(PlannedViewMode.month),
               ),
             ],
           ),

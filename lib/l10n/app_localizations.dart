@@ -314,11 +314,95 @@ abstract class AppLocalizations {
   /// **'Week'**
   String get plannedWeekView;
 
+  /// No description provided for @plannedMonthView.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get plannedMonthView;
+
   /// No description provided for @plannedToday.
   ///
   /// In en, this message translates to:
   /// **'Today'**
   String get plannedToday;
+
+  /// No description provided for @plannedMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning actions'**
+  String get plannedMoreActions;
+
+  /// No description provided for @plannedSmartPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart plan'**
+  String get plannedSmartPlan;
+
+  /// No description provided for @plannedSmartPlanConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Place {count} unscheduled tasks into the best available slots on this day? Important and high-priority tasks are placed first.'**
+  String plannedSmartPlanConfirm(int count);
+
+  /// No description provided for @plannedApplyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply plan'**
+  String get plannedApplyPlan;
+
+  /// No description provided for @plannedSmartPlanDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart-planned {count} tasks.'**
+  String plannedSmartPlanDone(int count);
+
+  /// No description provided for @plannedNothingToPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no unscheduled tasks or enough free time on this day.'**
+  String get plannedNothingToPlan;
+
+  /// No description provided for @plannedImportCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Import calendar (.ics)'**
+  String get plannedImportCalendar;
+
+  /// No description provided for @plannedImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get plannedImport;
+
+  /// No description provided for @plannedImportConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Import {count} calendar events as tasks?'**
+  String plannedImportConfirm(int count);
+
+  /// No description provided for @plannedImportDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} calendar events.'**
+  String plannedImportDone(int count);
+
+  /// No description provided for @plannedImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an iCalendar (.ics) file.'**
+  String get plannedImportInvalid;
+
+  /// No description provided for @plannedImportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid events were found in this calendar.'**
+  String get plannedImportEmpty;
+
+  /// No description provided for @plannedImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The calendar could not be imported.'**
+  String get plannedImportFailed;
 
   /// No description provided for @plannedNow.
   ///

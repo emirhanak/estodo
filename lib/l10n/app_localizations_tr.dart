@@ -121,7 +121,58 @@ class AppLocalizationsTr extends AppLocalizations {
   String get plannedWeekView => 'Hafta';
 
   @override
+  String get plannedMonthView => 'Ay';
+
+  @override
   String get plannedToday => 'Bugün';
+
+  @override
+  String get plannedMoreActions => 'Planlama işlemleri';
+
+  @override
+  String get plannedSmartPlan => 'Akıllı planla';
+
+  @override
+  String plannedSmartPlanConfirm(int count) {
+    return 'Bu gündeki $count saatsiz görev en uygun boşluklara yerleştirilsin mi? Önemli ve yüksek öncelikli görevler önce planlanır.';
+  }
+
+  @override
+  String get plannedApplyPlan => 'Planı uygula';
+
+  @override
+  String plannedSmartPlanDone(int count) {
+    return '$count görev akıllı planlandı.';
+  }
+
+  @override
+  String get plannedNothingToPlan =>
+      'Bu günde planlanacak saatsiz görev veya yeterli boş zaman yok.';
+
+  @override
+  String get plannedImportCalendar => 'Takvim içe aktar (.ics)';
+
+  @override
+  String get plannedImport => 'İçe aktar';
+
+  @override
+  String plannedImportConfirm(int count) {
+    return '$count takvim etkinliği görev olarak içe aktarılsın mı?';
+  }
+
+  @override
+  String plannedImportDone(int count) {
+    return '$count takvim etkinliği içe aktarıldı.';
+  }
+
+  @override
+  String get plannedImportInvalid => 'Bir iCalendar (.ics) dosyası seç.';
+
+  @override
+  String get plannedImportEmpty => 'Bu takvimde geçerli etkinlik bulunamadı.';
+
+  @override
+  String get plannedImportFailed => 'Takvim içe aktarılamadı.';
 
   @override
   String get plannedNow => 'Şimdi';

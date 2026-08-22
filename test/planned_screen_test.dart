@@ -5,6 +5,7 @@ import 'package:estodo/features/tasks/presentation/providers/task_providers.dart
 import 'package:estodo/features/tasks/presentation/screens/planned_screen.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_capsule.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_entry_row.dart';
+import 'package:estodo/features/tasks/presentation/widgets/planned/planned_month_grid.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_week_grid.dart';
 import 'package:estodo/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -121,6 +122,17 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(PlannedWeekGrid), findsOneWidget);
+    expect(find.byType(PlannedEntryRow), findsNothing);
+  });
+
+  testWidgets('switches to the month grid', (tester) async {
+    await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
+
+    await tester.tap(find.byIcon(Icons.calendar_month_rounded).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(PlannedMonthGrid), findsOneWidget);
     expect(find.byType(PlannedEntryRow), findsNothing);
   });
 

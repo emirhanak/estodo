@@ -16,6 +16,7 @@ dependencies:
   connectivity_plus: ^7.1.1
   cupertino_icons: ^1.0.9
   equatable: ^2.0.8
+  file_picker: ^12.0.0
   firebase_analytics: ^12.3.0
   firebase_auth: ^6.4.0
   firebase_core: ^4.7.0

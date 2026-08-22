@@ -2,16 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task_list.dart';
 import '../../domain/entities/todo_task.dart';
 import '../providers/task_providers.dart';
 import '../utils/planned_layout.dart';
+import '../utils/calendar_import.dart';
+import '../utils/planned_smart_planner.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/planned/planned_day_timeline.dart';
 import '../widgets/planned/planned_format.dart';
 import '../widgets/planned/planned_header.dart';
+import '../widgets/planned/planned_month_grid.dart';
 import '../widgets/planned/planned_unscheduled.dart';
 import '../widgets/planned/planned_week_grid.dart';
 import '../widgets/planned/planned_week_strip.dart';
@@ -132,6 +136,120 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     );
   }
 
+  Future<void> _smartPlan(PlannedDay day) async {
+    final l10n = AppLocalizations.of(context);
+    final assignments = PlannedSmartPlanner.plan(day, now: _now);
+    if (assignments.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.plannedNothingToPlan)),
+      );
+      return;
+    }
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.auto_awesome_rounded),
+        title: Text(l10n.plannedSmartPlan),
+        content: Text(l10n.plannedSmartPlanConfirm(assignments.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.plannedApplyPlan),
+          ),
+        ],
+      ),
+    );
+    if (approved != true) return;
+    for (final assignment in assignments) {
+      final start = assignment.start;
+      await ref.read(taskControllerProvider).updateTask(
+            assignment.task.copyWith(
+              startAt: start,
+              dueAt: PlannedLayout.dayOf(start),
+            ),
+          );
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.plannedSmartPlanDone(assignments.length))),
+    );
+  }
+
+  Future<void> _importCalendar() async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final file = await FilePicker.pickFile();
+      if (file == null || !mounted) return;
+      if (!file.name.toLowerCase().endsWith('.ics')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.plannedImportInvalid)),
+        );
+        return;
+      }
+      final events = CalendarImport.parseBytes(await file.readAsBytes());
+      if (!mounted) return;
+      if (events.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.plannedImportEmpty)),
+        );
+        return;
+      }
+      final approved = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          icon: const Icon(Icons.calendar_month_rounded),
+          title: Text(l10n.plannedImportCalendar),
+          content: Text(l10n.plannedImportConfirm(events.length)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.plannedImport),
+            ),
+          ],
+        ),
+      );
+      if (approved != true) return;
+      for (final event in events) {
+        await ref.read(taskControllerProvider).createTask(
+              title: event.title,
+              notes: event.notes,
+              dueAt: event.dueAt,
+              startAt: event.startAt,
+              durationMinutes: event.durationMinutes,
+            );
+      }
+      if (!mounted) return;
+      _selectDate(events.first.dueAt);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.plannedImportDone(events.length))),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.plannedImportFailed)),
+      );
+    }
+  }
+
+  void _handleAction(PlannedHeaderAction action, PlannedDay day) {
+    switch (action) {
+      case PlannedHeaderAction.smartPlan:
+        unawaited(_smartPlan(day));
+        return;
+      case PlannedHeaderAction.importCalendar:
+        unawaited(_importCalendar());
+        return;
+    }
+  }
+
   PlannedDay _dayFor(
     DateTime date,
     List<TodoTask> tasks,
@@ -234,16 +352,18 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           onModeChanged: _changeMode,
           onPickDate: _pickDate,
           onToday: () => _selectDate(DateTime.now()),
+          onAction: (action) => _handleAction(action, selectedDay),
         ),
         _SummaryLine(day: selectedDay, accent: accent, compact: compact),
-        PlannedWeekStrip(
-          selectedDate: _selectedDate,
-          tasks: tasks,
-          lists: lists,
-          accent: accent,
-          compact: compact,
-          onSelect: _selectDate,
-        ),
+        if (_mode != PlannedViewMode.month)
+          PlannedWeekStrip(
+            selectedDate: _selectedDate,
+            tasks: tasks,
+            lists: lists,
+            accent: accent,
+            compact: compact,
+            onSelect: _selectDate,
+          ),
         const SizedBox(height: 6),
         Expanded(
           child: _Sheet(
@@ -253,9 +373,20 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
                 opacity: animation,
                 child: child,
               ),
-              child: _mode == PlannedViewMode.day
-                  ? _dayPager(tasks, lists, accent, wide)
-                  : _weekView(tasks, lists, accent),
+              child: switch (_mode) {
+                PlannedViewMode.day => _dayPager(tasks, lists, accent, wide),
+                PlannedViewMode.week => _weekView(tasks, lists, accent),
+                PlannedViewMode.month => PlannedMonthGrid(
+                    key: ValueKey(
+                        'planned-month-${_selectedDate.year}-${_selectedDate.month}'),
+                    month: _selectedDate,
+                    selectedDate: _selectedDate,
+                    tasks: tasks,
+                    lists: lists,
+                    accent: accent,
+                    onSelectDay: _selectDate,
+                  ),
+              },
             ),
           ),
         ),
@@ -320,6 +451,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
       onOpen: _openTask,
       onAddAt: _addAt,
       onSelectDay: _selectDate,
+      onSchedule: _schedule,
     );
   }
 }

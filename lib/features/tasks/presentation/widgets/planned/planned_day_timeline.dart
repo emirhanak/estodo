@@ -78,6 +78,16 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     final scheduled = day.scheduled;
     var nowInserted = !_isToday;
 
+    if (scheduled.isNotEmpty && scheduled.first.start != null) {
+      final dayStart = PlannedLayout.dayOf(day.date).add(
+        const Duration(minutes: PlannedLayout.dayStartMinute),
+      );
+      final free = scheduled.first.start!.difference(dayStart).inMinutes;
+      if (free >= PlannedLayout.minGapMinutes) {
+        children.add(_gapSlot(dayStart, free));
+      }
+    }
+
     for (var i = 0; i < scheduled.length; i++) {
       final entry = scheduled[i];
       final start = entry.start;
@@ -117,6 +127,12 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     }
 
     if (scheduled.isEmpty) {
+      final suggested = _isToday
+          ? PlannedLayout.roundToQuarter(widget.now)
+          : PlannedLayout.dayOf(day.date).add(
+              const Duration(minutes: PlannedLayout.dayStartMinute + 120),
+            );
+      children.add(_gapSlot(suggested, null));
       children.add(_emptyDay(l10n));
     } else {
       if (!nowInserted) children.add(_nowMarker());

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/services/preferences_provider.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../domain/entities/todo_task.dart';
 import '../../utils/planned_layout.dart';
 import '../animated_check_circle.dart';
 import '../confetti_burst.dart';
@@ -180,7 +181,7 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
       ],
     );
 
-    return Semantics(
+    final interactive = Semantics(
       button: true,
       label: '${entry.task.title}, $subtitle',
       child: InkWell(
@@ -207,6 +208,27 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
           ],
         ),
       ),
+    );
+
+    if (entry.isCompleted) return interactive;
+    return LongPressDraggable<TodoTask>(
+      data: entry.task,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: Material(
+        color: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Card(
+            elevation: 8,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text(entry.task.title),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.28, child: interactive),
+      child: interactive,
     );
   }
 }
