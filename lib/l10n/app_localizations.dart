@@ -260,6 +260,48 @@ abstract class AppLocalizations {
   /// **'Add due date'**
   String get addDueDate;
 
+  /// No description provided for @startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get startTime;
+
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
+  /// No description provided for @allDay.
+  ///
+  /// In en, this message translates to:
+  /// **'All day'**
+  String get allDay;
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String durationMinutes(Object minutes);
+
+  /// No description provided for @customDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom duration'**
+  String get customDuration;
+
+  /// No description provided for @minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'minutes'**
+  String get minutes;
+
+  /// No description provided for @plannedDayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No plans for this day'**
+  String get plannedDayEmpty;
+
   /// No description provided for @dueLabel.
   ///
   /// In en, this message translates to:

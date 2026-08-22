@@ -92,6 +92,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addDueDate => 'Add due date';
 
   @override
+  String get startTime => 'Start time';
+
+  @override
+  String get duration => 'Duration';
+
+  @override
+  String get allDay => 'All day';
+
+  @override
+  String durationMinutes(Object minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String get customDuration => 'Custom duration';
+
+  @override
+  String get minutes => 'minutes';
+
+  @override
+  String get plannedDayEmpty => 'No plans for this day';
+
+  @override
   String get dueLabel => 'Due';
 
   @override

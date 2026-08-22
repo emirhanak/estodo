@@ -93,6 +93,8 @@ class TaskController {
     String? listId,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueAt,
+    DateTime? startAt,
+    int? durationMinutes,
     DateTime? reminderAt,
     RecurrenceRule? recurrence,
     List<TaskStep> steps = const <TaskStep>[],
@@ -109,6 +111,8 @@ class TaskController {
       notes: _clean(notes),
       priority: priority,
       dueAt: dueAt,
+      startAt: startAt,
+      durationMinutes: durationMinutes,
       reminderAt: reminderAt,
       recurrence: recurrence,
       steps: steps,
@@ -148,6 +152,15 @@ class TaskController {
         listId: task.listId,
         priority: task.priority,
         dueAt: nextDue,
+        startAt: task.startAt == null
+            ? null
+            : nextDue.copyWith(
+                hour: task.startAt!.hour,
+                minute: task.startAt!.minute,
+                second: 0,
+                millisecond: 0,
+              ),
+        durationMinutes: task.durationMinutes,
         reminderAt: nextReminder,
         recurrence: task.recurrence,
         steps: task.steps

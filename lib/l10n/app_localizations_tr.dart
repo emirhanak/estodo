@@ -92,6 +92,29 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addDueDate => 'Son tarih ekle';
 
   @override
+  String get startTime => 'Başlangıç zamanı';
+
+  @override
+  String get duration => 'Süre';
+
+  @override
+  String get allDay => 'Tüm gün';
+
+  @override
+  String durationMinutes(Object minutes) {
+    return '$minutes dakika';
+  }
+
+  @override
+  String get customDuration => 'Özel süre';
+
+  @override
+  String get minutes => 'dakika';
+
+  @override
+  String get plannedDayEmpty => 'Bu gün için plan yok';
+
+  @override
   String get dueLabel => 'Son tarih';
 
   @override

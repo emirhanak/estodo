@@ -11,6 +11,8 @@ class TodoTask {
     this.notes,
     this.priority = TaskPriority.medium,
     this.dueAt,
+    this.startAt,
+    this.durationMinutes,
     this.reminderAt,
     this.recurrence,
     this.steps = const <TaskStep>[],
@@ -31,6 +33,8 @@ class TodoTask {
   final String? notes;
   final TaskPriority priority;
   final DateTime? dueAt;
+  final DateTime? startAt;
+  final int? durationMinutes;
   final DateTime? reminderAt;
   final RecurrenceRule? recurrence;
   final List<TaskStep> steps;
@@ -45,8 +49,7 @@ class TodoTask {
 
   bool isInMyDay(String todayKey) => isMyDay && myDayDate == todayKey;
 
-  int get completedStepsCount =>
-      steps.where((step) => step.isCompleted).length;
+  int get completedStepsCount => steps.where((step) => step.isCompleted).length;
 
   bool get hasSteps => steps.isNotEmpty;
 
@@ -58,6 +61,8 @@ class TodoTask {
     Object? notes = _unset,
     TaskPriority? priority,
     Object? dueAt = _unset,
+    Object? startAt = _unset,
+    Object? durationMinutes = _unset,
     Object? reminderAt = _unset,
     Object? recurrence = _unset,
     List<TaskStep>? steps,
@@ -78,6 +83,10 @@ class TodoTask {
       notes: notes == _unset ? this.notes : notes as String?,
       priority: priority ?? this.priority,
       dueAt: dueAt == _unset ? this.dueAt : dueAt as DateTime?,
+      startAt: startAt == _unset ? this.startAt : startAt as DateTime?,
+      durationMinutes: durationMinutes == _unset
+          ? this.durationMinutes
+          : durationMinutes as int?,
       reminderAt:
           reminderAt == _unset ? this.reminderAt : reminderAt as DateTime?,
       recurrence: recurrence == _unset

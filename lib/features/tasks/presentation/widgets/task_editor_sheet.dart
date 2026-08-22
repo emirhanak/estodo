@@ -17,6 +17,7 @@ Future<void> showTaskEditorSheet(
   TodoTask? task,
   String? initialTitle,
   String? initialListId,
+  DateTime? initialDueDate,
   bool initialMyDay = false,
   bool initialImportant = false,
 }) {
@@ -30,6 +31,7 @@ Future<void> showTaskEditorSheet(
       task: task,
       initialTitle: initialTitle,
       initialListId: initialListId,
+      initialDueDate: initialDueDate,
       initialMyDay: initialMyDay,
       initialImportant: initialImportant,
     ),
@@ -42,6 +44,7 @@ class TaskEditorSheet extends ConsumerStatefulWidget {
     this.task,
     this.initialTitle,
     this.initialListId,
+    this.initialDueDate,
     this.initialMyDay = false,
     this.initialImportant = false,
   });
@@ -49,6 +52,7 @@ class TaskEditorSheet extends ConsumerStatefulWidget {
   final TodoTask? task;
   final String? initialTitle;
   final String? initialListId;
+  final DateTime? initialDueDate;
   final bool initialMyDay;
   final bool initialImportant;
 
@@ -65,6 +69,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
   String? _listId;
   TaskPriority _priority = TaskPriority.medium;
   DateTime? _dueAt;
+  DateTime? _startAt;
+  int? _durationMinutes;
   DateTime? _reminderAt;
   RecurrenceRule? _recurrence;
   late List<TaskStep> _steps;
@@ -83,7 +89,9 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     _notesController.text = task?.notes ?? '';
     _listId = task?.listId ?? widget.initialListId;
     _priority = task?.priority ?? TaskPriority.medium;
-    _dueAt = task?.dueAt;
+    _dueAt = task?.dueAt ?? widget.initialDueDate;
+    _startAt = task?.startAt;
+    _durationMinutes = task?.durationMinutes;
     _reminderAt = task?.reminderAt;
     _recurrence = task?.recurrence;
     _steps = List<TaskStep>.from(task?.steps ?? const <TaskStep>[]);
@@ -120,6 +128,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
             listId: _listId,
             priority: _priority,
             dueAt: _dueAt,
+            startAt: _startAt,
+            durationMinutes: _durationMinutes,
             reminderAt: _reminderAt,
             recurrence: _recurrence,
             steps: _steps,
@@ -147,6 +157,15 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
             listId: _listId,
             priority: _priority,
             dueAt: nextDue,
+            startAt: _startAt == null
+                ? null
+                : nextDue.copyWith(
+                    hour: _startAt!.hour,
+                    minute: _startAt!.minute,
+                    second: 0,
+                    millisecond: 0,
+                  ),
+            durationMinutes: _durationMinutes,
             reminderAt: nextReminder,
             recurrence: _recurrence,
             steps: _steps
@@ -163,6 +182,8 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
           listId: _listId,
           priority: _priority,
           dueAt: _dueAt,
+          startAt: _startAt,
+          durationMinutes: _durationMinutes,
           reminderAt: _reminderAt,
           recurrence: _recurrence,
           steps: _steps,
@@ -195,7 +216,18 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
       initialDate: _dueAt ?? now,
     );
     if (picked != null) {
-      setState(() => _dueAt = picked);
+      setState(() {
+        _dueAt = picked;
+        if (_startAt != null) {
+          _startAt = DateTime(
+            picked.year,
+            picked.month,
+            picked.day,
+            _startAt!.hour,
+            _startAt!.minute,
+          );
+        }
+      });
     }
   }
 
@@ -223,6 +255,97 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
       _reminderAt =
           DateTime(date.year, date.month, date.day, time.hour, time.minute);
     });
+  }
+
+  Future<void> _pickStartTime() async {
+    if (_dueAt == null) {
+      await _pickDueDate();
+      if (_dueAt == null || !mounted) return;
+    }
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _startAt == null
+          ? TimeOfDay.now()
+          : TimeOfDay.fromDateTime(_startAt!),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _startAt = DateTime(
+        _dueAt!.year,
+        _dueAt!.month,
+        _dueAt!.day,
+        picked.hour,
+        picked.minute,
+      );
+      _durationMinutes ??= 30;
+    });
+  }
+
+  Future<void> _pickDuration() async {
+    if (_startAt == null) return;
+    final options = <int>[15, 30, 45, 60, 90, 120];
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final minutes in options)
+              ListTile(
+                title: Text(
+                    AppLocalizations.of(sheetContext).durationMinutes(minutes)),
+                trailing: minutes == (_durationMinutes ?? 30)
+                    ? const Icon(Icons.check_rounded)
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(minutes),
+              ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(AppLocalizations.of(sheetContext).customDuration),
+              onTap: () async {
+                final controller = TextEditingController(
+                    text: (_durationMinutes ?? 30).toString());
+                final value = await showDialog<int>(
+                  context: sheetContext,
+                  builder: (dialogContext) => AlertDialog(
+                    title: Text(AppLocalizations.of(dialogContext).duration),
+                    content: TextField(
+                      controller: controller,
+                      autofocus: true,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        suffixText: AppLocalizations.of(dialogContext).minutes,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(AppLocalizations.of(dialogContext).cancel),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(
+                          dialogContext,
+                          int.tryParse(controller.text.trim()),
+                        ),
+                        child: Text(AppLocalizations.of(dialogContext).save),
+                      ),
+                    ],
+                  ),
+                );
+                controller.dispose();
+                if (value != null && value > 0 && sheetContext.mounted) {
+                  Navigator.of(sheetContext).pop(value);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() => _durationMinutes = selected);
+    }
   }
 
   Future<void> _pickRecurrence() async {
@@ -352,8 +475,13 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 accent: accent,
                 active: _dueAt != null,
                 onTap: _pickDueDate,
-                onClear:
-                    _dueAt == null ? null : () => setState(() => _dueAt = null),
+                onClear: _dueAt == null
+                    ? null
+                    : () => setState(() {
+                          _dueAt = null;
+                          _startAt = null;
+                          _durationMinutes = null;
+                        }),
               ),
               _ActionTile(
                 icon: Icons.repeat_rounded,
@@ -368,6 +496,53 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                     ? null
                     : () => setState(() => _recurrence = null),
               ),
+              _ActionTile(
+                icon: Icons.schedule_rounded,
+                title: _startAt == null ? l10n.startTime : l10n.startTime,
+                subtitle: _startAt == null
+                    ? (_dueAt == null ? l10n.allDay : null)
+                    : DateTimeFormatter.timeLabel(_startAt!),
+                accent: accent,
+                active: _startAt != null,
+                onTap: _pickStartTime,
+                onClear: _startAt == null
+                    ? null
+                    : () => setState(() {
+                          _startAt = null;
+                          _durationMinutes = null;
+                        }),
+              ),
+              _ActionTile(
+                icon: Icons.timelapse_rounded,
+                title: l10n.duration,
+                subtitle: _startAt == null
+                    ? l10n.allDay
+                    : l10n.durationMinutes(_durationMinutes ?? 30),
+                accent: accent,
+                active: _startAt != null,
+                onTap: _pickDuration,
+              ),
+              if (_dueAt != null)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.allDay),
+                  value: _startAt == null,
+                  activeThumbColor: accent,
+                  onChanged: (allDay) => setState(() {
+                    if (allDay) {
+                      _startAt = null;
+                      _durationMinutes = null;
+                    } else {
+                      _startAt = DateTime(
+                        _dueAt!.year,
+                        _dueAt!.month,
+                        _dueAt!.day,
+                        9,
+                      );
+                      _durationMinutes = 30;
+                    }
+                  }),
+                ),
               _ActionTile(
                 icon: Icons.list_alt_rounded,
                 title: l10n.list,

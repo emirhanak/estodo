@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/list_sort_option.dart';
 import '../../domain/entities/task_list.dart';
@@ -285,22 +285,114 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
     Color accent,
   ) {
     final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final weekStart = _weekStart(_plannedDate, locale);
+    final week = List<DateTime>.generate(
+      7,
+      (index) => weekStart.add(Duration(days: index)),
+    );
+    final selected = tasks
+        .where((task) =>
+            task.dueAt != null && DateUtils.isSameDay(task.dueAt, _plannedDate))
+        .toList()
+      ..sort(_plannedTaskCompare);
+    final upcoming = tasks
+        .where((task) =>
+            task.dueAt != null &&
+            task.dueAt!.isAfter(DateTime(
+                _plannedDate.year, _plannedDate.month, _plannedDate.day)))
+        .toList()
+      ..sort(_plannedTaskCompare);
+
     final widgets = <Widget>[
       SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: CalendarDatePicker(
-              initialDate: _plannedDate,
-              firstDate: DateTime.now().subtract(const Duration(days: 365)),
-              lastDate: DateTime.now().add(const Duration(days: 3650)),
-              onDateChanged: (date) => setState(() => _plannedDate = date),
-            ),
+        child: _WeekHeader(
+          weekStart: weekStart,
+          locale: locale,
+          onPrevious: () => setState(
+              () => _plannedDate = weekStart.subtract(const Duration(days: 1))),
+          onNext: () => setState(
+              () => _plannedDate = weekStart.add(const Duration(days: 7))),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: 104,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: week.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final date = week[index];
+              final count = tasks
+                  .where((task) =>
+                      task.dueAt != null &&
+                      DateUtils.isSameDay(task.dueAt, date))
+                  .length;
+              return _WeekDayCard(
+                date: date,
+                locale: locale,
+                selected: DateUtils.isSameDay(date, _plannedDate),
+                isToday: DateUtils.isSameDay(date, DateTime.now()),
+                count: count,
+                accent: accent,
+                onTap: () => setState(() => _plannedDate = date),
+              );
+            },
           ),
         ),
       ),
       SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
+          child: Text(
+            DateFormat('EEEE d MMMM', locale == 'tr' ? 'tr_TR' : 'en_US')
+                .format(_plannedDate),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ),
+    ];
+    if (selected.isEmpty) {
+      widgets.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: _PlannedEmptyCard(
+              title: l10n.plannedDayEmpty,
+              onAdd: () => showTaskEditorSheet(
+                context,
+                initialDueDate: _plannedDate,
+              ),
+              accent: accent,
+            ),
+          ),
+        ),
+      );
+    } else {
+      widgets.add(
+        SliverToBoxAdapter(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            child: Padding(
+              key: ValueKey(_plannedDate),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  for (final task in selected)
+                    _plannedCard(task, lists, accent),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    if (upcoming.isNotEmpty) {
+      widgets.add(SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
           child: Text(
@@ -311,59 +403,68 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
                 ),
           ),
         ),
-      ),
-    ];
-    if (tasks.isEmpty) {
-      widgets.add(
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: EmptyState(
-            icon: widget.icon,
-            title: widget.emptyTitle,
-            message: widget.emptyMessage,
-          ),
-        ),
-      );
-      return widgets;
-    }
-    final groups = <PlannedBucket, List<TodoTask>>{};
-    for (final task in tasks) {
-      if (task.dueAt == null) continue;
-      final bucket = DateTimeFormatter.plannedBucket(task.dueAt!);
-      groups.putIfAbsent(bucket, () => <TodoTask>[]).add(task);
-    }
-
-    for (final bucket in PlannedBucket.values) {
-      final entries = groups[bucket];
-      if (entries == null || entries.isEmpty) continue;
-      entries.sort((a, b) => a.dueAt!.compareTo(b.dueAt!));
-      widgets.add(
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-            child: Text(
-              _bucketLabel(bucket, l10n),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ),
-        ),
-      );
-      widgets.add(_buildList(entries, lists, accent));
+      ));
+      widgets.add(_buildList(upcoming, lists, accent));
     }
     return widgets;
   }
 
-  String _bucketLabel(PlannedBucket bucket, AppLocalizations l10n) {
-    return switch (bucket) {
-      PlannedBucket.earlier => l10n.bucketEarlier,
-      PlannedBucket.today => l10n.bucketToday,
-      PlannedBucket.tomorrow => l10n.bucketTomorrow,
-      PlannedBucket.thisWeek => l10n.bucketThisWeek,
-      PlannedBucket.later => l10n.bucketLater,
-    };
+  DateTime _weekStart(DateTime date, String locale) {
+    final sundayFirst = locale != 'tr';
+    final offset = sundayFirst ? date.weekday % 7 : date.weekday - 1;
+    return DateTime(date.year, date.month, date.day)
+        .subtract(Duration(days: offset));
+  }
+
+  int _plannedTaskCompare(TodoTask a, TodoTask b) {
+    final aDate = a.startAt ?? a.dueAt!;
+    final bDate = b.startAt ?? b.dueAt!;
+    return aDate.compareTo(bDate);
+  }
+
+  Widget _plannedCard(TodoTask task, List<TaskList> lists, Color accent) {
+    final cardAccent = task.listId == null
+        ? accent
+        : Color(lists
+            .where((list) => list.id == task.listId)
+            .map((list) => list.color)
+            .firstWhere((_) => true, orElse: () => accent.toARGB32()));
+    final time = task.startAt == null
+        ? AppLocalizations.of(context).allDay
+        : DateFormat('HH:mm').format(task.startAt!);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.96, end: 1),
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 58,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 18),
+                child:
+                    Text(time, style: Theme.of(context).textTheme.labelMedium),
+              ),
+            ),
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border(left: BorderSide(color: cardAccent, width: 4)),
+                ),
+                child: _buildTile(task, lists, cardAccent),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCompletedSection(
@@ -503,6 +604,162 @@ class _Header extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  const _WeekHeader({
+    required this.weekStart,
+    required this.locale,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final DateTime weekStart;
+  final String locale;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final format = DateFormat('d MMMM', locale == 'tr' ? 'tr_TR' : 'en_US');
+    final end = weekStart.add(const Duration(days: 6));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Row(
+        children: [
+          IconButton(
+              onPressed: onPrevious,
+              icon: const Icon(Icons.chevron_left_rounded)),
+          Expanded(
+            child: Text(
+              '${format.format(weekStart)} – ${format.format(end)}',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+          IconButton(
+              onPressed: onNext, icon: const Icon(Icons.chevron_right_rounded)),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeekDayCard extends StatelessWidget {
+  const _WeekDayCard({
+    required this.date,
+    required this.locale,
+    required this.selected,
+    required this.isToday,
+    required this.count,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final String locale;
+  final bool selected;
+  final bool isToday;
+  final int count;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final day = DateFormat('EEE', locale == 'tr' ? 'tr_TR' : 'en_US')
+        .format(date)
+        .replaceAll('.', '');
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$day ${date.day}',
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: 62,
+        decoration: BoxDecoration(
+          color: selected ? accent : scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(18),
+          border: isToday && !selected
+              ? Border.all(color: accent.withValues(alpha: 0.55), width: 1.5)
+              : null,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(day,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: selected
+                              ? scheme.onPrimary
+                              : scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        )),
+                Text('${date.day}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: selected ? scheme.onPrimary : scheme.onSurface,
+                          fontWeight: FontWeight.w800,
+                        )),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: Text(
+                    count == 0 ? '—' : '$count',
+                    key: ValueKey(count),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: selected
+                              ? scheme.onPrimary.withValues(alpha: 0.8)
+                              : scheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlannedEmptyCard extends StatelessWidget {
+  const _PlannedEmptyCard({
+    required this.title,
+    required this.onAdd,
+    required this.accent,
+  });
+
+  final String title;
+  final VoidCallback onAdd;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Icon(Icons.event_available_rounded, color: accent),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title)),
+            IconButton(
+              tooltip: AppLocalizations.of(context).newTask,
+              onPressed: onAdd,
+              icon: Icon(Icons.add_rounded, color: accent),
+            ),
+          ],
+        ),
       ),
     );
   }
