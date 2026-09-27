@@ -33,6 +33,78 @@
   "durationMinutes": "{minutes} dakika",
   "customDuration": "Özel süre",
   "minutes": "dakika",
+  "composerTitleHint": "Ne planlıyorsun?",
+  "composerHabitHint": "Hangi alışkanlık?",
+  "composerHabitBanner": "Alışkanlıklar kendi kendine geri gelir. Ritmini seç, zaman çizelgesi sürdürsün.",
+  "composerNlpHint": "“1 saat yoga cuma 16:00” yaz — saat, gün ve süre başlıktan okunur.",
+  "composerContinue": "Devam",
+  "composerCreateTask": "Planı oluştur",
+  "composerCreateHabit": "Alışkanlığı oluştur",
+  "composerKindTask": "Plan",
+  "composerKindHabit": "Alışkanlık",
+  "composerSuggestions": "Öneriler",
+  "composerColorAndIcon": "Renk ve simge",
+  "composerSearchIcons": "Simge ara",
+  "composerCategoryAll": "Tümü",
+  "composerCategoryGeneral": "Genel",
+  "composerCategoryWork": "İş",
+  "composerCategoryHealth": "Sağlık",
+  "composerCategoryFood": "Yemek",
+  "composerCategoryHome": "Ev",
+  "composerCategoryLearning": "Öğrenme",
+  "composerCategorySocial": "Sosyal",
+  "composerCategoryTravel": "Seyahat",
+  "composerCategoryLeisure": "Keyif",
+  "composerCategoryMoney": "Para",
+  "composerTime": "Saat",
+  "composerDuration": "Süre",
+  "composerReminder": "Hatırlatıcı",
+  "composerAddTime": "Saat ekle",
+  "composerRepeat": "Tekrar",
+  "composerRepeatOnce": "Bir kez",
+  "composerRepeatDaily": "Günlük",
+  "composerRepeatWeekly": "Haftalık",
+  "composerRepeatMonthly": "Aylık",
+  "composerRepeatWeekdays": "Hafta içi",
+  "composerRepeatYearly": "Yıllık",
+  "composerRepeatStart": "Başlangıç",
+  "composerSetEndDate": "Bitiş tarihi ekle",
+  "composerRepeatForever": "Süresiz tekrar eder.",
+  "composerRemove": "Kaldır",
+  "composerReminderNone": "Hatırlatma yok",
+  "composerReminderOnTime": "Tam saatinde",
+  "composerSubtaskHint": "Alt görev ekle",
+  "composerNotesHint": "Not, bağlantı veya telefon numarası…",
+  "composerHoursUnit": "sa",
+  "composerMinutesUnit": "dk",
+  "composerEveryDays": "{count} günde bir",
+  "@composerEveryDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerEveryWeeks": "{count} haftada bir",
+  "@composerEveryWeeks": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerEveryMonths": "{count} ayda bir",
+  "@composerEveryMonths": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerRepeatUntil": "{date} tarihine kadar",
+  "@composerRepeatUntil": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "composerReminderBefore": "{minutes} dk önce",
+  "@composerReminderBefore": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "composerInDays": "{days} gün sonra",
+  "@composerInDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "composerDaysAgo": "{days} gün önce",
+  "@composerDaysAgo": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "plannedDayEmpty": "Bu gün için plan yok",
   "plannedDayView": "Gün",
   "plannedWeekView": "Hafta",

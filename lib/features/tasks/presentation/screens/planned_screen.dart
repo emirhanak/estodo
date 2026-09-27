@@ -19,7 +19,8 @@ import '../widgets/planned/planned_month_grid.dart';
 import '../widgets/planned/planned_unscheduled.dart';
 import '../widgets/planned/planned_week_grid.dart';
 import '../widgets/planned/planned_week_strip.dart';
-import '../widgets/task_editor_sheet.dart';
+import '../widgets/planned/composer/planned_composer.dart';
+import '../utils/planned_draft.dart';
 
 /// The planned tab: a Structured-style visual timeline of everything that has
 /// a due date, with a day and a week view.
@@ -104,16 +105,29 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     if (picked != null) _selectDate(picked);
   }
 
-  void _openTask(TodoTask task) => showTaskEditorSheet(context, task: task);
+  void _openTask(TodoTask task) =>
+      unawaited(showPlannedComposer(context, task: task));
 
   void _toggleTask(TodoTask task) =>
       ref.read(taskControllerProvider).toggleComplete(task);
 
-  void _addAt(DateTime start) => showTaskEditorSheet(
-        context,
-        initialDueDate: PlannedLayout.dayOf(start),
-        initialStartAt: start,
+  void _addAt(DateTime start, {PlannedDraftKind? kind}) => unawaited(
+        showPlannedComposer(
+          context,
+          date: PlannedLayout.dayOf(start),
+          startAt: start,
+          kind: kind ?? PlannedDraftKind.task,
+        ),
       );
+
+  /// Opens the composer for the selected day, at the next sensible slot.
+  void _compose({PlannedDraftKind kind = PlannedDraftKind.task}) {
+    final now = DateTime.now();
+    final start = PlannedLayout.isSameDay(_selectedDate, now)
+        ? PlannedLayout.roundToQuarter(now)
+        : PlannedLayout.dayOf(_selectedDate).add(const Duration(hours: 9));
+    _addAt(start, kind: kind);
+  }
 
   Future<void> _schedule(TodoTask task, DateTime start) async {
     final due = task.dueAt;
@@ -271,65 +285,86 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     final tasksAsync = ref.watch(tasksProvider);
     final lists = ref.watch(listsProvider).value ?? const <TaskList>[];
 
-    return Container(
-      color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
-      child: tasksAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) {
-          final l10n = AppLocalizations.of(context);
-          return EmptyState(
-            icon: Icons.error_outline_rounded,
-            title: l10n.errorCouldNotLoadTasks,
-            message: l10n.errorTryAgain,
-          );
-        },
-        data: (tasks) {
-          final dated = tasks.where((task) => task.dueAt != null).toList();
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= _wideBreakpoint;
-              final compact = constraints.maxWidth < _compactBreakpoint;
-              final selectedDay = _dayFor(_selectedDate, dated, lists, accent);
+    return Stack(
+      children: [
+        Container(
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+          child: _body(tasksAsync, lists, accent),
+        ),
+        Positioned(
+          right: 20,
+          bottom: 24 + MediaQuery.viewPaddingOf(context).bottom,
+          child: _ComposerButton(
+            accent: accent,
+            onTask: _compose,
+            onHabit: () => _compose(kind: PlannedDraftKind.habit),
+          ),
+        ),
+      ],
+    );
+  }
 
-              final main = _mainColumn(
-                tasks: dated,
-                lists: lists,
-                accent: accent,
-                selectedDay: selectedDay,
-                compact: compact,
-                wide: wide,
-              );
+  Widget _body(
+    AsyncValue<List<TodoTask>> tasksAsync,
+    List<TaskList> lists,
+    Color accent,
+  ) {
+    return tasksAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) {
+        final l10n = AppLocalizations.of(context);
+        return EmptyState(
+          icon: Icons.error_outline_rounded,
+          title: l10n.errorCouldNotLoadTasks,
+          message: l10n.errorTryAgain,
+        );
+      },
+      data: (tasks) {
+        final dated = tasks.where((task) => task.dueAt != null).toList();
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= _wideBreakpoint;
+            final compact = constraints.maxWidth < _compactBreakpoint;
+            final selectedDay = _dayFor(_selectedDate, dated, lists, accent);
 
-              if (!wide) return main;
+            final main = _mainColumn(
+              tasks: dated,
+              lists: lists,
+              accent: accent,
+              selectedDay: selectedDay,
+              compact: compact,
+              wide: wide,
+            );
 
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    width: constraints.maxWidth >= 1000 ? 320 : 280,
-                    child: PlannedInboxPanel(
-                      day: selectedDay,
-                      accent: accent,
-                      onOpen: _openTask,
-                      onToggle: _toggleTask,
-                      onSchedule: (task) => _schedule(
-                        task,
-                        PlannedLayout.nextFreeSlot(
-                          selectedDay,
-                          minutes: task.durationMinutes ??
-                              PlannedLayout.defaultDurationMinutes,
-                          now: _now,
-                        ),
+            if (!wide) return main;
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: constraints.maxWidth >= 1000 ? 320 : 280,
+                  child: PlannedInboxPanel(
+                    day: selectedDay,
+                    accent: accent,
+                    onOpen: _openTask,
+                    onToggle: _toggleTask,
+                    onSchedule: (task) => _schedule(
+                      task,
+                      PlannedLayout.nextFreeSlot(
+                        selectedDay,
+                        minutes: task.durationMinutes ??
+                            PlannedLayout.defaultDurationMinutes,
+                        now: _now,
                       ),
                     ),
                   ),
-                  Expanded(child: main),
-                ],
-              );
-            },
-          );
-        },
-      ),
+                ),
+                Expanded(child: main),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -553,6 +588,101 @@ class _SummaryLine extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Planned tab's own add button: tap plans, the small satellite starts a habit.
+class _ComposerButton extends StatefulWidget {
+  const _ComposerButton({
+    required this.accent,
+    required this.onTask,
+    required this.onHabit,
+  });
+
+  final Color accent;
+  final VoidCallback onTask;
+  final VoidCallback onHabit;
+
+  @override
+  State<_ComposerButton> createState() => _ComposerButtonState();
+}
+
+class _ComposerButtonState extends State<_ComposerButton> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          child: _expanded
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          l10n.composerKindHabit,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      FloatingActionButton.small(
+                        heroTag: 'planned-habit-fab',
+                        backgroundColor: scheme.surfaceContainerLowest,
+                        foregroundColor: widget.accent,
+                        onPressed: () {
+                          setState(() => _expanded = false);
+                          widget.onHabit();
+                        },
+                        child: const Icon(Icons.autorenew_rounded),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        GestureDetector(
+          onLongPress: () => setState(() => _expanded = !_expanded),
+          child: FloatingActionButton(
+            heroTag: 'planned-compose-fab',
+            onPressed: widget.onTask,
+            tooltip: l10n.newTask,
+            child: AnimatedRotation(
+              duration: const Duration(milliseconds: 220),
+              turns: _expanded ? 0.125 : 0,
+              child: const Icon(Icons.add_rounded),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

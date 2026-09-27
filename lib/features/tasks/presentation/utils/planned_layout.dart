@@ -150,6 +150,9 @@ class PlannedLayout {
     Map<String, int> listColors,
     Color fallback,
   ) {
+    // A color picked in the composer always wins over the list color.
+    final own = task.colorValue;
+    if (own != null) return Color(own);
     final listId = task.listId;
     if (listId == null) return fallback;
     final value = listColors[listId];

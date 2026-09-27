@@ -91,6 +91,9 @@ class TaskController {
     required String title,
     String? notes,
     String? listId,
+    String? iconKey,
+    int? colorValue,
+    bool isHabit = false,
     TaskPriority priority = TaskPriority.medium,
     DateTime? dueAt,
     DateTime? startAt,
@@ -109,6 +112,9 @@ class TaskController {
       listId: listId,
       title: title.trim(),
       notes: _clean(notes),
+      iconKey: iconKey,
+      colorValue: colorValue,
+      isHabit: isHabit,
       priority: priority,
       dueAt: dueAt,
       startAt: startAt,
@@ -139,8 +145,10 @@ class TaskController {
     final now = DateTime.now();
     final completing = !task.isCompleted;
 
-    if (completing && task.recurrence != null && task.dueAt != null) {
-      final nextDue = task.recurrence!.nextOccurrence(task.dueAt!);
+    final nextDue = completing && task.recurrence != null && task.dueAt != null
+        ? task.recurrence!.nextOccurrenceOrNull(task.dueAt!)
+        : null;
+    if (nextDue != null) {
       DateTime? nextReminder;
       if (task.reminderAt != null) {
         final delta = task.reminderAt!.difference(task.dueAt!);
@@ -150,6 +158,9 @@ class TaskController {
         title: task.title,
         notes: task.notes,
         listId: task.listId,
+        iconKey: task.iconKey,
+        colorValue: task.colorValue,
+        isHabit: task.isHabit,
         priority: task.priority,
         dueAt: nextDue,
         startAt: task.startAt == null

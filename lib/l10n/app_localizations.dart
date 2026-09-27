@@ -296,6 +296,312 @@ abstract class AppLocalizations {
   /// **'minutes'**
   String get minutes;
 
+  /// No description provided for @composerTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s the plan?'**
+  String get composerTitleHint;
+
+  /// No description provided for @composerHabitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Which habit?'**
+  String get composerHabitHint;
+
+  /// No description provided for @composerHabitBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits come back on their own. Pick a rhythm and the timeline keeps it going.'**
+  String get composerHabitBanner;
+
+  /// No description provided for @composerNlpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try “1 h yoga friday at 16:00” — the time, day and length are read from the title.'**
+  String get composerNlpHint;
+
+  /// No description provided for @composerContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get composerContinue;
+
+  /// No description provided for @composerCreateTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Create plan'**
+  String get composerCreateTask;
+
+  /// No description provided for @composerCreateHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create habit'**
+  String get composerCreateHabit;
+
+  /// No description provided for @composerKindTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get composerKindTask;
+
+  /// No description provided for @composerKindHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Habit'**
+  String get composerKindHabit;
+
+  /// No description provided for @composerSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get composerSuggestions;
+
+  /// No description provided for @composerColorAndIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Color & icon'**
+  String get composerColorAndIcon;
+
+  /// No description provided for @composerSearchIcons.
+  ///
+  /// In en, this message translates to:
+  /// **'Search icons'**
+  String get composerSearchIcons;
+
+  /// No description provided for @composerCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get composerCategoryAll;
+
+  /// No description provided for @composerCategoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get composerCategoryGeneral;
+
+  /// No description provided for @composerCategoryWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get composerCategoryWork;
+
+  /// No description provided for @composerCategoryHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get composerCategoryHealth;
+
+  /// No description provided for @composerCategoryFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get composerCategoryFood;
+
+  /// No description provided for @composerCategoryHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get composerCategoryHome;
+
+  /// No description provided for @composerCategoryLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get composerCategoryLearning;
+
+  /// No description provided for @composerCategorySocial.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get composerCategorySocial;
+
+  /// No description provided for @composerCategoryTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get composerCategoryTravel;
+
+  /// No description provided for @composerCategoryLeisure.
+  ///
+  /// In en, this message translates to:
+  /// **'Leisure'**
+  String get composerCategoryLeisure;
+
+  /// No description provided for @composerCategoryMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Money'**
+  String get composerCategoryMoney;
+
+  /// No description provided for @composerTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get composerTime;
+
+  /// No description provided for @composerDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get composerDuration;
+
+  /// No description provided for @composerReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get composerReminder;
+
+  /// No description provided for @composerAddTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get composerAddTime;
+
+  /// No description provided for @composerRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get composerRepeat;
+
+  /// No description provided for @composerRepeatOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get composerRepeatOnce;
+
+  /// No description provided for @composerRepeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get composerRepeatDaily;
+
+  /// No description provided for @composerRepeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get composerRepeatWeekly;
+
+  /// No description provided for @composerRepeatMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get composerRepeatMonthly;
+
+  /// No description provided for @composerRepeatWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get composerRepeatWeekdays;
+
+  /// No description provided for @composerRepeatYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get composerRepeatYearly;
+
+  /// No description provided for @composerRepeatStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get composerRepeatStart;
+
+  /// No description provided for @composerSetEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set end date'**
+  String get composerSetEndDate;
+
+  /// No description provided for @composerRepeatForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats indefinitely.'**
+  String get composerRepeatForever;
+
+  /// No description provided for @composerRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get composerRemove;
+
+  /// No description provided for @composerReminderNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get composerReminderNone;
+
+  /// No description provided for @composerReminderOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get composerReminderOnTime;
+
+  /// No description provided for @composerSubtaskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add subtask'**
+  String get composerSubtaskHint;
+
+  /// No description provided for @composerNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes, links or phone numbers…'**
+  String get composerNotesHint;
+
+  /// No description provided for @composerHoursUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get composerHoursUnit;
+
+  /// No description provided for @composerMinutesUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get composerMinutesUnit;
+
+  /// No description provided for @composerEveryDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} days'**
+  String composerEveryDays(int count);
+
+  /// No description provided for @composerEveryWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} weeks'**
+  String composerEveryWeeks(int count);
+
+  /// No description provided for @composerEveryMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} months'**
+  String composerEveryMonths(int count);
+
+  /// No description provided for @composerRepeatUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Until {date}'**
+  String composerRepeatUntil(String date);
+
+  /// No description provided for @composerReminderBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min before'**
+  String composerReminderBefore(int minutes);
+
+  /// No description provided for @composerInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days'**
+  String composerInDays(int days);
+
+  /// No description provided for @composerDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String composerDaysAgo(int days);
+
   /// No description provided for @plannedDayEmpty.
   ///
   /// In en, this message translates to:

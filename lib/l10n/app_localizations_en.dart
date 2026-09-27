@@ -112,6 +112,175 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minutes => 'minutes';
 
   @override
+  String get composerTitleHint => 'What\'s the plan?';
+
+  @override
+  String get composerHabitHint => 'Which habit?';
+
+  @override
+  String get composerHabitBanner =>
+      'Habits come back on their own. Pick a rhythm and the timeline keeps it going.';
+
+  @override
+  String get composerNlpHint =>
+      'Try “1 h yoga friday at 16:00” — the time, day and length are read from the title.';
+
+  @override
+  String get composerContinue => 'Continue';
+
+  @override
+  String get composerCreateTask => 'Create plan';
+
+  @override
+  String get composerCreateHabit => 'Create habit';
+
+  @override
+  String get composerKindTask => 'Plan';
+
+  @override
+  String get composerKindHabit => 'Habit';
+
+  @override
+  String get composerSuggestions => 'Suggestions';
+
+  @override
+  String get composerColorAndIcon => 'Color & icon';
+
+  @override
+  String get composerSearchIcons => 'Search icons';
+
+  @override
+  String get composerCategoryAll => 'All';
+
+  @override
+  String get composerCategoryGeneral => 'General';
+
+  @override
+  String get composerCategoryWork => 'Work';
+
+  @override
+  String get composerCategoryHealth => 'Health';
+
+  @override
+  String get composerCategoryFood => 'Food';
+
+  @override
+  String get composerCategoryHome => 'Home';
+
+  @override
+  String get composerCategoryLearning => 'Learning';
+
+  @override
+  String get composerCategorySocial => 'Social';
+
+  @override
+  String get composerCategoryTravel => 'Travel';
+
+  @override
+  String get composerCategoryLeisure => 'Leisure';
+
+  @override
+  String get composerCategoryMoney => 'Money';
+
+  @override
+  String get composerTime => 'Time';
+
+  @override
+  String get composerDuration => 'Duration';
+
+  @override
+  String get composerReminder => 'Reminder';
+
+  @override
+  String get composerAddTime => 'Add a time';
+
+  @override
+  String get composerRepeat => 'Repeat';
+
+  @override
+  String get composerRepeatOnce => 'Once';
+
+  @override
+  String get composerRepeatDaily => 'Daily';
+
+  @override
+  String get composerRepeatWeekly => 'Weekly';
+
+  @override
+  String get composerRepeatMonthly => 'Monthly';
+
+  @override
+  String get composerRepeatWeekdays => 'Weekdays';
+
+  @override
+  String get composerRepeatYearly => 'Yearly';
+
+  @override
+  String get composerRepeatStart => 'Starts';
+
+  @override
+  String get composerSetEndDate => 'Set end date';
+
+  @override
+  String get composerRepeatForever => 'Repeats indefinitely.';
+
+  @override
+  String get composerRemove => 'Remove';
+
+  @override
+  String get composerReminderNone => 'No reminder';
+
+  @override
+  String get composerReminderOnTime => 'On time';
+
+  @override
+  String get composerSubtaskHint => 'Add subtask';
+
+  @override
+  String get composerNotesHint => 'Notes, links or phone numbers…';
+
+  @override
+  String get composerHoursUnit => 'h';
+
+  @override
+  String get composerMinutesUnit => 'min';
+
+  @override
+  String composerEveryDays(int count) {
+    return 'Every $count days';
+  }
+
+  @override
+  String composerEveryWeeks(int count) {
+    return 'Every $count weeks';
+  }
+
+  @override
+  String composerEveryMonths(int count) {
+    return 'Every $count months';
+  }
+
+  @override
+  String composerRepeatUntil(String date) {
+    return 'Until $date';
+  }
+
+  @override
+  String composerReminderBefore(int minutes) {
+    return '$minutes min before';
+  }
+
+  @override
+  String composerInDays(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String composerDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
   String get plannedDayEmpty => 'No plans for this day';
 
   @override

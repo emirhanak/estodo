@@ -72,11 +72,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
             ),
             onChanged: (value) {
-                _debounce?.cancel();
-                _debounce = Timer(const Duration(milliseconds: 300), () {
-                  setState(() => _query = value);
-                });
-              },
+              _debounce?.cancel();
+              _debounce = Timer(const Duration(milliseconds: 300), () {
+                setState(() => _query = value);
+              });
+            },
           ),
         ),
         Expanded(

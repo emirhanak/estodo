@@ -9,6 +9,9 @@ class TodoTask {
     this.listId,
     required this.title,
     this.notes,
+    this.iconKey,
+    this.colorValue,
+    this.isHabit = false,
     this.priority = TaskPriority.medium,
     this.dueAt,
     this.startAt,
@@ -31,6 +34,15 @@ class TodoTask {
   final String? listId;
   final String title;
   final String? notes;
+
+  /// Key of the glyph the user picked for this task, see `TaskIconCatalog`.
+  final String? iconKey;
+
+  /// ARGB color the user picked for this task; falls back to the list color.
+  final int? colorValue;
+
+  /// Habits are recurring rituals: they render as routines in the planned tab.
+  final bool isHabit;
   final TaskPriority priority;
   final DateTime? dueAt;
   final DateTime? startAt;
@@ -59,6 +71,9 @@ class TodoTask {
     Object? listId = _unset,
     String? title,
     Object? notes = _unset,
+    Object? iconKey = _unset,
+    Object? colorValue = _unset,
+    bool? isHabit,
     TaskPriority? priority,
     Object? dueAt = _unset,
     Object? startAt = _unset,
@@ -81,6 +96,9 @@ class TodoTask {
       listId: listId == _unset ? this.listId : listId as String?,
       title: title ?? this.title,
       notes: notes == _unset ? this.notes : notes as String?,
+      iconKey: iconKey == _unset ? this.iconKey : iconKey as String?,
+      colorValue: colorValue == _unset ? this.colorValue : colorValue as int?,
+      isHabit: isHabit ?? this.isHabit,
       priority: priority ?? this.priority,
       dueAt: dueAt == _unset ? this.dueAt : dueAt as DateTime?,
       startAt: startAt == _unset ? this.startAt : startAt as DateTime?,

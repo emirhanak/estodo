@@ -1,3 +1,9 @@
+definitions:
+  env_versions: &env_versions
+    flutter: stable
+    xcode: 26.4
+    cocoapods: default
+
 workflows:
   ios-testflight:
     name: estodo iOS - TestFlight
@@ -16,9 +22,15 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.estodo.app
-      flutter: stable
-      xcode: 26.4
-      cocoapods: default
+      <<: *env_versions
+
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+      cancel_previous_builds: true
 
     cache:
       cache_paths:
@@ -50,11 +62,25 @@ workflows:
       - name: Apply App Store signing
         script: xcode-project use-profiles
 
+      # The next build number always comes from App Store Connect, so a build is
+      # never rejected for reusing a number that is already uploaded.
+      - name: Resolve the next build number
+        script: |
+          set -e
+          if [ -z "$APP_STORE_APP_ID" ]; then
+            echo "APP_STORE_APP_ID is not set. Add it to the estodo_firebase"                  "environment group with the numeric Apple ID from"                  "App Store Connect > App Information."
+            exit 1
+          fi
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID")
+          echo "BUILD_NUMBER=$((LATEST + 1))" >> $CM_ENV
+
       - name: Build signed IPA
         script: |
+          set -e
+          BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | cut -d+ -f1)
           flutter build ipa --release \
-            --build-name=1.0.0 \
-            --build-number="$PROJECT_BUILD_NUMBER" \
+            --build-name="$BUILD_NAME" \
+            --build-number="$BUILD_NUMBER" \
             --export-options-plist="$HOME/export_options.plist" \
             --dart-define-from-file=config/firebase.prod.json
 
@@ -67,3 +93,17 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
+        # TestFlight only. App Store submission stays manual.
+        submit_to_testflight: true
+        submit_to_app_store: false
+        # Internal testers get the build with no beta review. Uncomment and use
+        # the exact group name from App Store Connect to reach external testers
+        # (that path does go through Apple's beta review).
+        # beta_groups:
+        #   - External testers
+      email:
+        recipients:
+          - flashemirhan@gmail.com
+        notify:
+          success: true
+          failure: true

@@ -129,8 +129,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
     final canAddTask = switch (_section) {
+      // The planned tab brings its own composer button so the action can carry
+      // the selected day and offer habits.
       HomeSection.completed ||
       HomeSection.search ||
+      HomeSection.planned ||
       HomeSection.settings =>
         false,
       _ => true,

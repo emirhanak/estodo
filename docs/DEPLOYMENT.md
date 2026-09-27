@@ -88,3 +88,49 @@ flutter build ipa --release --dart-define-from-file=config/firebase.prod.json
 - Sign in/register flow works on TestFlight.
 - Offline create/edit/delete sync tested by toggling network.
 - Reminder notifications tested on a physical device.
+
+## TestFlight via Codemagic
+
+`codemagic.yaml` holds one workflow, `ios-testflight`. It builds a signed IPA on a
+Codemagic Mac and uploads it to TestFlight. App Store submission stays manual:
+`submit_to_app_store` is `false`.
+
+### One-time setup
+
+1. **App Store Connect API key.** In App Store Connect go to Users and Access >
+   Integrations > App Store Connect API and create a key with the App Manager
+   role. Download the `.p8` once and note the Issuer ID and Key ID.
+2. **Codemagic integration.** In Codemagic go to Teams > your team > Integrations
+   > App Store Connect and add the key. Name it exactly `estodo-app-store` —
+   that name is what `integrations.app_store_connect` refers to.
+3. **Signing.** Codemagic > app settings > Code signing identities. With the API
+   key in place, `ios_signing.distribution_type: app_store` lets Codemagic fetch
+   or create the App Store provisioning profile for `com.estodo.app` itself.
+4. **Secret environment group.** Create the group `estodo_firebase` with two
+   secret variables:
+   - `FIREBASE_DART_DEFINES_B64` — `base64 -i config/firebase.prod.json`
+   - `IOS_FIREBASE_SECRET` — the contents of `ios/Runner/GoogleService-Info.plist`
+5. **App id.** Add `APP_STORE_APP_ID` to the `estodo_firebase` group with the
+   numeric Apple ID from App Store Connect > App Information. It is not a secret.
+   The build-number step reads the last uploaded TestFlight build for that id and
+   increments it, so a build is never rejected for reusing a number.
+6. **App record.** The app must already exist in App Store Connect with the
+   bundle identifier `com.estodo.app`. Codemagic uploads a build, it does not
+   create the app.
+
+### Releasing
+
+The workflow triggers on a pushed tag matching `v*`:
+
+```bash
+# bump `version:` in pubspec.yaml first — the build name comes from it
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Or press **Start new build** in Codemagic and pick the `ios-testflight` workflow.
+
+`flutter analyze` and `flutter test` run before the build, so a failing test stops
+the release. Processing on Apple's side takes a few minutes after upload; internal
+testers then see the build with no beta review. External test groups need
+`beta_groups` uncommented, and those do go through Apple's beta review.

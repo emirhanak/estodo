@@ -36,6 +36,78 @@
   "durationMinutes": "{minutes} minutes",
   "customDuration": "Custom duration",
   "minutes": "minutes",
+  "composerTitleHint": "What's the plan?",
+  "composerHabitHint": "Which habit?",
+  "composerHabitBanner": "Habits come back on their own. Pick a rhythm and the timeline keeps it going.",
+  "composerNlpHint": "Try “1 h yoga friday at 16:00” — the time, day and length are read from the title.",
+  "composerContinue": "Continue",
+  "composerCreateTask": "Create plan",
+  "composerCreateHabit": "Create habit",
+  "composerKindTask": "Plan",
+  "composerKindHabit": "Habit",
+  "composerSuggestions": "Suggestions",
+  "composerColorAndIcon": "Color & icon",
+  "composerSearchIcons": "Search icons",
+  "composerCategoryAll": "All",
+  "composerCategoryGeneral": "General",
+  "composerCategoryWork": "Work",
+  "composerCategoryHealth": "Health",
+  "composerCategoryFood": "Food",
+  "composerCategoryHome": "Home",
+  "composerCategoryLearning": "Learning",
+  "composerCategorySocial": "Social",
+  "composerCategoryTravel": "Travel",
+  "composerCategoryLeisure": "Leisure",
+  "composerCategoryMoney": "Money",
+  "composerTime": "Time",
+  "composerDuration": "Duration",
+  "composerReminder": "Reminder",
+  "composerAddTime": "Add a time",
+  "composerRepeat": "Repeat",
+  "composerRepeatOnce": "Once",
+  "composerRepeatDaily": "Daily",
+  "composerRepeatWeekly": "Weekly",
+  "composerRepeatMonthly": "Monthly",
+  "composerRepeatWeekdays": "Weekdays",
+  "composerRepeatYearly": "Yearly",
+  "composerRepeatStart": "Starts",
+  "composerSetEndDate": "Set end date",
+  "composerRepeatForever": "Repeats indefinitely.",
+  "composerRemove": "Remove",
+  "composerReminderNone": "No reminder",
+  "composerReminderOnTime": "On time",
+  "composerSubtaskHint": "Add subtask",
+  "composerNotesHint": "Notes, links or phone numbers…",
+  "composerHoursUnit": "h",
+  "composerMinutesUnit": "min",
+  "composerEveryDays": "Every {count} days",
+  "@composerEveryDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerEveryWeeks": "Every {count} weeks",
+  "@composerEveryWeeks": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerEveryMonths": "Every {count} months",
+  "@composerEveryMonths": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "composerRepeatUntil": "Until {date}",
+  "@composerRepeatUntil": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "composerReminderBefore": "{minutes} min before",
+  "@composerReminderBefore": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "composerInDays": "In {days} days",
+  "@composerInDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "composerDaysAgo": "{days} days ago",
+  "@composerDaysAgo": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "plannedDayEmpty": "No plans for this day",
   "plannedDayView": "Day",
   "plannedWeekView": "Week",

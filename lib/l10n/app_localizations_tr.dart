@@ -112,6 +112,175 @@ class AppLocalizationsTr extends AppLocalizations {
   String get minutes => 'dakika';
 
   @override
+  String get composerTitleHint => 'Ne planlıyorsun?';
+
+  @override
+  String get composerHabitHint => 'Hangi alışkanlık?';
+
+  @override
+  String get composerHabitBanner =>
+      'Alışkanlıklar kendi kendine geri gelir. Ritmini seç, zaman çizelgesi sürdürsün.';
+
+  @override
+  String get composerNlpHint =>
+      '“1 saat yoga cuma 16:00” yaz — saat, gün ve süre başlıktan okunur.';
+
+  @override
+  String get composerContinue => 'Devam';
+
+  @override
+  String get composerCreateTask => 'Planı oluştur';
+
+  @override
+  String get composerCreateHabit => 'Alışkanlığı oluştur';
+
+  @override
+  String get composerKindTask => 'Plan';
+
+  @override
+  String get composerKindHabit => 'Alışkanlık';
+
+  @override
+  String get composerSuggestions => 'Öneriler';
+
+  @override
+  String get composerColorAndIcon => 'Renk ve simge';
+
+  @override
+  String get composerSearchIcons => 'Simge ara';
+
+  @override
+  String get composerCategoryAll => 'Tümü';
+
+  @override
+  String get composerCategoryGeneral => 'Genel';
+
+  @override
+  String get composerCategoryWork => 'İş';
+
+  @override
+  String get composerCategoryHealth => 'Sağlık';
+
+  @override
+  String get composerCategoryFood => 'Yemek';
+
+  @override
+  String get composerCategoryHome => 'Ev';
+
+  @override
+  String get composerCategoryLearning => 'Öğrenme';
+
+  @override
+  String get composerCategorySocial => 'Sosyal';
+
+  @override
+  String get composerCategoryTravel => 'Seyahat';
+
+  @override
+  String get composerCategoryLeisure => 'Keyif';
+
+  @override
+  String get composerCategoryMoney => 'Para';
+
+  @override
+  String get composerTime => 'Saat';
+
+  @override
+  String get composerDuration => 'Süre';
+
+  @override
+  String get composerReminder => 'Hatırlatıcı';
+
+  @override
+  String get composerAddTime => 'Saat ekle';
+
+  @override
+  String get composerRepeat => 'Tekrar';
+
+  @override
+  String get composerRepeatOnce => 'Bir kez';
+
+  @override
+  String get composerRepeatDaily => 'Günlük';
+
+  @override
+  String get composerRepeatWeekly => 'Haftalık';
+
+  @override
+  String get composerRepeatMonthly => 'Aylık';
+
+  @override
+  String get composerRepeatWeekdays => 'Hafta içi';
+
+  @override
+  String get composerRepeatYearly => 'Yıllık';
+
+  @override
+  String get composerRepeatStart => 'Başlangıç';
+
+  @override
+  String get composerSetEndDate => 'Bitiş tarihi ekle';
+
+  @override
+  String get composerRepeatForever => 'Süresiz tekrar eder.';
+
+  @override
+  String get composerRemove => 'Kaldır';
+
+  @override
+  String get composerReminderNone => 'Hatırlatma yok';
+
+  @override
+  String get composerReminderOnTime => 'Tam saatinde';
+
+  @override
+  String get composerSubtaskHint => 'Alt görev ekle';
+
+  @override
+  String get composerNotesHint => 'Not, bağlantı veya telefon numarası…';
+
+  @override
+  String get composerHoursUnit => 'sa';
+
+  @override
+  String get composerMinutesUnit => 'dk';
+
+  @override
+  String composerEveryDays(int count) {
+    return '$count günde bir';
+  }
+
+  @override
+  String composerEveryWeeks(int count) {
+    return '$count haftada bir';
+  }
+
+  @override
+  String composerEveryMonths(int count) {
+    return '$count ayda bir';
+  }
+
+  @override
+  String composerRepeatUntil(String date) {
+    return '$date tarihine kadar';
+  }
+
+  @override
+  String composerReminderBefore(int minutes) {
+    return '$minutes dk önce';
+  }
+
+  @override
+  String composerInDays(int days) {
+    return '$days gün sonra';
+  }
+
+  @override
+  String composerDaysAgo(int days) {
+    return '$days gün önce';
+  }
+
+  @override
   String get plannedDayEmpty => 'Bu gün için plan yok';
 
   @override

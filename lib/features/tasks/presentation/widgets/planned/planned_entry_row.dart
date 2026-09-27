@@ -278,7 +278,31 @@ class _MetaRow extends StatelessWidget {
     if (task.reminderAt != null) {
       chips.add(_icon(context, Icons.notifications_none_rounded, null));
     }
-    if (task.recurrence != null) {
+    if (task.isHabit) {
+      chips.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: entry.color.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.autorenew_rounded, size: 11, color: entry.color),
+              const SizedBox(width: 4),
+              Text(
+                AppLocalizations.of(context).composerKindHabit,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: entry.color,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (task.recurrence != null) {
       chips.add(_icon(context, Icons.repeat_rounded, null));
     }
     if (task.isImportant) {
