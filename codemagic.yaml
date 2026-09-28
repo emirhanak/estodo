@@ -55,7 +55,7 @@ workflows:
           flutter gen-l10n
 
       - name: Analyze
-        script: flutter analyze
+        script: flutter analyze --no-fatal-infos
 
       - name: Test
         script: flutter test

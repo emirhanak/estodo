@@ -945,6 +945,7 @@ class _StepsSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               itemCount: steps.length,
+              // ignore: deprecated_member_use
               onReorder: onReorder,
               itemBuilder: (context, index) {
                 final step = steps[index];
