@@ -9,6 +9,7 @@ import '../../../../core/services/connectivity_provider.dart';
 import '../../../../core/services/notification_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/preferences_provider.dart';
+import '../../../../core/services/widget_data_service.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -109,6 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     ref.watch(myDayCarryOverProvider).whenOrNull(error: (_, __) {});
     ref.watch(deviceTokenRegistrationProvider);
+    ref.watch(widgetDataSyncProvider);
 
     final lists = ref.watch(listsProvider).value ?? const <TaskList>[];
     final tasks = ref.watch(tasksProvider).value ?? const <TodoTask>[];

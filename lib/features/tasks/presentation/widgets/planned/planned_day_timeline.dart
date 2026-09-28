@@ -137,6 +137,17 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
       if (last != null) children.add(_gapSlot(last, null));
     }
 
+    final allScheduledDone =
+        scheduled.isNotEmpty && scheduled.every((e) => e.isCompleted);
+    if (allScheduledDone) {
+      children.add(
+        _DayCompletedBanner(
+          accent: widget.accent,
+          count: scheduled.length,
+        ),
+      );
+    }
+
     if (day.completed.isNotEmpty) {
       children.add(
         PlannedCompletedSection(
@@ -333,14 +344,26 @@ class _NowMarkerState extends State<_NowMarker>
               ),
             ),
           ),
-          FadeTransition(
-            opacity: Tween<double>(begin: 0.45, end: 1).animate(_pulse),
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: widget.accent,
-                shape: BoxShape.circle,
+          SizedBox(
+            width: PlannedCapsule.columnWidth,
+            child: Center(
+              child: FadeTransition(
+                opacity: Tween<double>(begin: 0.45, end: 1).animate(_pulse),
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: widget.accent,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.accent.withValues(alpha: 0.5),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -349,7 +372,7 @@ class _NowMarkerState extends State<_NowMarker>
               height: 2,
               margin: const EdgeInsets.only(left: 4, right: 12),
               decoration: BoxDecoration(
-                color: widget.accent.withValues(alpha: 0.55),
+                color: widget.accent.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -424,29 +447,43 @@ class _GapSlotState extends State<_GapSlot> {
                 SizedBox(width: widget.gutterWidth),
                 SizedBox(
                   width: PlannedCapsule.columnWidth,
-                  child: Center(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      width: active ? 30 : 24,
-                      height: active ? 30 : 24,
-                      decoration: BoxDecoration(
-                        color: active
-                            ? widget.accent
-                            : scheme.surfaceContainerHighest,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: widget.accent.withValues(alpha: 0.4),
-                          width: 1.2,
+                  height: 38,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        top: 0,
+                        bottom: 0,
+                        width: 2,
+                        child: CustomPaint(
+                          painter: _DashedLinePainter(
+                            color: scheme.outlineVariant.withValues(alpha: 0.65),
+                          ),
                         ),
                       ),
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: active ? 18 : 14,
-                        color: active
-                            ? PlannedCapsule.foregroundOn(widget.accent)
-                            : widget.accent,
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: active ? 30 : 24,
+                        height: active ? 30 : 24,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? widget.accent
+                              : scheme.surfaceContainerHighest,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.accent.withValues(alpha: 0.4),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.add_rounded,
+                          size: active ? 18 : 14,
+                          color: active
+                              ? PlannedCapsule.foregroundOn(widget.accent)
+                              : widget.accent,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -467,6 +504,99 @@ class _GapSlotState extends State<_GapSlot> {
           ),
         );
       },
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  const _DashedLinePainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    const dashHeight = 4.0;
+    const dashSpace = 4.0;
+    var startY = 0.0;
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(size.width / 2, startY),
+        Offset(size.width / 2, (startY + dashHeight).clamp(0.0, size.height)),
+        paint,
+      );
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _DayCompletedBanner extends StatelessWidget {
+  const _DayCompletedBanner({
+    required this.accent,
+    required this.count,
+  });
+
+  final Color accent;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.celebration_rounded, color: accent, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isTr ? 'Günün Tüm Planları Bitti!' : 'All Plans Completed!',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: scheme.onSurface,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isTr
+                      ? '$count planlanan görevin hepsi tamamlandı. Harika!'
+                      : 'All $count scheduled tasks finished. Great job!',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

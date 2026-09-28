@@ -59,6 +59,7 @@ class TaskCollectionScreen extends ConsumerStatefulWidget {
 
 class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
   bool _completedExpanded = false;
+  String? _selectedTag;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +78,13 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
           tasksAsync.when(
             data: (tasks) {
               final filtered = tasks.where(widget.filter).toList();
+              final allTags =
+                  filtered.expand((t) => t.tags).toSet().toList()..sort();
+              final activeTag =
+                  allTags.contains(_selectedTag) ? _selectedTag : null;
+              final displayedTasks = activeTag == null
+                  ? filtered
+                  : filtered.where((t) => t.tags.contains(activeTag)).toList();
               final lists = listsAsync.value ?? const <TaskList>[];
               return RefreshIndicator(
                 color: accent,
@@ -111,7 +119,20 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
                           prefill: widget.quickAddPrefill,
                         ),
                       ),
-                    ..._buildContent(context, filtered, lists, accent),
+                    if (allTags.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6, bottom: 2),
+                          child: _TagFilterBar(
+                            tags: allTags,
+                            selectedTag: activeTag,
+                            accent: accent,
+                            onSelect: (tag) =>
+                                setState(() => _selectedTag = tag),
+                          ),
+                        ),
+                      ),
+                    ..._buildContent(context, displayedTasks, lists, accent),
                     const SliverToBoxAdapter(child: SizedBox(height: 140)),
                   ],
                 ),
@@ -415,3 +436,76 @@ class _Header extends StatelessWidget {
     );
   }
 }
+
+class _TagFilterBar extends StatelessWidget {
+  const _TagFilterBar({
+    required this.tags,
+    required this.selectedTag,
+    required this.accent,
+    required this.onSelect,
+  });
+
+  final List<String> tags;
+  final String? selectedTag;
+  final Color accent;
+  final ValueChanged<String?> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: 38,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          FilterChip(
+            label: Text(l10n.allTags),
+            selected: selectedTag == null,
+            selectedColor: accent.withValues(alpha: 0.18),
+            checkmarkColor: accent,
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight:
+                  selectedTag == null ? FontWeight.w700 : FontWeight.w500,
+              color: selectedTag == null ? accent : scheme.onSurfaceVariant,
+            ),
+            side: BorderSide(
+              color: selectedTag == null
+                  ? accent.withValues(alpha: 0.4)
+                  : scheme.outlineVariant.withValues(alpha: 0.4),
+            ),
+            visualDensity: VisualDensity.compact,
+            onSelected: (_) => onSelect(null),
+          ),
+          const SizedBox(width: 8),
+          for (final tag in tags) ...[
+            FilterChip(
+              label: Text('#$tag'),
+              selected: selectedTag == tag,
+              selectedColor: accent.withValues(alpha: 0.18),
+              checkmarkColor: accent,
+              labelStyle: TextStyle(
+                fontSize: 12,
+                fontWeight:
+                    selectedTag == tag ? FontWeight.w700 : FontWeight.w500,
+                color: selectedTag == tag ? accent : scheme.onSurfaceVariant,
+              ),
+              side: BorderSide(
+                color: selectedTag == tag
+                    ? accent.withValues(alpha: 0.4)
+                    : scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              visualDensity: VisualDensity.compact,
+              onSelected: (selected) => onSelect(selected ? tag : null),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+

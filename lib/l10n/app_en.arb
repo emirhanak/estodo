@@ -364,5 +364,27 @@
       }
     }
   },
-  "syncStatusOfflineDetails": "No internet connection. Changes are safely stored on device and will sync automatically when reconnected."
+  "syncStatusOfflineDetails": "No internet connection. Changes are safely stored on device and will sync automatically when reconnected.",
+  "tags": "Tags",
+  "addTag": "Add tag",
+  "allTags": "All",
+  "filterByTag": "Filter by tag",
+  "tagPlaceholder": "Tag name",
+  "backupAndData": "Backup & Data",
+  "exportData": "Export Data (JSON)",
+  "importData": "Import from Backup",
+  "backupCopied": "Backup copied to clipboard",
+  "backupImportSuccess": "Successfully restored {count} tasks",
+  "@backupImportSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "backupInvalid": "Invalid backup JSON format",
+  "importCalendarTitle": "Import Calendar Events",
+  "importCalendarSample": "Add Sample Daily Plan (Today)",
+  "importCalendarFile": "Pick .ics File",
+  "importCalendarPaste": "Paste iCal (.ics) Text",
+  "calendarImportSuccess": "Imported {count} events",
+  "@calendarImportSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  }
 }

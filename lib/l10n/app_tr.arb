@@ -340,5 +340,21 @@
       }
     }
   },
-  "syncStatusOfflineDetails": "İnternet bağlantısı yok. Değişiklikler cihazında güvende, tekrar bağlandığında otomatik eşitlenecek."
+  "syncStatusOfflineDetails": "İnternet bağlantısı yok. Değişiklikler cihazında güvende, tekrar bağlandığında otomatik eşitlenecek.",
+  "tags": "Etiketler",
+  "addTag": "Etiket ekle",
+  "allTags": "Tümü",
+  "filterByTag": "Etikete göre filtrele",
+  "tagPlaceholder": "Etiket adı",
+  "backupAndData": "Yedekleme & Veri",
+  "exportData": "Verileri Dışa Aktar (JSON)",
+  "importData": "Yedekten İçe Aktar",
+  "backupCopied": "Yedek panoya kopyalandı",
+  "backupImportSuccess": "{count} görev başarıyla geri yüklendi",
+  "backupInvalid": "Geçersiz yedek JSON biçimi",
+  "importCalendarTitle": "Takvim Etkinliklerini İçe Aktar",
+  "importCalendarSample": "Bugüne Örnek Günlük Plan Ekle",
+  "importCalendarFile": ".ics Dosyası Yükle",
+  "importCalendarPaste": "iCal (.ics) Metni Yapıştır",
+  "calendarImportSuccess": "{count} etkinlik içe aktarıldı"
 }

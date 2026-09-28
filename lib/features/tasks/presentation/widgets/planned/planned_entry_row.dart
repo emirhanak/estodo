@@ -69,6 +69,8 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
     final active = entry.isActiveAt(widget.now);
     final start = entry.start;
     final end = entry.end;
+    final isPast = !active && end != null && widget.now.isAfter(end);
+    final rowOpacity = entry.isCompleted ? 0.65 : (isPast ? 0.78 : 1.0);
 
     final subtitle = active
         ? l10n.plannedRemaining(entry.remainingMinutesAt(widget.now))
@@ -250,7 +252,9 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
-              child: row,
+              child: rowOpacity < 1.0
+                  ? Opacity(opacity: rowOpacity, child: row)
+                  : row,
             ),
           ],
         ),
@@ -337,11 +341,36 @@ class _MetaRow extends ConsumerWidget {
       );
     }
     if (task.hasSteps) {
-      chips.add(_icon(
-        context,
-        Icons.checklist_rounded,
-        '${task.completedStepsCount}/${task.steps.length}',
-      ));
+      final completed = task.completedStepsCount;
+      final total = task.steps.length;
+      final isDone = completed == total && total > 0;
+      chips.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 11,
+              height: 11,
+              child: CircularProgressIndicator(
+                value: total > 0 ? (completed / total).clamp(0.0, 1.0) : 0,
+                strokeWidth: 2.0,
+                backgroundColor: entry.color.withValues(alpha: 0.22),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDone ? Colors.teal : entry.color,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '$completed/$total',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: isDone ? Colors.teal : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
+      );
     }
     if (task.reminderAt != null) {
       chips.add(_icon(context, Icons.notifications_none_rounded, null));

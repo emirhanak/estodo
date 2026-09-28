@@ -101,11 +101,18 @@ class TaskController {
     DateTime? reminderAt,
     RecurrenceRule? recurrence,
     List<TaskStep> steps = const <TaskStep>[],
+    List<String> tags = const <String>[],
     bool isImportant = false,
     bool isMyDay = false,
   }) async {
     final userId = _requireUserId();
     final now = DateTime.now();
+    final extractedTags = _extractTags(title);
+    final mergedTags = {
+      ...tags.map((t) => t.replaceAll('#', '').trim().toLowerCase()),
+      ...extractedTags,
+    }.where((t) => t.isNotEmpty).toList();
+
     final task = TodoTask(
       id: _ref.read(uuidProvider).v4(),
       userId: userId,
@@ -122,6 +129,7 @@ class TaskController {
       reminderAt: reminderAt,
       recurrence: recurrence,
       steps: steps,
+      tags: mergedTags,
       isImportant: isImportant,
       isMyDay: isMyDay,
       myDayDate: isMyDay ? DateTimeFormatter.todayKey(now) : null,
@@ -135,9 +143,18 @@ class TaskController {
 
   Future<void> updateTask(TodoTask task) async {
     final userId = _requireUserId();
+    final extractedTags = _extractTags(task.title);
+    final mergedTags = {
+      ...task.tags.map((t) => t.replaceAll('#', '').trim().toLowerCase()),
+      ...extractedTags,
+    }.where((t) => t.isNotEmpty).toList();
+
     await _ref.read(taskRepositoryProvider).updateTask(
           userId,
-          task.copyWith(updatedAt: DateTime.now()),
+          task.copyWith(
+            tags: mergedTags,
+            updatedAt: DateTime.now(),
+          ),
         );
   }
 
@@ -177,6 +194,7 @@ class TaskController {
         steps: task.steps
             .map((step) => step.copyWith(isCompleted: false))
             .toList(),
+        tags: task.tags,
         isImportant: task.isImportant,
         isMyDay: false,
       );
@@ -366,5 +384,18 @@ class TaskController {
   String? _clean(String? value) {
     final trimmed = value?.trim();
     return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  static final RegExp _tagRegex =
+      RegExp(r'#([\w\u00C0-\u024F\u1E00-\u1EFF]+)');
+
+  List<String> _extractTags(String text) {
+    return _tagRegex
+        .allMatches(text)
+        .map((m) => m.group(1)?.toLowerCase().trim())
+        .whereType<String>()
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList();
   }
 }

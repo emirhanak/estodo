@@ -19,6 +19,7 @@ class TodoTask {
     this.reminderAt,
     this.recurrence,
     this.steps = const <TaskStep>[],
+    this.tags = const <String>[],
     this.isCompleted = false,
     this.isImportant = false,
     this.isMyDay = false,
@@ -50,6 +51,7 @@ class TodoTask {
   final DateTime? reminderAt;
   final RecurrenceRule? recurrence;
   final List<TaskStep> steps;
+  final List<String> tags;
   final bool isCompleted;
   final bool isImportant;
   final bool isMyDay;
@@ -81,6 +83,7 @@ class TodoTask {
     Object? reminderAt = _unset,
     Object? recurrence = _unset,
     List<TaskStep>? steps,
+    List<String>? tags,
     bool? isCompleted,
     bool? isImportant,
     bool? isMyDay,
@@ -111,6 +114,7 @@ class TodoTask {
           ? this.recurrence
           : recurrence as RecurrenceRule?,
       steps: steps ?? this.steps,
+      tags: tags ?? this.tags,
       isCompleted: isCompleted ?? this.isCompleted,
       isImportant: isImportant ?? this.isImportant,
       isMyDay: isMyDay ?? this.isMyDay,

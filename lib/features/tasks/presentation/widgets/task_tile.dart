@@ -288,14 +288,61 @@ class _TaskTileState extends ConsumerState<TaskTile> {
       );
     }
     if (task.hasSteps) {
+      final completed = task.completedStepsCount;
+      final total = task.steps.length;
+      final isDone = completed == total && total > 0;
+      final ringColor = isDone ? Colors.teal : scheme.primary;
       items.add(
-        _metaText(
-          Icons.checklist_rounded,
-          '${task.completedStepsCount}/${task.steps.length}',
-          scheme,
-          textStyle,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                value: total > 0 ? (completed / total).clamp(0.0, 1.0) : 0,
+                strokeWidth: 2.2,
+                backgroundColor: ringColor.withValues(alpha: 0.22),
+                valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '$completed/$total',
+              style: textStyle?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isDone ? Colors.teal : null,
+              ),
+            ),
+          ],
         ),
       );
+    }
+    if (task.tags.isNotEmpty) {
+      for (final tag in task.tags.take(2)) {
+        items.add(
+          _metaText(
+            Icons.tag_rounded,
+            tag,
+            scheme,
+            textStyle?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }
+      if (task.tags.length > 2) {
+        items.add(
+          Text(
+            '+${task.tags.length - 2}',
+            style: textStyle?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }
     }
     if ((task.notes ?? '').isNotEmpty) {
       items.add(_metaText(

@@ -927,4 +927,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncStatusOfflineDetails =>
       'No internet connection. Changes are safely stored on device and will sync automatically when reconnected.';
+
+  @override
+  String get tags => 'Tags';
+
+  @override
+  String get addTag => 'Add tag';
+
+  @override
+  String get allTags => 'All';
+
+  @override
+  String get filterByTag => 'Filter by tag';
+
+  @override
+  String get tagPlaceholder => 'Tag name';
+
+  @override
+  String get backupAndData => 'Backup & Data';
+
+  @override
+  String get exportData => 'Export Data (JSON)';
+
+  @override
+  String get importData => 'Import from Backup';
+
+  @override
+  String get backupCopied => 'Backup copied to clipboard';
+
+  @override
+  String backupImportSuccess(int count) {
+    return 'Successfully restored $count tasks';
+  }
+
+  @override
+  String get backupInvalid => 'Invalid backup JSON format';
+
+  @override
+  String get importCalendarTitle => 'Import Calendar Events';
+
+  @override
+  String get importCalendarSample => 'Add Sample Daily Plan (Today)';
+
+  @override
+  String get importCalendarFile => 'Pick .ics File';
+
+  @override
+  String get importCalendarPaste => 'Paste iCal (.ics) Text';
+
+  @override
+  String calendarImportSuccess(int count) {
+    return 'Imported $count events';
+  }
 }

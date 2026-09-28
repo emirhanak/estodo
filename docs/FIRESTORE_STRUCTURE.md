@@ -32,6 +32,7 @@ users/{uid}/tasks/{taskId}
   position: number
   recurrence: map?
   steps: list<map>?
+  tags: list<string>?
   createdAt: timestamp
   updatedAt: timestamp
 

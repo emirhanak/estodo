@@ -1771,6 +1771,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No internet connection. Changes are safely stored on device and will sync automatically when reconnected.'**
   String get syncStatusOfflineDetails;
+
+  /// No description provided for @tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tags;
+
+  /// No description provided for @addTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get addTag;
+
+  /// No description provided for @allTags.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allTags;
+
+  /// No description provided for @filterByTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by tag'**
+  String get filterByTag;
+
+  /// No description provided for @tagPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag name'**
+  String get tagPlaceholder;
+
+  /// No description provided for @backupAndData.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Data'**
+  String get backupAndData;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Data (JSON)'**
+  String get exportData;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Backup'**
+  String get importData;
+
+  /// No description provided for @backupCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup copied to clipboard'**
+  String get backupCopied;
+
+  /// No description provided for @backupImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully restored {count} tasks'**
+  String backupImportSuccess(int count);
+
+  /// No description provided for @backupInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid backup JSON format'**
+  String get backupInvalid;
+
+  /// No description provided for @importCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Calendar Events'**
+  String get importCalendarTitle;
+
+  /// No description provided for @importCalendarSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sample Daily Plan (Today)'**
+  String get importCalendarSample;
+
+  /// No description provided for @importCalendarFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick .ics File'**
+  String get importCalendarFile;
+
+  /// No description provided for @importCalendarPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste iCal (.ics) Text'**
+  String get importCalendarPaste;
+
+  /// No description provided for @calendarImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} events'**
+  String calendarImportSuccess(int count);
 }
 
 class _AppLocalizationsDelegate

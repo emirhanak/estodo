@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,6 +80,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
   DateTime? _reminderAt;
   RecurrenceRule? _recurrence;
   late List<TaskStep> _steps;
+  late List<String> _tags;
   var _isImportant = false;
   var _isMyDay = false;
   var _isCompleted = false;
@@ -100,6 +102,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     _reminderAt = task?.reminderAt;
     _recurrence = task?.recurrence;
     _steps = List<TaskStep>.from(task?.steps ?? const <TaskStep>[]);
+    _tags = List<String>.from(task?.tags ?? const <String>[]);
     _isImportant = task?.isImportant ?? widget.initialImportant;
     _isMyDay =
         task?.isInMyDay(DateTimeFormatter.todayKey()) ?? widget.initialMyDay;
@@ -138,6 +141,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
             reminderAt: _reminderAt,
             recurrence: _recurrence,
             steps: _steps,
+            tags: _tags,
             isImportant: _isImportant,
             isMyDay: _isMyDay,
             myDayDate: _isMyDay ? DateTimeFormatter.todayKey() : null,
@@ -176,6 +180,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
             steps: _steps
                 .map((step) => step.copyWith(isCompleted: false))
                 .toList(),
+            tags: _tags,
             isImportant: _isImportant,
             isMyDay: false,
           );
@@ -192,6 +197,7 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
           reminderAt: _reminderAt,
           recurrence: _recurrence,
           steps: _steps,
+          tags: _tags,
           isImportant: _isImportant,
           isMyDay: _isMyDay,
         );
@@ -382,6 +388,50 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
     _stepFocus.requestFocus();
   }
 
+  Future<void> _showAddTagDialog() async {
+    final textController = TextEditingController();
+    final l10n = AppLocalizations.of(context);
+    final tag = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.addTag),
+          content: TextField(
+            controller: textController,
+            autofocus: true,
+            decoration: InputDecoration(
+              prefixText: '#',
+              hintText: l10n.tagPlaceholder,
+            ),
+            onSubmitted: (val) {
+              Navigator.of(context).pop(val.trim());
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(textController.text.trim()),
+              child: Text(MaterialLocalizations.of(context).okButtonLabel),
+            ),
+          ],
+        );
+      },
+    );
+    textController.dispose();
+    if (tag != null && tag.isNotEmpty) {
+      final clean = tag.replaceAll('#', '').trim().toLowerCase();
+      if (clean.isNotEmpty && !_tags.contains(clean)) {
+        setState(() {
+          _tags.add(clean);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final lists = ref.watch(listsProvider).value ?? const <TaskList>[];
@@ -440,6 +490,14 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                         .map((s) =>
                             s.id == step.id ? s.copyWith(title: newTitle) : s)
                         .toList();
+                  });
+                },
+                onReorder: (oldIndex, newIndex) {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    if (newIndex > oldIndex) newIndex -= 1;
+                    final item = _steps.removeAt(oldIndex);
+                    _steps.insert(newIndex, item);
                   });
                 },
                 stepController: _stepController,
@@ -607,6 +665,13 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 value: _isImportant,
                 activeThumbColor: accent,
                 onChanged: (value) => setState(() => _isImportant = value),
+              ),
+              const SizedBox(height: 8),
+              _TagsSection(
+                tags: _tags,
+                accent: accent,
+                onAdd: _showAddTagDialog,
+                onRemove: (tag) => setState(() => _tags.remove(tag)),
               ),
               const SizedBox(height: 8),
               Container(
@@ -849,6 +914,7 @@ class _StepsSection extends StatelessWidget {
     required this.onToggle,
     required this.onRemove,
     required this.onRename,
+    required this.onReorder,
     required this.stepController,
     required this.stepFocus,
     required this.onAddStep,
@@ -859,6 +925,7 @@ class _StepsSection extends StatelessWidget {
   final ValueChanged<TaskStep> onToggle;
   final ValueChanged<TaskStep> onRemove;
   final void Function(TaskStep step, String newTitle) onRename;
+  final void Function(int oldIndex, int newIndex) onReorder;
   final TextEditingController stepController;
   final FocusNode stepFocus;
   final VoidCallback onAddStep;
@@ -872,47 +939,74 @@ class _StepsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final step in steps)
-            Padding(
-              padding: const EdgeInsets.only(left: 30),
-              child: Row(
-                children: [
-                  AnimatedCheckCircle(
-                    value: step.isCompleted,
-                    color: accent,
-                    size: 20,
-                    onChanged: (_) => onToggle(step),
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: step.title,
-                      onChanged: (value) => onRename(step, value),
-                      style: TextStyle(
-                        fontSize: 14,
-                        decoration: step.isCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                        color: step.isCompleted
-                            ? scheme.onSurfaceVariant
-                            : scheme.onSurface,
+          if (steps.isNotEmpty)
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              itemCount: steps.length,
+              onReorder: onReorder,
+              itemBuilder: (context, index) {
+                final step = steps[index];
+                return Padding(
+                  key: ValueKey('step-${step.id}'),
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Row(
+                    children: [
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 8,
+                          ),
+                          child: Icon(
+                            Icons.drag_indicator_rounded,
+                            size: 18,
+                            color:
+                                scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
                       ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        filled: false,
-                        contentPadding: EdgeInsets.zero,
+                      AnimatedCheckCircle(
+                        value: step.isCompleted,
+                        color: accent,
+                        size: 20,
+                        onChanged: (_) => onToggle(step),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: step.title,
+                          onChanged: (value) => onRename(step, value),
+                          style: TextStyle(
+                            fontSize: 14,
+                            decoration: step.isCompleted
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: step.isCompleted
+                                ? scheme.onSurfaceVariant
+                                : scheme.onSurface,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.delete,
+                        iconSize: 18,
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => onRemove(step),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    tooltip: l10n.delete,
-                    iconSize: 18,
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => onRemove(step),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           Padding(
             padding: const EdgeInsets.only(left: 30),
@@ -1126,3 +1220,95 @@ class _RecurrencePicker extends StatelessWidget {
     );
   }
 }
+
+class _TagsSection extends StatelessWidget {
+  const _TagsSection({
+    required this.tags,
+    required this.accent,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final List<String> tags;
+  final Color accent;
+  final VoidCallback onAdd;
+  final ValueChanged<String> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.label_outline_rounded,
+                  size: 20, color: scheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Text(
+                l10n.tags,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final tag in tags)
+                InputChip(
+                  label: Text('#$tag'),
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSecondaryContainer,
+                  ),
+                  backgroundColor:
+                      scheme.secondaryContainer.withValues(alpha: 0.5),
+                  deleteIconColor:
+                      scheme.onSecondaryContainer.withValues(alpha: 0.7),
+                  onDeleted: () => onRemove(tag),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ),
+              ActionChip(
+                avatar: Icon(Icons.add_rounded, size: 16, color: accent),
+                label: Text(l10n.addTag),
+                labelStyle: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                ),
+                backgroundColor: accent.withValues(alpha: 0.08),
+                side: BorderSide(color: accent.withValues(alpha: 0.2)),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                onPressed: onAdd,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+

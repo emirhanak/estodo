@@ -196,6 +196,172 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
 
   Future<void> _importCalendar() async {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (bottomSheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.importCalendarTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: Colors.amber),
+                ),
+                title: Text(l10n.importCalendarSample),
+                subtitle: Text(
+                  Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Seçili gün için 5 örnek Structured tarzı blok ekler'
+                      : 'Adds 5 Structured-style sample blocks for the day',
+                ),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _seedSampleEvents(_selectedDate);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child:
+                      Icon(Icons.file_upload_outlined, color: scheme.primary),
+                ),
+                title: Text(l10n.importCalendarFile),
+                subtitle:
+                    const Text('Google Calendar, Apple iCal, Outlook (.ics)'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _importIcsFile();
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.content_paste_rounded,
+                      color: Colors.teal),
+                ),
+                title: Text(l10n.importCalendarPaste),
+                subtitle: Text(
+                  Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'iCal (.ics) metnini doğrudan yapıştırın'
+                      : 'Paste raw iCal (.ics) text directly',
+                ),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _pasteCalendarText();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _seedSampleEvents(DateTime day) async {
+    final l10n = AppLocalizations.of(context);
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    final targetDay = DateTime(day.year, day.month, day.day);
+
+    final samples = [
+      (
+        title: isTr ? 'Güne Başlangıç & Günlük Plan' : 'Morning Kickoff & Plan',
+        startHour: 9,
+        startMin: 0,
+        dur: 30,
+        icon: 'wb_sunny',
+        notes: isTr
+            ? 'Günün önceliklerini gözden geçir.'
+            : 'Review daily priorities.',
+      ),
+      (
+        title: isTr ? 'Derin Odaklanma Seansı' : 'Deep Work Session',
+        startHour: 10,
+        startMin: 0,
+        dur: 90,
+        icon: 'laptop',
+        notes: isTr
+            ? 'Önemli projedeki kritik görevi tamamla.'
+            : 'Focus on the most critical project task.',
+      ),
+      (
+        title: isTr ? 'Öğle Molası & Kısa Yürüyüş' : 'Lunch & Short Walk',
+        startHour: 12,
+        startMin: 30,
+        dur: 45,
+        icon: 'restaurant',
+        notes: isTr ? 'Mola ver, zihnini tazele.' : 'Take a break and refresh.',
+      ),
+      (
+        title: isTr ? 'Ekip Senkronizasyon Toplantısı' : 'Team Sync Meeting',
+        startHour: 14,
+        startMin: 0,
+        dur: 45,
+        icon: 'people',
+        notes: isTr
+            ? 'İlerlemeyi paylaş ve engelleri değerlendir.'
+            : 'Sync on progress and blockers.',
+      ),
+      (
+        title: isTr ? 'Günün Değerlendirmesi & Kapanış' : 'Day Wrap-up & Review',
+        startHour: 17,
+        startMin: 0,
+        dur: 30,
+        icon: 'check',
+        notes: isTr
+            ? 'Tamamlananları işaretle, yarını hazırla.'
+            : 'Check off completed items and prep for tomorrow.',
+      ),
+    ];
+
+    for (final s in samples) {
+      final start =
+          targetDay.add(Duration(hours: s.startHour, minutes: s.startMin));
+      await ref.read(taskControllerProvider).createTask(
+            title: s.title,
+            notes: s.notes,
+            iconKey: s.icon,
+            dueAt: targetDay,
+            startAt: start,
+            durationMinutes: s.dur,
+          );
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.calendarImportSuccess(samples.length))),
+    );
+  }
+
+  Future<void> _importIcsFile() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final file = await FilePicker.pickFile();
       if (file == null || !mounted) return;
@@ -207,51 +373,95 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
       }
       final events = CalendarImport.parseBytes(await file.readAsBytes());
       if (!mounted) return;
-      if (events.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.plannedImportEmpty)),
-        );
-        return;
-      }
-      final approved = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          icon: const Icon(Icons.calendar_month_rounded),
-          title: Text(l10n.plannedImportCalendar),
-          content: Text(l10n.plannedImportConfirm(events.length)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.plannedImport),
-            ),
-          ],
-        ),
-      );
-      if (approved != true) return;
-      for (final event in events) {
-        await ref.read(taskControllerProvider).createTask(
-              title: event.title,
-              notes: event.notes,
-              dueAt: event.dueAt,
-              startAt: event.startAt,
-              durationMinutes: event.durationMinutes,
-            );
-      }
-      if (!mounted) return;
-      _selectDate(events.first.dueAt);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.plannedImportDone(events.length))),
-      );
+      await _processParsedEvents(events);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.plannedImportFailed)),
       );
     }
+  }
+
+  Future<void> _pasteCalendarText() async {
+    final l10n = AppLocalizations.of(context);
+    final textController = TextEditingController();
+    final source = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.importCalendarPaste),
+        content: SizedBox(
+          width: 480,
+          child: TextField(
+            controller: textController,
+            maxLines: 8,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'BEGIN:VCALENDAR\n...\nEND:VCALENDAR',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, textController.text.trim()),
+            child: Text(l10n.plannedImport),
+          ),
+        ],
+      ),
+    );
+    textController.dispose();
+    if (source != null && source.isNotEmpty) {
+      final events = CalendarImport.parse(source);
+      await _processParsedEvents(events);
+    }
+  }
+
+  Future<void> _processParsedEvents(List<CalendarImportEvent> events) async {
+    final l10n = AppLocalizations.of(context);
+    if (events.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.plannedImportEmpty)),
+      );
+      return;
+    }
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.calendar_month_rounded),
+        title: Text(l10n.plannedImportCalendar),
+        content: Text(l10n.plannedImportConfirm(events.length)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.plannedImport),
+          ),
+        ],
+      ),
+    );
+    if (approved != true) return;
+    for (final event in events) {
+      await ref.read(taskControllerProvider).createTask(
+            title: event.title,
+            notes: event.notes,
+            dueAt: event.dueAt,
+            startAt: event.startAt,
+            durationMinutes: event.durationMinutes,
+          );
+    }
+    if (!mounted) return;
+    _selectDate(events.first.dueAt);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.calendarImportSuccess(events.length))),
+    );
   }
 
   void _handleAction(PlannedHeaderAction action, PlannedDay day) {

@@ -932,4 +932,56 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get syncStatusOfflineDetails =>
       'İnternet bağlantısı yok. Değişiklikler cihazında güvende, tekrar bağlandığında otomatik eşitlenecek.';
+
+  @override
+  String get tags => 'Etiketler';
+
+  @override
+  String get addTag => 'Etiket ekle';
+
+  @override
+  String get allTags => 'Tümü';
+
+  @override
+  String get filterByTag => 'Etikete göre filtrele';
+
+  @override
+  String get tagPlaceholder => 'Etiket adı';
+
+  @override
+  String get backupAndData => 'Yedekleme & Veri';
+
+  @override
+  String get exportData => 'Verileri Dışa Aktar (JSON)';
+
+  @override
+  String get importData => 'Yedekten İçe Aktar';
+
+  @override
+  String get backupCopied => 'Yedek panoya kopyalandı';
+
+  @override
+  String backupImportSuccess(int count) {
+    return '$count görev başarıyla geri yüklendi';
+  }
+
+  @override
+  String get backupInvalid => 'Geçersiz yedek JSON biçimi';
+
+  @override
+  String get importCalendarTitle => 'Takvim Etkinliklerini İçe Aktar';
+
+  @override
+  String get importCalendarSample => 'Bugüne Örnek Günlük Plan Ekle';
+
+  @override
+  String get importCalendarFile => '.ics Dosyası Yükle';
+
+  @override
+  String get importCalendarPaste => 'iCal (.ics) Metni Yapıştır';
+
+  @override
+  String calendarImportSuccess(int count) {
+    return '$count etkinlik içe aktarıldı';
+  }
 }

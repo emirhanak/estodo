@@ -2,17 +2,22 @@ import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/services/backup_service.dart';
 import '../../../../core/services/preferences_provider.dart';
 import '../../../../core/services/sync_status_provider.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../tasks/domain/entities/task_list.dart';
+import '../../../tasks/domain/entities/todo_task.dart';
+import '../../../tasks/presentation/providers/task_providers.dart';
 import '../../../tasks/presentation/widgets/sync_status_badge.dart';
 import '../providers/theme_mode_provider.dart';
 
@@ -272,6 +277,40 @@ class SettingsScreen extends ConsumerWidget {
                           ref.read(syncStatusProvider.notifier).triggerSync(),
                 ),
                 onTap: () => showSyncStatusSheet(context, ref),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.file_download_outlined,
+                  color: scheme.primary,
+                ),
+                title: Text(l10n.exportData),
+                subtitle: Text(
+                  Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Görev ve listeleri JSON olarak dışa aktarın'
+                      : 'Export tasks and lists as JSON',
+                ),
+                onTap: () => _exportData(context, ref),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.file_upload_outlined,
+                  color: scheme.primary,
+                ),
+                title: Text(l10n.importData),
+                subtitle: Text(
+                  Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'JSON yedeğinden görevleri geri yükleyin'
+                      : 'Restore tasks from a JSON backup',
+                ),
+                onTap: () => _importData(context, ref),
               ),
               Divider(
                 height: 1,
@@ -701,6 +740,154 @@ class SettingsScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.errorTryAgain)),
+      );
+    }
+  }
+
+  Future<void> _exportData(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final tasks = ref.read(tasksProvider).value ?? const <TodoTask>[];
+    final lists = ref.read(listsProvider).value ?? const <TaskList>[];
+    final jsonString = BackupService.exportToJson(tasks: tasks, lists: lists);
+
+    if (!context.mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.exportData),
+        content: SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${tasks.length} ${l10n.tasks.toLowerCase()} · ${lists.length} ${l10n.lists.toLowerCase()}',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 240,
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext)
+                      .colorScheme
+                      .surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    jsonString,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child:
+                Text(MaterialLocalizations.of(dialogContext).closeButtonLabel),
+          ),
+          FilledButton.icon(
+            icon: const Icon(Icons.copy_rounded, size: 18),
+            label: Text(
+              Localizations.localeOf(dialogContext).languageCode == 'tr'
+                  ? 'Panoya Kopyala'
+                  : 'Copy to Clipboard',
+            ),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: jsonString));
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.backupCopied)),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _importData(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final textController = TextEditingController();
+
+    final input = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.importData),
+        content: SizedBox(
+          width: 520,
+          child: TextField(
+            controller: textController,
+            maxLines: 10,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: '{\n  "app": "estodo",\n  "tasks": [...]\n}',
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                tooltip: 'Pano',
+                icon: const Icon(Icons.paste_rounded),
+                onPressed: () async {
+                  final data = await Clipboard.getData(Clipboard.kTextPlain);
+                  if (data?.text != null) {
+                    textController.text = data!.text!;
+                  }
+                },
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, textController.text.trim()),
+            child: Text(l10n.importData),
+          ),
+        ],
+      ),
+    );
+    textController.dispose();
+
+    if (input == null || input.isEmpty || !context.mounted) return;
+
+    try {
+      final controller = ref.read(taskControllerProvider);
+      final existingLists =
+          ref.read(listsProvider).value ?? const <TaskList>[];
+      final existingTasks =
+          ref.read(tasksProvider).value ?? const <TodoTask>[];
+
+      final result = await BackupService.importFromJson(
+        input,
+        controller: controller,
+        existingLists: existingLists,
+        existingTasks: existingTasks,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.backupImportSuccess(result.restoredTasksCount)),
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.backupInvalid),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     }
   }
