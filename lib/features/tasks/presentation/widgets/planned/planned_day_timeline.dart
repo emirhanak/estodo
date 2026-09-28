@@ -130,6 +130,10 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     }
 
     if (scheduled.isEmpty) {
+      final dayStart = PlannedLayout.dayOf(day.date).add(
+        const Duration(minutes: PlannedLayout.dayStartMinute),
+      );
+      children.add(_gapSlot(dayStart, null));
       children.add(_emptyDay(l10n));
     } else {
       if (!nowInserted) children.add(_nowMarker());
