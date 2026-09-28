@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../../l10n/app_localizations.dart';
 import '../../../utils/planned_draft.dart';
@@ -285,7 +286,10 @@ class ComposerKindSwitch extends StatelessWidget {
           for (final option in PlannedDraftKind.values)
             InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: () => onChanged(option),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onChanged(option);
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,

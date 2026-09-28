@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../planned_capsule.dart';
 
@@ -77,8 +78,10 @@ class _ComposerTimeWheelState extends State<ComposerTimeWheel> {
             diameterRatio: 2.4,
             perspective: 0.002,
             physics: const FixedExtentScrollPhysics(),
-            onSelectedItemChanged: (index) =>
-                widget.onChanged(index * widget.stepMinutes),
+            onSelectedItemChanged: (index) {
+              HapticFeedback.selectionClick();
+              widget.onChanged(index * widget.stepMinutes);
+            },
             childDelegate: ListWheelChildBuilderDelegate(
               childCount: _slots,
               builder: (context, index) {

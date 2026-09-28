@@ -1621,6 +1621,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Try again.'**
   String get errorTryAgain;
+
+  /// No description provided for @streakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} day streak'**
+  String streakDays(int count);
+
+  /// No description provided for @streakActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak active: {count} days'**
+  String streakActive(int count);
+
+  /// No description provided for @focusMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus Mode'**
+  String get focusMode;
+
+  /// No description provided for @focusPomodoro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pomodoro'**
+  String get focusPomodoro;
+
+  /// No description provided for @focusShortBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Short Break'**
+  String get focusShortBreak;
+
+  /// No description provided for @focusLongBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Long Break'**
+  String get focusLongBreak;
+
+  /// No description provided for @focusCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get focusCustom;
+
+  /// No description provided for @focusTaskDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Task Duration'**
+  String get focusTaskDuration;
+
+  /// No description provided for @focusAdd5Min.
+  ///
+  /// In en, this message translates to:
+  /// **'+5 min'**
+  String get focusAdd5Min;
+
+  /// No description provided for @focusCompleteTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Task'**
+  String get focusCompleteTask;
+
+  /// No description provided for @focusSubtasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtasks'**
+  String get focusSubtasks;
+
+  /// No description provided for @focusSessionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus session completed! Great job.'**
+  String get focusSessionDone;
+
+  /// No description provided for @focusBreakDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Break is over. Ready to focus?'**
+  String get focusBreakDone;
+
+  /// No description provided for @focusStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get focusStart;
+
+  /// No description provided for @focusPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get focusPause;
+
+  /// No description provided for @focusResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get focusResume;
+
+  /// No description provided for @focusReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get focusReset;
+
+  /// No description provided for @oledBlack.
+  ///
+  /// In en, this message translates to:
+  /// **'OLED Pure Black'**
+  String get oledBlack;
+
+  /// No description provided for @oledBlackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Pure black backgrounds (#000000) for OLED displays and battery saving.'**
+  String get oledBlackDescription;
+
+  /// No description provided for @syncStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced with cloud'**
+  String get syncStatusSynced;
+
+  /// No description provided for @syncStatusSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing changes...'**
+  String get syncStatusSyncing;
+
+  /// No description provided for @syncStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline (saved locally)'**
+  String get syncStatusOffline;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @syncStatusDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {time}. All tasks and lists are safe in the cloud.'**
+  String syncStatusDetails(String time);
+
+  /// No description provided for @syncStatusOfflineDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Changes are safely stored on device and will sync automatically when reconnected.'**
+  String get syncStatusOfflineDetails;
 }
 
 class _AppLocalizationsDelegate

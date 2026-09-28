@@ -21,6 +21,7 @@ import '../widgets/planned/planned_week_grid.dart';
 import '../widgets/planned/planned_week_strip.dart';
 import '../widgets/planned/composer/planned_composer.dart';
 import '../utils/planned_draft.dart';
+import '../utils/streak_calculator.dart';
 
 /// The planned tab: a Structured-style visual timeline of everything that has
 /// a due date, with a day and a week view.
@@ -533,8 +534,8 @@ class _Sheet extends StatelessWidget {
   }
 }
 
-/// `2 of 5 done · 3 h 30 min` progress line under the headline.
-class _SummaryLine extends StatelessWidget {
+/// `2 of 5 done · 3 h 30 min` progress line under the headline, plus streak badge.
+class _SummaryLine extends ConsumerWidget {
   const _SummaryLine({
     required this.day,
     required this.accent,
@@ -546,46 +547,85 @@ class _SummaryLine extends StatelessWidget {
   final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    if (day.totalCount == 0) {
+    final streak = ref.watch(streakProvider);
+
+    if (day.totalCount == 0 && streak.currentStreak == 0) {
       return const SizedBox(height: 10);
     }
+
     return Padding(
       padding: EdgeInsets.fromLTRB(compact ? 24 : 30, 0, compact ? 18 : 24, 8),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              '${l10n.plannedProgressSummary(day.doneCount, day.totalCount)}'
-              '${day.plannedMinutes > 0 ? ' · ${PlannedFormat.duration(l10n, day.plannedMinutes)}' : ''}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+          if (streak.currentStreak > 0) ...[
+            Tooltip(
+              message: l10n.streakActive(streak.currentStreak),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: Colors.deepOrange.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.deepOrange.withValues(alpha: 0.35),
+                    width: 1,
                   ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 64,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: day.progress),
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeOutCubic,
-              builder: (context, value, _) => ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: value,
-                  minHeight: 5,
-                  backgroundColor: scheme.outlineVariant.withValues(alpha: 0.5),
-                  valueColor: AlwaysStoppedAnimation<Color>(accent),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🔥', style: TextStyle(fontSize: 12)),
+                    const SizedBox(width: 3.5),
+                    Text(
+                      '${streak.currentStreak}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Colors.deepOrange,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 10),
+          ],
+          if (day.totalCount > 0) ...[
+            Expanded(
+              child: Text(
+                '${l10n.plannedProgressSummary(day.doneCount, day.totalCount)}'
+                '${day.plannedMinutes > 0 ? ' · ${PlannedFormat.duration(l10n, day.plannedMinutes)}' : ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 64,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: day.progress),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, _) => ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: value,
+                    minHeight: 5,
+                    backgroundColor:
+                        scheme.outlineVariant.withValues(alpha: 0.5),
+                    valueColor: AlwaysStoppedAnimation<Color>(accent),
+                  ),
+                ),
+              ),
+            ),
+          ] else
+            const Spacer(),
         ],
       ),
     );

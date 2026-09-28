@@ -8,6 +8,7 @@ const _kAccentKey = 'pref.accent_color';
 const _kOnboardingKey = 'pref.onboarding_seen';
 const _kHiddenSmartListsKey = 'pref.hidden_smart_lists';
 const _kConfettiKey = 'pref.confetti_enabled';
+const _kOledModeKey = 'pref.oled_black_mode';
 
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
   return SharedPreferences.getInstance();
@@ -93,3 +94,21 @@ class ConfettiController extends Notifier<bool> {
     await prefs?.setBool(_kConfettiKey, value);
   }
 }
+
+final oledModeProvider =
+    NotifierProvider<OledModeController, bool>(OledModeController.new);
+
+class OledModeController extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.watch(sharedPreferencesProvider).value;
+    return prefs?.getBool(_kOledModeKey) ?? false;
+  }
+
+  Future<void> setEnabled(bool value) async {
+    state = value;
+    final prefs = ref.read(sharedPreferencesProvider).value;
+    await prefs?.setBool(_kOledModeKey, value);
+  }
+}
+

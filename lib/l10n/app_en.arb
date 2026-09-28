@@ -326,5 +326,43 @@
   "authErrorGuestUnavailable": "Guest access is temporarily unavailable. Try again shortly.",
   "authErrorDefault": "Authentication failed.",
   "errorCouldNotLoadTasks": "Could not load tasks",
-  "errorTryAgain": "Something went wrong. Try again."
+  "errorTryAgain": "Something went wrong. Try again.",
+  "streakDays": "{count} day streak",
+  "@streakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "streakActive": "Streak active: {count} days",
+  "@streakActive": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "focusMode": "Focus Mode",
+  "focusPomodoro": "Pomodoro",
+  "focusShortBreak": "Short Break",
+  "focusLongBreak": "Long Break",
+  "focusCustom": "Custom",
+  "focusTaskDuration": "Task Duration",
+  "focusAdd5Min": "+5 min",
+  "focusCompleteTask": "Complete Task",
+  "focusSubtasks": "Subtasks",
+  "focusSessionDone": "Focus session completed! Great job.",
+  "focusBreakDone": "Break is over. Ready to focus?",
+  "focusStart": "Start",
+  "focusPause": "Pause",
+  "focusResume": "Resume",
+  "focusReset": "Reset",
+  "oledBlack": "OLED Pure Black",
+  "oledBlackDescription": "Pure black backgrounds (#000000) for OLED displays and battery saving.",
+  "syncStatusSynced": "Synced with cloud",
+  "syncStatusSyncing": "Syncing changes...",
+  "syncStatusOffline": "Offline (saved locally)",
+  "syncNow": "Sync now",
+  "syncStatusDetails": "Last synced: {time}. All tasks and lists are safe in the cloud.",
+  "@syncStatusDetails": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusOfflineDetails": "No internet connection. Changes are safely stored on device and will sync automatically when reconnected."
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +16,7 @@ import '../planned_format.dart';
 import 'composer_header.dart';
 import 'composer_pickers.dart';
 import 'composer_schedule_step.dart';
+import '../../focus_mode_sheet.dart';
 
 /// Opens the planned tab's own creation flow: name it, then place it on the
 /// timeline. Returns true when something was saved.
@@ -230,6 +233,10 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
     final insets = MediaQuery.viewInsetsOf(context).bottom;
     final color = Color(_draft.colorValue);
 
+    final viewPaddingBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomPadding =
+        insets > 0 ? insets + 10 : math.max(viewPaddingBottom + 10, 16.0);
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
@@ -240,7 +247,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           child: Material(
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            color: scheme.surfaceContainerHigh,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -301,13 +308,38 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + insets),
+                  padding: EdgeInsets.fromLTRB(16, 10, 16, bottomPadding),
                   child: Row(
                     children: [
                       if (_step == 1 && !_isEditing) ...[
                         _BackButton(
                           color: color,
                           onTap: () => setState(() => _step = 0),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      if (_isEditing && widget.task != null) ...[
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          icon: Icon(Icons.timer_outlined,
+                              color: color, size: 20),
+                          label: Text(
+                            l10n.focusMode,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                            showFocusModeSheet(context, task: widget.task!);
+                          },
                         ),
                         const SizedBox(width: 10),
                       ],

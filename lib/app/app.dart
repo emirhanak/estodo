@@ -138,12 +138,15 @@ class EstodoApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final accent = ref.watch(accentColorProvider);
     final onboardingSeen = ref.watch(onboardingSeenProvider);
+    final oledMode = ref.watch(oledModeProvider);
 
     return MaterialApp(
       title: 'estodo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(accent: accent),
-      darkTheme: AppTheme.dark(accent: accent),
+      darkTheme: oledMode
+          ? AppTheme.oled(accent: accent)
+          : AppTheme.dark(accent: accent),
       themeMode: themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

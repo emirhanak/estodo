@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AnimatedCheckCircle extends StatefulWidget {
   const AnimatedCheckCircle({
@@ -52,7 +53,14 @@ class _AnimatedCheckCircleState extends State<AnimatedCheckCircle>
       checked: widget.value,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => widget.onChanged(!widget.value),
+        onTap: () {
+          if (!widget.value) {
+            HapticFeedback.mediumImpact();
+          } else {
+            HapticFeedback.lightImpact();
+          }
+          widget.onChanged(!widget.value);
+        },
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: AnimatedBuilder(

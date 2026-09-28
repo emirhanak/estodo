@@ -16,14 +16,22 @@ users/{uid}/tasks/{taskId}
   listId: string?
   title: string
   notes: string?
+  iconKey: string?
+  colorValue: number?
+  isHabit: boolean
   priority: "low" | "medium" | "high"
   dueAt: timestamp?
+  startAt: timestamp?
+  durationMinutes: number?
   reminderAt: timestamp?
   isCompleted: boolean
   isImportant: boolean
   isMyDay: boolean
   myDayDate: "yyyy-MM-dd"?
   completedAt: timestamp?
+  position: number
+  recurrence: map?
+  steps: list<map>?
   createdAt: timestamp
   updatedAt: timestamp
 

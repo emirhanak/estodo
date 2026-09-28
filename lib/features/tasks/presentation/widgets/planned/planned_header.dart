@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../utils/planned_layout.dart';
@@ -38,14 +39,14 @@ class PlannedHeader extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final locale = PlannedFormat.intlLocale(context);
     final isToday = PlannedLayout.isSameDay(date, DateTime.now());
-    final titleSize = compact ? 26.0 : 32.0;
+    final titleSize = compact ? 22.0 : 28.0;
 
     final title = Text.rich(
       TextSpan(
         children: [
           if (mode == PlannedViewMode.day)
             TextSpan(
-              text: '${date.day}. ',
+              text: '${date.day} ',
               style: TextStyle(color: scheme.onSurface),
             ),
           TextSpan(
@@ -60,16 +61,16 @@ class PlannedHeader extends StatelessWidget {
       style: TextStyle(
         fontSize: titleSize,
         fontWeight: FontWeight.w800,
-        letterSpacing: -0.8,
+        letterSpacing: -0.6,
         height: 1.1,
       ),
     );
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(compact ? 18 : 24, 8, compact ? 10 : 16, 4),
+      padding: EdgeInsets.fromLTRB(compact ? 16 : 24, 8, compact ? 10 : 16, 4),
       child: Row(
         children: [
-          Flexible(
+          Expanded(
             child: Semantics(
               button: true,
               label: l10n.plannedPickMonth,
@@ -78,7 +79,7 @@ class PlannedHeader extends StatelessWidget {
                 onTap: onPickDate,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
+                    horizontal: 4,
                     vertical: 4,
                   ),
                   child: Row(
@@ -107,11 +108,11 @@ class PlannedHeader extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 2, top: 4),
+                        padding: const EdgeInsets.only(left: 2),
                         child: Icon(
                           Icons.chevron_right_rounded,
                           color: accent,
-                          size: titleSize - 4,
+                          size: titleSize - 2,
                         ),
                       ),
                     ],
@@ -120,19 +121,19 @@ class PlannedHeader extends StatelessWidget {
               ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 4),
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
             child: isToday
                 ? const SizedBox.shrink()
                 : Padding(
-                    padding: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.only(right: 6),
                     child: TextButton(
                       onPressed: onToday,
                       style: TextButton.styleFrom(
                         foregroundColor: accent,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         visualDensity: VisualDensity.compact,
                       ),
                       child: Text(l10n.plannedToday),
@@ -190,15 +191,18 @@ class _ModeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final segmentWidth = compact ? 38.0 : 76.0;
-    const height = 38.0;
+    final segmentWidth = compact ? 36.0 : 72.0;
+    const outerHeight = 36.0;
+    const padding = 2.5;
+    const innerHeight = outerHeight - (padding * 2);
 
     return Container(
-      height: height,
-      width: segmentWidth * 3,
+      height: outerHeight,
+      width: segmentWidth * 3 + (padding * 2),
+      padding: const EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(height / 2),
+        borderRadius: BorderRadius.circular(outerHeight / 2),
       ),
       child: Stack(
         children: [
@@ -212,15 +216,15 @@ class _ModeSwitch extends StatelessWidget {
             },
             child: Container(
               width: segmentWidth,
-              height: height,
+              height: innerHeight,
               decoration: BoxDecoration(
                 color: accent,
-                borderRadius: BorderRadius.circular(height / 2),
+                borderRadius: BorderRadius.circular(innerHeight / 2),
                 boxShadow: [
                   BoxShadow(
-                    color: accent.withValues(alpha: 0.28),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
+                    color: accent.withValues(alpha: 0.22),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1.5),
                   ),
                 ],
               ),
@@ -277,7 +281,10 @@ class _ModeSwitch extends StatelessWidget {
         label: label,
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -11,6 +11,7 @@ import '../../domain/entities/task_step.dart';
 import '../../domain/entities/todo_task.dart';
 import '../providers/task_providers.dart';
 import 'animated_check_circle.dart';
+import 'focus_mode_sheet.dart';
 
 Future<void> showTaskEditorSheet(
   BuildContext context, {
@@ -446,6 +447,18 @@ class _TaskEditorSheetState extends ConsumerState<TaskEditorSheet> {
                 onAddStep: _addStepFromInput,
               ),
               const SizedBox(height: 8),
+              if (widget.task != null)
+                _ActionTile(
+                  icon: Icons.timer_outlined,
+                  title: l10n.focusMode,
+                  subtitle: l10n.focusPomodoro,
+                  accent: accent,
+                  active: true,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showFocusModeSheet(context, task: widget.task!);
+                  },
+                ),
               _ActionTile(
                 icon: Icons.wb_sunny_outlined,
                 title: _isMyDay ? l10n.addedToMyDay : l10n.addToMyDay,

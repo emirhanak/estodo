@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/todo_task.dart';
@@ -107,6 +108,8 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
           connectorBottom: i < scheduled.length - 1,
           onOpen: () => widget.onOpen(entry.task),
           onToggle: () => widget.onToggle(entry.task),
+          onDropped:
+              start == null ? null : (task) => widget.onSchedule(task, start),
         ),
       );
 
@@ -127,12 +130,6 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     }
 
     if (scheduled.isEmpty) {
-      final suggested = _isToday
-          ? PlannedLayout.roundToQuarter(widget.now)
-          : PlannedLayout.dayOf(day.date).add(
-              const Duration(minutes: PlannedLayout.dayStartMinute + 120),
-            );
-      children.add(_gapSlot(suggested, null));
       children.add(_emptyDay(l10n));
     } else {
       if (!nowInserted) children.add(_nowMarker());
@@ -397,11 +394,13 @@ class _GapSlotState extends State<_GapSlot> {
 
     return DragTarget<TodoTask>(
       onWillAcceptWithDetails: (_) {
+        HapticFeedback.selectionClick();
         setState(() => _hovering = true);
         return true;
       },
       onLeave: (_) => setState(() => _hovering = false),
       onAcceptWithDetails: (details) {
+        HapticFeedback.mediumImpact();
         setState(() => _hovering = false);
         widget.onDropped(details.data);
       },

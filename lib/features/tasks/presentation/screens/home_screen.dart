@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,6 +20,9 @@ import '../providers/selection_provider.dart';
 import '../providers/task_providers.dart';
 import '../widgets/quick_add_field.dart';
 import '../widgets/task_editor_sheet.dart';
+import '../widgets/focus_mini_bar.dart';
+import '../widgets/sync_status_badge.dart';
+import '../utils/focus_session_controller.dart';
 import 'planned_screen.dart';
 import 'search_screen.dart';
 import 'task_collection_screen.dart';
@@ -190,7 +194,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onDeleteList: _deleteList,
                     ),
                   ),
-                  Expanded(child: body),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        body,
+                        const Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: FocusMiniBar(),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -218,12 +234,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: const Icon(Icons.menu_rounded),
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
+            actions: const [
+              SyncStatusBadge(),
+              SizedBox(width: 8),
+            ],
           ),
           drawer: Drawer(
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: navigation,
           ),
           body: body,
+          bottomNavigationBar:
+              _buildMobileBottomBar(context, AppLocalizations.of(context)),
           floatingActionButton: canAddTask ? _addTaskButton() : null,
         );
       },
@@ -301,6 +323,85 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       child: const Icon(Icons.add_rounded),
     );
+  }
+
+  Widget _buildMobileBottomBar(BuildContext context, AppLocalizations l10n) {
+    final showBottomNav = switch (_section) {
+      HomeSection.search || HomeSection.settings => false,
+      _ => true,
+    };
+    final hasActiveFocus =
+        ref.watch(focusTimerProvider.select((s) => s.isActive));
+
+    if (!showBottomNav && !hasActiveFocus) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedIndex = switch (_section) {
+      HomeSection.myDay => 0,
+      HomeSection.planned => 1,
+      HomeSection.important => 2,
+      HomeSection.tasks => 3,
+      HomeSection.customList || HomeSection.completed => 4,
+      _ => 0,
+    };
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const FocusMiniBar(),
+        if (showBottomNav)
+          NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: _onBottomNavSelected,
+            height: 64,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.wb_sunny_outlined),
+                selectedIcon: const Icon(Icons.wb_sunny_rounded),
+                label: l10n.myDay,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.calendar_month_outlined),
+                selectedIcon: const Icon(Icons.calendar_month_rounded),
+                label: l10n.planned,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.star_outline_rounded),
+                selectedIcon: const Icon(Icons.star_rounded),
+                label: l10n.important,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                selectedIcon: const Icon(Icons.check_circle_rounded),
+                label: l10n.tasks,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.folder_outlined),
+                selectedIcon: const Icon(Icons.folder_rounded),
+                label: l10n.lists,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  void _onBottomNavSelected(int index) {
+    HapticFeedback.selectionClick();
+    switch (index) {
+      case 0:
+        _selectSection(HomeSection.myDay);
+      case 1:
+        _selectSection(HomeSection.planned);
+      case 2:
+        _selectSection(HomeSection.important);
+      case 3:
+        _selectSection(HomeSection.tasks);
+      case 4:
+        _scaffoldKey.currentState?.openDrawer();
+    }
   }
 
   String _title(TaskList? selectedList, AppLocalizations l10n) {
@@ -757,6 +858,13 @@ class _SideNavigation extends ConsumerWidget {
             selected: section == HomeSection.settings,
             onTap: () => onSelectSection(HomeSection.settings),
             compact: compact,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 8 : 16,
+              vertical: 6,
+            ),
+            child: SyncStatusBadge(showLabel: !compact),
           ),
         ],
       ),

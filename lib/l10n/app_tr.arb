@@ -302,5 +302,43 @@
   "authErrorGuestUnavailable": "Misafir erişimi geçici olarak kullanılamıyor. Kısa süre sonra tekrar dene.",
   "authErrorDefault": "Kimlik doğrulama başarısız.",
   "errorCouldNotLoadTasks": "Görevler yüklenemedi",
-  "errorTryAgain": "Bir şeyler ters gitti. Tekrar dene."
+  "errorTryAgain": "Bir şeyler ters gitti. Tekrar dene.",
+  "streakDays": "{count} gün serisi",
+  "@streakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "streakActive": "Seri devam ediyor: {count} gün",
+  "@streakActive": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "focusMode": "Odak Modu",
+  "focusPomodoro": "Pomodoro",
+  "focusShortBreak": "Kısa Mola",
+  "focusLongBreak": "Uzun Mola",
+  "focusCustom": "Özel",
+  "focusTaskDuration": "Görev Süresi",
+  "focusAdd5Min": "+5 dk",
+  "focusCompleteTask": "Görevi Tamamla",
+  "focusSubtasks": "Alt Görevler",
+  "focusSessionDone": "Odaklanma seansı bitti! Harika iş çıkardın.",
+  "focusBreakDone": "Mola bitti. Tekrar odaklanmaya hazır mısın?",
+  "focusStart": "Başlat",
+  "focusPause": "Duraklat",
+  "focusResume": "Devam Et",
+  "focusReset": "Sıfırla",
+  "oledBlack": "OLED Saf Siyah",
+  "oledBlackDescription": "OLED ekranlar ve pil tasarrufu için saf siyah (#000000) arka plan.",
+  "syncStatusSynced": "Bulutla eşitlendi",
+  "syncStatusSyncing": "Eşitleniyor...",
+  "syncStatusOffline": "Çevrimdışı (cihazda kaydedildi)",
+  "syncNow": "Şimdi eşitle",
+  "syncStatusDetails": "Son eşitleme: {time}. Tüm görevlerin ve listelerin bulutta güvende.",
+  "@syncStatusDetails": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncStatusOfflineDetails": "İnternet bağlantısı yok. Değişiklikler cihazında güvende, tekrar bağlandığında otomatik eşitlenecek."
 }

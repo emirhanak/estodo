@@ -212,6 +212,31 @@ class NotificationService {
     return _localNotifications.cancelAll();
   }
 
+  Future<void> showInstantNotification({
+    required String title,
+    String? body,
+    String? payload,
+  }) async {
+    await initialize();
+    if (!_permissionsGranted) return;
+    await _localNotifications.show(
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          AppConstants.remindersChannelId,
+          AppConstants.remindersChannelName,
+          channelDescription: AppConstants.remindersChannelDescription,
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      payload: payload,
+    );
+  }
+
   Future<void> _showForegroundPush(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;

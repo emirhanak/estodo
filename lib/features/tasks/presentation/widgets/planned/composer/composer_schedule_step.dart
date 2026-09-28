@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../l10n/app_localizations.dart';
@@ -343,6 +344,7 @@ String _relativeLabel(AppLocalizations l10n, DateTime date) {
   final diff = PlannedLayout.dayOf(date).difference(today).inDays;
   if (diff == 0) return l10n.plannedToday;
   if (diff == 1) return l10n.tomorrow;
+  if (diff == -1) return l10n.yesterday;
   if (diff > 1) return l10n.composerInDays(diff);
   return l10n.composerDaysAgo(-diff);
 }
@@ -490,7 +492,10 @@ class _DurationChips extends StatelessWidget {
             Expanded(
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () => onChanged(preset),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onChanged(preset);
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeOutCubic,
@@ -540,16 +545,31 @@ class _ActionChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: active
               ? color.withValues(alpha: 0.16)
-              : scheme.surfaceContainerHighest,
+              : scheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(20),
-          border: active ? Border.all(color: color, width: 1.4) : null,
+          border: active
+              ? Border.all(color: color, width: 1.4)
+              : Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.4),
+                  width: 1,
+                ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -593,7 +613,10 @@ class _StepRow extends StatelessWidget {
         children: [
           InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: onToggle,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onToggle();
+            },
             child: Icon(
               step.isCompleted
                   ? Icons.check_circle_rounded

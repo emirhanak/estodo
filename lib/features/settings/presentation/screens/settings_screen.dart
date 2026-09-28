@@ -9,8 +9,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/services/preferences_provider.dart';
+import '../../../../core/services/sync_status_provider.dart';
+import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../tasks/presentation/widgets/sync_status_badge.dart';
 import '../providers/theme_mode_provider.dart';
 
 const _feedbackEndpoint = 'https://estodo-feedback.emirhanak.workers.dev';
@@ -28,7 +31,9 @@ class SettingsScreen extends ConsumerWidget {
     final packageInfo = ref.watch(packageInfoProvider);
     final user = ref.watch(authStateProvider).value;
     final accent = ref.watch(accentColorProvider);
+    final oledMode = ref.watch(oledModeProvider);
     final hidden = ref.watch(hiddenSmartListsProvider);
+    final syncState = ref.watch(syncStatusProvider);
     final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
@@ -164,6 +169,26 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: 16),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.only(top: 8),
+                secondary: const Icon(Icons.contrast_rounded),
+                title: Text(l10n.oledBlack),
+                subtitle: Text(
+                  l10n.oledBlackDescription,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+                value: oledMode,
+                activeThumbColor: accent,
+                onChanged: (value) =>
+                    ref.read(oledModeProvider.notifier).setEnabled(value),
+              ),
             ],
           ),
         ),
@@ -211,9 +236,42 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.cloud_done_outlined),
+                leading: Icon(
+                  switch (syncState.status) {
+                    SyncStatus.synced => Icons.cloud_done_rounded,
+                    SyncStatus.syncing => Icons.sync_rounded,
+                    SyncStatus.offline => Icons.cloud_off_rounded,
+                  },
+                  color: switch (syncState.status) {
+                    SyncStatus.synced => Colors.teal,
+                    SyncStatus.syncing => accent,
+                    SyncStatus.offline => Colors.orange,
+                  },
+                ),
                 title: Text(l10n.sync),
-                subtitle: Text(l10n.syncDescription),
+                subtitle: Text(
+                  switch (syncState.status) {
+                    SyncStatus.synced => l10n.syncStatusDetails(
+                        DateTimeFormatter.timeLabel(syncState.lastSyncedAt)),
+                    SyncStatus.syncing => l10n.syncStatusSyncing,
+                    SyncStatus.offline => l10n.syncStatusOffline,
+                  },
+                ),
+                trailing: IconButton(
+                  tooltip: l10n.syncNow,
+                  icon: syncState.isSyncing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh_rounded),
+                  onPressed: syncState.isSyncing
+                      ? null
+                      : () =>
+                          ref.read(syncStatusProvider.notifier).triggerSync(),
+                ),
+                onTap: () => showSyncStatusSheet(context, ref),
               ),
               Divider(
                 height: 1,

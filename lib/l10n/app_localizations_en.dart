@@ -844,4 +844,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorTryAgain => 'Something went wrong. Try again.';
+
+  @override
+  String streakDays(int count) {
+    return '$count day streak';
+  }
+
+  @override
+  String streakActive(int count) {
+    return 'Streak active: $count days';
+  }
+
+  @override
+  String get focusMode => 'Focus Mode';
+
+  @override
+  String get focusPomodoro => 'Pomodoro';
+
+  @override
+  String get focusShortBreak => 'Short Break';
+
+  @override
+  String get focusLongBreak => 'Long Break';
+
+  @override
+  String get focusCustom => 'Custom';
+
+  @override
+  String get focusTaskDuration => 'Task Duration';
+
+  @override
+  String get focusAdd5Min => '+5 min';
+
+  @override
+  String get focusCompleteTask => 'Complete Task';
+
+  @override
+  String get focusSubtasks => 'Subtasks';
+
+  @override
+  String get focusSessionDone => 'Focus session completed! Great job.';
+
+  @override
+  String get focusBreakDone => 'Break is over. Ready to focus?';
+
+  @override
+  String get focusStart => 'Start';
+
+  @override
+  String get focusPause => 'Pause';
+
+  @override
+  String get focusResume => 'Resume';
+
+  @override
+  String get focusReset => 'Reset';
+
+  @override
+  String get oledBlack => 'OLED Pure Black';
+
+  @override
+  String get oledBlackDescription =>
+      'Pure black backgrounds (#000000) for OLED displays and battery saving.';
+
+  @override
+  String get syncStatusSynced => 'Synced with cloud';
+
+  @override
+  String get syncStatusSyncing => 'Syncing changes...';
+
+  @override
+  String get syncStatusOffline => 'Offline (saved locally)';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String syncStatusDetails(String time) {
+    return 'Last synced: $time. All tasks and lists are safe in the cloud.';
+  }
+
+  @override
+  String get syncStatusOfflineDetails =>
+      'No internet connection. Changes are safely stored on device and will sync automatically when reconnected.';
 }

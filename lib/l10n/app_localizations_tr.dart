@@ -849,4 +849,87 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get errorTryAgain => 'Bir şeyler ters gitti. Tekrar dene.';
+
+  @override
+  String streakDays(int count) {
+    return '$count gün serisi';
+  }
+
+  @override
+  String streakActive(int count) {
+    return 'Seri devam ediyor: $count gün';
+  }
+
+  @override
+  String get focusMode => 'Odak Modu';
+
+  @override
+  String get focusPomodoro => 'Pomodoro';
+
+  @override
+  String get focusShortBreak => 'Kısa Mola';
+
+  @override
+  String get focusLongBreak => 'Uzun Mola';
+
+  @override
+  String get focusCustom => 'Özel';
+
+  @override
+  String get focusTaskDuration => 'Görev Süresi';
+
+  @override
+  String get focusAdd5Min => '+5 dk';
+
+  @override
+  String get focusCompleteTask => 'Görevi Tamamla';
+
+  @override
+  String get focusSubtasks => 'Alt Görevler';
+
+  @override
+  String get focusSessionDone => 'Odaklanma seansı bitti! Harika iş çıkardın.';
+
+  @override
+  String get focusBreakDone => 'Mola bitti. Tekrar odaklanmaya hazır mısın?';
+
+  @override
+  String get focusStart => 'Başlat';
+
+  @override
+  String get focusPause => 'Duraklat';
+
+  @override
+  String get focusResume => 'Devam Et';
+
+  @override
+  String get focusReset => 'Sıfırla';
+
+  @override
+  String get oledBlack => 'OLED Saf Siyah';
+
+  @override
+  String get oledBlackDescription =>
+      'OLED ekranlar ve pil tasarrufu için saf siyah (#000000) arka plan.';
+
+  @override
+  String get syncStatusSynced => 'Bulutla eşitlendi';
+
+  @override
+  String get syncStatusSyncing => 'Eşitleniyor...';
+
+  @override
+  String get syncStatusOffline => 'Çevrimdışı (cihazda kaydedildi)';
+
+  @override
+  String get syncNow => 'Şimdi eşitle';
+
+  @override
+  String syncStatusDetails(String time) {
+    return 'Son eşitleme: $time. Tüm görevlerin ve listelerin bulutta güvende.';
+  }
+
+  @override
+  String get syncStatusOfflineDetails =>
+      'İnternet bağlantısı yok. Değişiklikler cihazında güvende, tekrar bağlandığında otomatik eşitlenecek.';
 }

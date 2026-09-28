@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/todo_task.dart';
@@ -232,6 +233,7 @@ class _DayColumn extends StatelessWidget {
 
     return DragTarget<TodoTask>(
       onAcceptWithDetails: (details) {
+        HapticFeedback.mediumImpact();
         final box = context.findRenderObject() as RenderBox?;
         final local = box?.globalToLocal(details.offset) ?? details.offset;
         onSchedule(details.data, timeAt(local));

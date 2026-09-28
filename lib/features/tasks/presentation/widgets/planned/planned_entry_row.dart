@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/services/preferences_provider.dart';
@@ -9,6 +10,9 @@ import '../animated_check_circle.dart';
 import '../confetti_burst.dart';
 import 'planned_capsule.dart';
 import 'planned_format.dart';
+import 'planned_unscheduled.dart';
+import '../../utils/streak_calculator.dart';
+import '../focus_mode_sheet.dart';
 
 /// A single scheduled task on the day timeline: time gutter, duration capsule
 /// and the task card.
@@ -19,6 +23,7 @@ class PlannedEntryRow extends ConsumerStatefulWidget {
     required this.now,
     required this.onOpen,
     required this.onToggle,
+    this.onDropped,
     this.gutterWidth = 52,
     this.connectorTop = true,
     this.connectorBottom = true,
@@ -28,6 +33,7 @@ class PlannedEntryRow extends ConsumerStatefulWidget {
   final DateTime now;
   final VoidCallback onOpen;
   final VoidCallback onToggle;
+  final void Function(TodoTask task)? onDropped;
   final double gutterWidth;
   final bool connectorTop;
   final bool connectorBottom;
@@ -126,18 +132,59 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          subtitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(
-                                color: active
-                                    ? entry.color
-                                    : scheme.onSurfaceVariant,
-                                fontWeight:
-                                    active ? FontWeight.w700 : FontWeight.w500,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color: active
+                                          ? entry.color
+                                          : scheme.onSurfaceVariant,
+                                      fontWeight: active
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                    ),
                               ),
+                            ),
+                            if (active) ...[
+                              const SizedBox(width: 8),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(10),
+                                onTap: () => showFocusModeSheet(context,
+                                    task: entry.task),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: entry.color.withValues(alpha: 0.16),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.play_arrow_rounded,
+                                          size: 12, color: entry.color),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        l10n.focusMode,
+                                        style: TextStyle(
+                                          color: entry.color,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -210,39 +257,60 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
       ),
     );
 
-    if (entry.isCompleted) return interactive;
+    Widget content = interactive;
+    if (widget.onDropped != null) {
+      content = DragTarget<TodoTask>(
+        onWillAcceptWithDetails: (details) {
+          if (details.data.id == entry.task.id) return false;
+          HapticFeedback.selectionClick();
+          return true;
+        },
+        onAcceptWithDetails: (details) {
+          HapticFeedback.mediumImpact();
+          widget.onDropped?.call(details.data);
+        },
+        builder: (context, candidate, _) {
+          final hovering = candidate.isNotEmpty;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            decoration: BoxDecoration(
+              color: hovering
+                  ? entry.color.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+              border: hovering
+                  ? Border.all(color: entry.color, width: 1.5)
+                  : null,
+            ),
+            child: interactive,
+          );
+        },
+      );
+    }
+
+    if (entry.isCompleted) return content;
     return LongPressDraggable<TodoTask>(
       data: entry.task,
+      onDragStarted: () => HapticFeedback.mediumImpact(),
       dragAnchorStrategy: pointerDragAnchorStrategy,
-      feedback: Material(
-        color: Colors.transparent,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 280),
-          child: Card(
-            elevation: 8,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(entry.task.title),
-            ),
-          ),
-        ),
-      ),
-      childWhenDragging: Opacity(opacity: 0.28, child: interactive),
-      child: interactive,
+      feedback: PlannedDragFeedback(entry: entry),
+      childWhenDragging: Opacity(opacity: 0.28, child: content),
+      child: content,
     );
   }
 }
 
-class _MetaRow extends StatelessWidget {
+class _MetaRow extends ConsumerWidget {
   const _MetaRow({required this.entry});
 
   final PlannedEntry entry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final task = entry.task;
     final chips = <Widget>[];
+    final streakSummary = ref.watch(streakProvider);
 
     if (entry.listName != null) {
       chips.add(
@@ -279,6 +347,7 @@ class _MetaRow extends StatelessWidget {
       chips.add(_icon(context, Icons.notifications_none_rounded, null));
     }
     if (task.isHabit) {
+      final habitStreak = streakSummary.habitStreak(task);
       chips.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -298,12 +367,27 @@ class _MetaRow extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
               ),
+              if (habitStreak > 0) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '· 🔥$habitStreak',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: entry.color,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
             ],
           ),
         ),
       );
     } else if (task.recurrence != null) {
-      chips.add(_icon(context, Icons.repeat_rounded, null));
+      final streak = streakSummary.habitStreak(task);
+      chips.add(_icon(
+        context,
+        Icons.repeat_rounded,
+        streak > 0 ? '🔥$streak' : null,
+      ));
     }
     if (task.isImportant) {
       chips.add(Icon(Icons.star_rounded, size: 14, color: scheme.tertiary));

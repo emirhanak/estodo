@@ -33,6 +33,62 @@ class AppTheme {
     );
   }
 
+  static const oledSurface = Color(0xFF000000);
+
+  static ThemeData oled({Color? accent}) {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: accent ?? seed,
+      brightness: Brightness.dark,
+      surface: oledSurface,
+    );
+    final oledScheme = baseScheme.copyWith(
+      surface: const Color(0xFF000000),
+      surfaceDim: const Color(0xFF000000),
+      surfaceBright: const Color(0xFF141414),
+      surfaceContainerLowest: const Color(0xFF000000),
+      surfaceContainerLow: const Color(0xFF0A0A0A),
+      surfaceContainer: const Color(0xFF101010),
+      surfaceContainerHigh: const Color(0xFF161616),
+      surfaceContainerHighest: const Color(0xFF1E1E1E),
+      outline: const Color(0xFF2E2E2E),
+      outlineVariant: const Color(0xFF202020),
+    );
+    final theme = _base(oledScheme, Brightness.dark);
+    return theme.copyWith(
+      scaffoldBackgroundColor: Colors.black,
+      canvasColor: Colors.black,
+      cardTheme: theme.cardTheme.copyWith(
+        color: const Color(0xFF0C0C0C),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFF222222), width: 0.8),
+        ),
+      ),
+      dialogTheme: theme.dialogTheme.copyWith(
+        backgroundColor: const Color(0xFF101010),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF222222), width: 0.8),
+        ),
+      ),
+      bottomSheetTheme: theme.bottomSheetTheme.copyWith(
+        backgroundColor: const Color(0xFF080808),
+        modalBackgroundColor: const Color(0xFF080808),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          side: BorderSide(color: Color(0xFF222222), width: 0.8),
+        ),
+      ),
+      navigationRailTheme: theme.navigationRailTheme.copyWith(
+        backgroundColor: Colors.black,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.black,
+        indicatorColor: oledScheme.primaryContainer,
+      ),
+    );
+  }
+
   static ThemeData _base(ColorScheme scheme, Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     return ThemeData(
