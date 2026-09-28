@@ -82,6 +82,8 @@ class BackupService {
         Map<String, dynamic>.from(item),
       );
 
+      if (parsed.title.trim().isEmpty) continue;
+
       final mappedListId =
           parsed.listId != null && listIdMap.containsKey(parsed.listId)
               ? listIdMap[parsed.listId]

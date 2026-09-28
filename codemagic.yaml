@@ -1,7 +1,7 @@
 definitions:
   env_versions: &env_versions
     flutter: stable
-    xcode: 26.4
+    xcode: latest
     cocoapods: default
 
 workflows:
@@ -27,6 +27,10 @@ workflows:
     triggering:
       events:
         - tag
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
       tag_patterns:
         - pattern: 'v*'
           include: true
@@ -46,7 +50,9 @@ workflows:
           printf '%s' "$IOS_FIREBASE_SECRET" > ios/Runner/GoogleService-Info.plist
 
       - name: Install Flutter dependencies
-        script: flutter pub get
+        script: |
+          flutter pub get
+          flutter gen-l10n
 
       - name: Analyze
         script: flutter analyze
@@ -62,17 +68,20 @@ workflows:
       - name: Apply App Store signing
         script: xcode-project use-profiles
 
-      # The next build number always comes from App Store Connect, so a build is
-      # never rejected for reusing a number that is already uploaded.
+      # The next build number comes from App Store Connect if available, or defaults safely.
       - name: Resolve the next build number
         script: |
           set -e
           if [ -z "$APP_STORE_APP_ID" ]; then
-            echo "APP_STORE_APP_ID is not set. Add it to the estodo_firebase"                  "environment group with the numeric Apple ID from"                  "App Store Connect > App Information."
-            exit 1
+            echo "APP_STORE_APP_ID is not set in environment group. Defaulting BUILD_NUMBER to 1."
+            echo "BUILD_NUMBER=1" >> $CM_ENV
+          else
+            LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo "0")
+            if [ -z "$LATEST" ] || [ "$LATEST" = "null" ]; then
+              LATEST=0
+            fi
+            echo "BUILD_NUMBER=$((LATEST + 1))" >> $CM_ENV
           fi
-          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID")
-          echo "BUILD_NUMBER=$((LATEST + 1))" >> $CM_ENV
 
       - name: Build signed IPA
         script: |
