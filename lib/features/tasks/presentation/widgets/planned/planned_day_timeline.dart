@@ -76,6 +76,17 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
       );
     }
 
+    if (widget.showUnscheduled && day.habits.isNotEmpty) {
+      children.add(
+        PlannedHabitSection(
+          entries: day.habits,
+          accent: widget.accent,
+          onOpen: widget.onOpen,
+          onToggle: widget.onToggle,
+        ),
+      );
+    }
+
     final scheduled = day.scheduled;
     var nowInserted = !_isToday;
 

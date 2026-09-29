@@ -242,7 +242,7 @@ class PlannedInboxPanel extends StatelessWidget {
                   onOpen: () => onOpen(entry.task),
                   onSchedule: () => onSchedule(entry.task),
                 ),
-              if (day.unscheduled.isEmpty)
+              if (day.unscheduled.isEmpty && day.habits.isEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
                   child: Text(
@@ -252,6 +252,13 @@ class PlannedInboxPanel extends StatelessWidget {
                         .bodySmall
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
+                ),
+              if (day.habits.isNotEmpty)
+                PlannedHabitSection(
+                  entries: day.habits,
+                  accent: accent,
+                  onOpen: onOpen,
+                  onToggle: onToggle,
                 ),
               if (day.completed.isNotEmpty)
                 PlannedCompletedSection(
@@ -444,6 +451,198 @@ class _PlannedCompletedSectionState extends State<PlannedCompletedSection> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Vertical list of the day's habits with toggle buttons.
+class PlannedHabitSection extends StatelessWidget {
+  const PlannedHabitSection({
+    super.key,
+    required this.entries,
+    required this.accent,
+    required this.onOpen,
+    required this.onToggle,
+  });
+
+  final List<PlannedEntry> entries;
+  final Color accent;
+  final void Function(TodoTask task) onOpen;
+  final void Function(TodoTask task) onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 2, 6, 8),
+            child: Row(
+              children: [
+                Icon(Icons.autorenew_rounded, size: 16, color: accent),
+                const SizedBox(width: 6),
+                Text(
+                  '${l10n.composerKindHabit} · ${entries.length}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          for (final entry in entries)
+            _HabitRow(
+              entry: entry,
+              accent: accent,
+              onOpen: () => onOpen(entry.task),
+              onToggle: () => onToggle(entry.task),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HabitRow extends StatelessWidget {
+  const _HabitRow({
+    required this.entry,
+    required this.accent,
+    required this.onOpen,
+    required this.onToggle,
+  });
+
+  final PlannedEntry entry;
+  final Color accent;
+  final VoidCallback onOpen;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isCompleted = entry.isCompleted;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onOpen,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+          decoration: BoxDecoration(
+            color: isCompleted
+                ? entry.color.withValues(alpha: 0.08)
+                : scheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isCompleted
+                  ? entry.color.withValues(alpha: 0.3)
+                  : scheme.outlineVariant.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              if (!isCompleted)
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: entry.color.withValues(alpha: isCompleted ? 0.2 : 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  entry.icon,
+                  size: 18,
+                  color: entry.color,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      entry.task.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            decoration: isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: isCompleted
+                                ? scheme.onSurfaceVariant
+                                : scheme.onSurface,
+                          ),
+                    ),
+                    if (entry.task.recurrence != null)
+                      Row(
+                        children: [
+                          Icon(Icons.autorenew_rounded,
+                              size: 12, color: entry.color),
+                          const SizedBox(width: 4),
+                          Text(
+                            PlannedFormat.duration(
+                              AppLocalizations.of(context),
+                              entry.durationMinutes,
+                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 44,
+                height: 44,
+                child: IconButton(
+                  tooltip: isCompleted
+                      ? AppLocalizations.of(context).completed
+                      : AppLocalizations.of(context).complete,
+                  onPressed: onToggle,
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: animation,
+                      child: child,
+                    ),
+                    child: Icon(
+                      isCompleted
+                          ? Icons.check_circle_rounded
+                          : Icons.circle_outlined,
+                      key: ValueKey(isCompleted),
+                      size: 26,
+                      color: isCompleted ? entry.color : scheme.outline,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -210,6 +210,13 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
         );
       }
       if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorTryAgain)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

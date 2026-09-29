@@ -82,6 +82,7 @@ class PlannedDay {
     required this.scheduled,
     required this.unscheduled,
     required this.completed,
+    this.habits = const <PlannedEntry>[],
   });
 
   final DateTime date;
@@ -95,14 +96,17 @@ class PlannedDay {
   /// Completed tasks without a start time.
   final List<PlannedEntry> completed;
 
+  /// Habit entries for this day (scheduled or not, not completed).
+  final List<PlannedEntry> habits;
+
   bool get isEmpty =>
-      scheduled.isEmpty && unscheduled.isEmpty && completed.isEmpty;
+      scheduled.isEmpty && unscheduled.isEmpty && completed.isEmpty && habits.isEmpty;
 
   int get openCount =>
-      scheduled.where((e) => !e.isCompleted).length + unscheduled.length;
+      scheduled.where((e) => !e.isCompleted).length + unscheduled.length + habits.where((e) => !e.isCompleted).length;
 
   int get doneCount =>
-      scheduled.where((e) => e.isCompleted).length + completed.length;
+      scheduled.where((e) => e.isCompleted).length + completed.length + habits.where((e) => e.isCompleted).length;
 
   int get totalCount => openCount + doneCount;
 
@@ -196,6 +200,7 @@ class PlannedLayout {
     final scheduled = <PlannedEntry>[];
     final unscheduled = <PlannedEntry>[];
     final completed = <PlannedEntry>[];
+    final habits = <PlannedEntry>[];
 
     for (final task in tasks) {
       if (!belongsToDay(task, date)) continue;
@@ -205,6 +210,12 @@ class PlannedLayout {
         listNames: listNames,
         fallback: fallback,
       );
+
+      // Collect habits into their own list for the dedicated habit section.
+      if (task.isHabit) {
+        habits.add(entry);
+      }
+
       if (entry.isScheduled) {
         scheduled.add(entry);
       } else if (entry.isCompleted) {
@@ -225,12 +236,14 @@ class PlannedLayout {
       final bDate = b.task.completedAt ?? b.task.updatedAt;
       return bDate.compareTo(aDate);
     });
+    habits.sort((a, b) => a.task.position.compareTo(b.task.position));
 
     return PlannedDay(
       date: dayOf(date),
       scheduled: scheduled,
       unscheduled: unscheduled,
       completed: completed,
+      habits: habits,
     );
   }
 
