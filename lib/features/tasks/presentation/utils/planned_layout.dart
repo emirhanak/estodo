@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../domain/entities/recurrence_rule.dart';
 import '../../domain/entities/task_list.dart';
 import '../../domain/entities/todo_task.dart';
 import 'task_icon.dart';
@@ -177,11 +178,37 @@ class PlannedLayout {
     );
   }
 
-  /// Tasks belonging to [date] — a task counts for the day of its due date.
+  /// Tasks belonging to [date] — a task counts for the day of its due date,
+  /// or any day it recurs on if it has a recurrence rule.
   static bool belongsToDay(TodoTask task, DateTime date) {
     final due = task.dueAt;
     if (due == null) return false;
-    return isSameDay(due, date);
+    if (isSameDay(due, date)) return true;
+
+    // Habits or repeating tasks should appear on recurring days
+    final rule = task.recurrence;
+    if (rule != null) {
+      final startDay = dayOf(due);
+      final targetDay = dayOf(date);
+      if (targetDay.isBefore(startDay)) return false;
+      if (rule.hasEnd && targetDay.isAfter(dayOf(rule.until!))) {
+        return false;
+      }
+      return switch (rule.frequency) {
+        RecurrenceFrequency.daily => true,
+        RecurrenceFrequency.weekdays =>
+          targetDay.weekday != DateTime.saturday &&
+              targetDay.weekday != DateTime.sunday,
+        RecurrenceFrequency.weekly => rule.weekdays.isEmpty
+            ? targetDay.weekday == startDay.weekday
+            : rule.weekdays.contains(targetDay.weekday),
+        RecurrenceFrequency.monthly => targetDay.day == startDay.day,
+        RecurrenceFrequency.yearly =>
+          targetDay.month == startDay.month && targetDay.day == startDay.day,
+      };
+    }
+
+    return false;
   }
 
   static PlannedDay buildDay({

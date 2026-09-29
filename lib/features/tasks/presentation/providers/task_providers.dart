@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -375,10 +376,10 @@ class TaskController {
 
   String _requireUserId() {
     final user = _ref.read(authStateProvider).value;
-    if (user == null) {
-      throw StateError('A signed in user is required.');
-    }
-    return user.id;
+    if (user != null) return user.id;
+    final current = FirebaseAuth.instance.currentUser;
+    if (current != null) return current.uid;
+    throw StateError('A signed in user is required.');
   }
 
   String? _clean(String? value) {

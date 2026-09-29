@@ -185,32 +185,37 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
   }
 
   Future<void> _save() async {
-    if (!_draft.canSave || _saving) return;
+    final currentTitle = _titleController.text.trim();
+    final draftToSave = _draft.copyWith(
+      title: currentTitle.isNotEmpty ? currentTitle : _draft.title,
+    );
+    if (!draftToSave.canSave || _saving) return;
     setState(() => _saving = true);
     final controller = ref.read(taskControllerProvider);
     final existing = widget.task;
     try {
       if (existing != null) {
-        await controller.updateTask(_draft.applyTo(existing));
+        await controller.updateTask(draftToSave.applyTo(existing));
       } else {
         await controller.createTask(
-          title: _draft.title,
-          notes: _draft.notes,
-          listId: _draft.listId,
-          iconKey: _draft.iconKey,
-          colorValue: _draft.colorValue,
-          isHabit: _draft.isHabit,
-          dueAt: _draft.dueAt,
-          startAt: _draft.startAt,
-          durationMinutes: _draft.isAllDay ? null : _draft.durationMinutes,
-          reminderAt: _draft.reminderAt,
-          recurrence: _draft.recurrence,
-          steps: _draft.steps,
-          isImportant: _draft.isImportant,
+          title: draftToSave.title,
+          notes: draftToSave.notes,
+          listId: draftToSave.listId,
+          iconKey: draftToSave.iconKey,
+          colorValue: draftToSave.colorValue,
+          isHabit: draftToSave.isHabit,
+          dueAt: draftToSave.dueAt,
+          startAt: draftToSave.startAt,
+          durationMinutes: draftToSave.isAllDay ? null : draftToSave.durationMinutes,
+          reminderAt: draftToSave.reminderAt,
+          recurrence: draftToSave.recurrence,
+          steps: draftToSave.steps,
+          isImportant: draftToSave.isImportant,
         );
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
+      debugPrint('Error saving planned task: $e');
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -361,7 +366,8 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                                       : l10n.composerCreateTask,
                           color: color,
                           busy: _saving,
-                          enabled: _draft.canSave,
+                          enabled: _draft.canSave ||
+                              _titleController.text.trim().isNotEmpty,
                           onTap: _step == 0 ? _continue : _save,
                         ),
                       ),

@@ -21,54 +21,98 @@ class TaskRepositoryImpl implements TaskRepository {
   final NotificationService _notifications;
 
   @override
-  Stream<List<TodoTask>> watchTasks(String userId) async* {
-    yield await _local.getTasks(userId);
-    await for (final tasks in _remote.watchTasks(userId)) {
-      await _local.replaceTasks(userId, tasks);
-      yield tasks;
-    }
+  Stream<List<TodoTask>> watchTasks(String userId) {
+    late final StreamController<List<TodoTask>> controller;
+    StreamSubscription<List<TodoTask>>? localSub;
+    StreamSubscription<List<TodoTask>>? remoteSub;
+
+    controller = StreamController<List<TodoTask>>.broadcast(
+      onListen: () {
+        localSub = _local.watchTasks(userId).listen(
+          controller.add,
+          onError: controller.addError,
+        );
+        remoteSub = _remote.watchTasks(userId).listen(
+          (tasks) async {
+            await _local.replaceTasks(userId, tasks);
+          },
+          onError: (Object error) {
+            // Keep streaming from local storage even if remote encounters errors
+          },
+        );
+      },
+      onCancel: () {
+        localSub?.cancel();
+        remoteSub?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
-  Stream<List<TaskList>> watchLists(String userId) async* {
-    yield await _local.getLists(userId);
-    await for (final lists in _remote.watchLists(userId)) {
-      await _local.replaceLists(userId, lists);
-      yield lists;
-    }
+  Stream<List<TaskList>> watchLists(String userId) {
+    late final StreamController<List<TaskList>> controller;
+    StreamSubscription<List<TaskList>>? localSub;
+    StreamSubscription<List<TaskList>>? remoteSub;
+
+    controller = StreamController<List<TaskList>>.broadcast(
+      onListen: () {
+        localSub = _local.watchLists(userId).listen(
+          controller.add,
+          onError: controller.addError,
+        );
+        remoteSub = _remote.watchLists(userId).listen(
+          (lists) async {
+            await _local.replaceLists(userId, lists);
+          },
+          onError: (Object error) {},
+        );
+      },
+      onCancel: () {
+        localSub?.cancel();
+        remoteSub?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
   Future<void> createTask(String userId, TodoTask task) async {
     await _local.upsertTask(userId, task);
-    await _remote.upsertTask(userId, task);
+    unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
+      // Remote sync failure handled gracefully by offline Firestore queue
+    }));
     await _syncReminder(task);
   }
 
   @override
   Future<void> updateTask(String userId, TodoTask task) async {
     await _local.upsertTask(userId, task);
-    await _remote.upsertTask(userId, task);
+    unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
+      // Remote sync failure handled gracefully by offline Firestore queue
+    }));
     await _syncReminder(task);
   }
 
   @override
   Future<void> deleteTask(String userId, String taskId) async {
     await _local.deleteTask(userId, taskId);
-    await _remote.deleteTask(userId, taskId);
+    unawaited(_remote.deleteTask(userId, taskId).catchError((Object error) {}));
     await _notifications.cancelTaskReminder(taskId);
   }
 
   @override
   Future<void> createList(String userId, TaskList list) async {
     await _local.upsertList(userId, list);
-    await _remote.upsertList(userId, list);
+    unawaited(_remote.upsertList(userId, list).catchError((Object error) {}));
   }
 
   @override
   Future<void> updateList(String userId, TaskList list) async {
     await _local.upsertList(userId, list);
-    await _remote.upsertList(userId, list);
+    unawaited(_remote.upsertList(userId, list).catchError((Object error) {}));
   }
 
   @override
