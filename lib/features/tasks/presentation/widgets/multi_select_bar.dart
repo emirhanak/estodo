@@ -34,7 +34,8 @@ class MultiSelectBar extends ConsumerWidget {
               children: [
                 IconButton(
                   tooltip: l10n.close,
-                  icon: Icon(Icons.close_rounded, color: scheme.onInverseSurface),
+                  icon:
+                      Icon(Icons.close_rounded, color: scheme.onInverseSurface),
                   onPressed: () =>
                       ref.read(taskSelectionProvider.notifier).clear(),
                 ),
@@ -117,9 +118,7 @@ class MultiSelectBar extends ConsumerWidget {
                       ),
                     );
                     if (confirmed != true) return;
-                    await ref
-                        .read(taskControllerProvider)
-                        .bulkDelete(selected);
+                    await ref.read(taskControllerProvider).bulkDelete(selected);
                     ref.read(taskSelectionProvider.notifier).clear();
                   },
                 ),

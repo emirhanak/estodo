@@ -330,7 +330,8 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
             : 'Sync on progress and blockers.',
       ),
       (
-        title: isTr ? 'Günün Değerlendirmesi & Kapanış' : 'Day Wrap-up & Review',
+        title:
+            isTr ? 'Günün Değerlendirmesi & Kapanış' : 'Day Wrap-up & Review',
         startHour: 17,
         startMin: 0,
         dur: 30,

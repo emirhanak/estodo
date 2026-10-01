@@ -69,7 +69,8 @@ class TaskLocalDataSource {
   }
 
   Future<void> replaceTasks(String userId, List<TodoTask> tasks) async {
-    final staleKeys = _taskBox.keys.where((key) => _ownsKey(userId, key)).toList();
+    final staleKeys =
+        _taskBox.keys.where((key) => _ownsKey(userId, key)).toList();
     await _taskBox.deleteAll(staleKeys);
     await _taskBox.putAll({
       for (final task in tasks) _key(userId, task.id): TaskDto.toLocal(task),
@@ -77,16 +78,19 @@ class TaskLocalDataSource {
   }
 
   Future<void> replaceLists(String userId, List<TaskList> lists) async {
-    final staleKeys = _listBox.keys.where((key) => _ownsKey(userId, key)).toList();
+    final staleKeys =
+        _listBox.keys.where((key) => _ownsKey(userId, key)).toList();
     await _listBox.deleteAll(staleKeys);
     await _listBox.putAll({
-      for (final list in lists) _key(userId, list.id): TaskListDto.toLocal(list),
+      for (final list in lists)
+        _key(userId, list.id): TaskListDto.toLocal(list),
     });
   }
 
   String _key(String userId, String id) => '$userId:$id';
 
-  bool _ownsKey(String userId, Object? key) => key.toString().startsWith('$userId:');
+  bool _ownsKey(String userId, Object? key) =>
+      key.toString().startsWith('$userId:');
 
   String _idFromKey(Object key) => key.toString().split(':').last;
 }

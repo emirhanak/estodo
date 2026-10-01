@@ -29,9 +29,9 @@ class TaskRepositoryImpl implements TaskRepository {
     controller = StreamController<List<TodoTask>>.broadcast(
       onListen: () {
         localSub = _local.watchTasks(userId).listen(
-          controller.add,
-          onError: controller.addError,
-        );
+              controller.add,
+              onError: controller.addError,
+            );
         remoteSub = _remote.watchTasks(userId).listen(
           (tasks) async {
             await _local.replaceTasks(userId, tasks);
@@ -59,9 +59,9 @@ class TaskRepositoryImpl implements TaskRepository {
     controller = StreamController<List<TaskList>>.broadcast(
       onListen: () {
         localSub = _local.watchLists(userId).listen(
-          controller.add,
-          onError: controller.addError,
-        );
+              controller.add,
+              onError: controller.addError,
+            );
         remoteSub = _remote.watchLists(userId).listen(
           (lists) async {
             await _local.replaceLists(userId, lists);
@@ -100,7 +100,7 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<void> deleteTask(String userId, String taskId) async {
     await _local.deleteTask(userId, taskId);
     unawaited(_remote.deleteTask(userId, taskId).catchError((Object error) {}));
-    await _notifications.cancelTaskReminder(taskId);
+    _runInBackground(_notifications.cancelTaskReminder(taskId));
   }
 
   @override
@@ -152,8 +152,11 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   /// Reminder scheduling can block on a permission prompt; saving must not.
-  void _syncReminderInBackground(TodoTask task) {
-    unawaited(_syncReminder(task).catchError((Object error) {}));
+  void _syncReminderInBackground(TodoTask task) =>
+      _runInBackground(_syncReminder(task));
+
+  void _runInBackground(Future<void> work) {
+    unawaited(work.catchError((Object error) {}));
   }
 
   Future<void> _syncReminder(TodoTask task) async {

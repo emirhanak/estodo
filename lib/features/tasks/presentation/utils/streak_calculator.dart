@@ -97,7 +97,8 @@ class StreakCalculator {
     for (final task in completedTasks) {
       final date = task.completedAt ?? task.dueAt ?? task.updatedAt;
       final day = DateTime(date.year, date.month, date.day);
-      if (!day.isBefore(monday) && day.isBefore(monday.add(const Duration(days: 7)))) {
+      if (!day.isBefore(monday) &&
+          day.isBefore(monday.add(const Duration(days: 7)))) {
         weekCompletedCount++;
       }
     }

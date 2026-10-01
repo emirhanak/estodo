@@ -84,6 +84,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
 
   late int _step = widget.task == null ? 0 : 1;
   bool _saving = false;
+  String? _error;
 
   bool get _isEditing => widget.task != null;
 
@@ -191,7 +192,10 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
       title: currentTitle.isNotEmpty ? currentTitle : _draft.title,
     );
     if (!draftToSave.canSave || _saving) return;
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     final controller = ref.read(taskControllerProvider);
     final existing = widget.task;
     try {
@@ -218,12 +222,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       debugPrint('Error saving planned task: $e');
-      if (mounted) {
-        final l10n = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorTryAgain)),
-        );
-      }
+      if (mounted) setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -323,6 +322,14 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                           ),
                   ),
                 ),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    child: Text(
+                      '${l10n.errorTryAgain}\n$_error',
+                      style: TextStyle(color: scheme.error, fontSize: 12.5),
+                    ),
+                  ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(16, 10, 16, bottomPadding),
                   child: Row(

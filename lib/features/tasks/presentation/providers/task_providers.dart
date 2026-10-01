@@ -387,8 +387,7 @@ class TaskController {
     return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 
-  static final RegExp _tagRegex =
-      RegExp(r'#([\w\u00C0-\u024F\u1E00-\u1EFF]+)');
+  static final RegExp _tagRegex = RegExp(r'#([\w\u00C0-\u024F\u1E00-\u1EFF]+)');
 
   List<String> _extractTags(String text) {
     return _tagRegex

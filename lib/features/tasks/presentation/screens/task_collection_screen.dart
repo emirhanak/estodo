@@ -78,8 +78,8 @@ class _TaskCollectionScreenState extends ConsumerState<TaskCollectionScreen> {
           tasksAsync.when(
             data: (tasks) {
               final filtered = tasks.where(widget.filter).toList();
-              final allTags =
-                  filtered.expand((t) => t.tags).toSet().toList()..sort();
+              final allTags = filtered.expand((t) => t.tags).toSet().toList()
+                ..sort();
               final activeTag =
                   allTags.contains(_selectedTag) ? _selectedTag : null;
               final displayedTasks = activeTag == null
@@ -508,4 +508,3 @@ class _TagFilterBar extends StatelessWidget {
     );
   }
 }
-

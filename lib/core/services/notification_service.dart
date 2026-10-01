@@ -204,8 +204,9 @@ class NotificationService {
     );
   }
 
-  Future<void> cancelTaskReminder(String taskId) {
-    return _localNotifications.cancel(id: taskId.hashCode);
+  Future<void> cancelTaskReminder(String taskId) async {
+    await initialize();
+    await _localNotifications.cancel(id: taskId.hashCode);
   }
 
   Future<void> cancelAllNotifications() {

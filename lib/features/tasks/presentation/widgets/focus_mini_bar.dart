@@ -87,9 +87,8 @@ class FocusMiniBar extends ConsumerWidget {
                           : Icons.play_circle_fill_rounded,
                       color: accent,
                     ),
-                    onPressed: () => ref
-                        .read(focusTimerProvider.notifier)
-                        .togglePlayPause(),
+                    onPressed: () =>
+                        ref.read(focusTimerProvider.notifier).togglePlayPause(),
                   ),
                   // Stop/Dismiss
                   IconButton(

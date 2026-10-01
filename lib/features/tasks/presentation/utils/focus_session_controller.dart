@@ -39,7 +39,8 @@ class FocusTimerState {
   bool get isRunning => status == FocusTimerStatus.running;
   bool get isPaused => status == FocusTimerStatus.paused;
   bool get isCompleted => status == FocusTimerStatus.completed;
-  bool get isActive => status == FocusTimerStatus.running || status == FocusTimerStatus.paused;
+  bool get isActive =>
+      status == FocusTimerStatus.running || status == FocusTimerStatus.paused;
 
   double get progress {
     if (totalDuration.inSeconds == 0) return 0.0;
@@ -211,7 +212,8 @@ class FocusTimerController extends Notifier<FocusTimerState> {
         _onTimerFinished();
       } else {
         state = state.copyWith(
-          remainingDuration: state.remainingDuration - const Duration(seconds: 1),
+          remainingDuration:
+              state.remainingDuration - const Duration(seconds: 1),
         );
       }
     });
@@ -222,7 +224,8 @@ class FocusTimerController extends Notifier<FocusTimerState> {
     HapticFeedback.vibrate();
 
     final isPomo = state.mode == FocusTimerMode.pomodoro;
-    final newCompleted = isPomo ? state.completedPomodoros + 1 : state.completedPomodoros;
+    final newCompleted =
+        isPomo ? state.completedPomodoros + 1 : state.completedPomodoros;
 
     state = state.copyWith(
       status: FocusTimerStatus.completed,
@@ -232,7 +235,9 @@ class FocusTimerController extends Notifier<FocusTimerState> {
 
     try {
       ref.read(notificationServiceProvider).showInstantNotification(
-            title: isPomo ? '🍅 Odaklanma Seansı Tamamlandı!' : '☕ Mola Sona Erdi!',
+            title: isPomo
+                ? '🍅 Odaklanma Seansı Tamamlandı!'
+                : '☕ Mola Sona Erdi!',
             body: isPomo
                 ? '${state.task?.title ?? "Görev"} üzerinde harika bir ilerleme kaydettin.'
                 : 'Yenilendin! Bir sonraki odak seansına başlamaya hazır mısın?',

@@ -101,13 +101,20 @@ class PlannedDay {
   final List<PlannedEntry> habits;
 
   bool get isEmpty =>
-      scheduled.isEmpty && unscheduled.isEmpty && completed.isEmpty && habits.isEmpty;
+      scheduled.isEmpty &&
+      unscheduled.isEmpty &&
+      completed.isEmpty &&
+      habits.isEmpty;
 
   int get openCount =>
-      scheduled.where((e) => !e.isCompleted).length + unscheduled.length + habits.where((e) => !e.isCompleted).length;
+      scheduled.where((e) => !e.isCompleted).length +
+      unscheduled.length +
+      habits.where((e) => !e.isCompleted).length;
 
   int get doneCount =>
-      scheduled.where((e) => e.isCompleted).length + completed.length + habits.where((e) => e.isCompleted).length;
+      scheduled.where((e) => e.isCompleted).length +
+      completed.length +
+      habits.where((e) => e.isCompleted).length;
 
   int get totalCount => openCount + doneCount;
 

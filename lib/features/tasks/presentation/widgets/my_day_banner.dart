@@ -20,7 +20,9 @@ class MyDayBanner extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final now = DateTime.now();
     final greeting = _greeting(now.hour, l10n);
-    final name = (user?.displayName?.split(' ').first ?? user?.email.split('@').first) ?? '';
+    final name =
+        (user?.displayName?.split(' ').first ?? user?.email.split('@').first) ??
+            '';
     final dateLabel = DateTimeFormatter.fullDayLabel(now, locale: locale);
 
     return Padding(
@@ -66,11 +68,10 @@ class MyDayBanner extends ConsumerWidget {
                       const SizedBox(width: 3.5),
                       Text(
                         l10n.streakDays(streak.currentStreak),
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: Colors.deepOrange,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
                     ],
                   ),

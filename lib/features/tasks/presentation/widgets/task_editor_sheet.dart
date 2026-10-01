@@ -1312,4 +1312,3 @@ class _TagsSection extends StatelessWidget {
     );
   }
 }
-
