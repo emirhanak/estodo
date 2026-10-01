@@ -282,9 +282,8 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
                   ? entry.color.withValues(alpha: 0.12)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(18),
-              border: hovering
-                  ? Border.all(color: entry.color, width: 1.5)
-                  : null,
+              border:
+                  hovering ? Border.all(color: entry.color, width: 1.5) : null,
             ),
             child: interactive,
           );

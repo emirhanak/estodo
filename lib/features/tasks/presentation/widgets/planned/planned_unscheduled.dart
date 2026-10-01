@@ -563,7 +563,8 @@ class _HabitRow extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: entry.color.withValues(alpha: isCompleted ? 0.2 : 0.14),
+                  color:
+                      entry.color.withValues(alpha: isCompleted ? 0.2 : 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -582,14 +583,10 @@ class _HabitRow extends StatelessWidget {
                       entry.task.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            decoration: isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                isCompleted ? TextDecoration.lineThrough : null,
                             color: isCompleted
                                 ? scheme.onSurfaceVariant
                                 : scheme.onSurface,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../l10n/app_localizations.dart';
+import '../../../../domain/entities/task_list.dart';
 import '../../../../domain/entities/todo_task.dart';
 import '../../../providers/task_providers.dart';
 import '../../../utils/planned_draft.dart';
@@ -25,7 +26,7 @@ Future<bool?> showPlannedComposer(
   TodoTask? task,
   DateTime? date,
   DateTime? startAt,
-  PlannedDraftKind kind = PlannedDraftKind.task,
+  PlannedDraftKind kind = PlannedDraftKind.habit,
 }) {
   final accent = Theme.of(context).colorScheme.primary;
   return showModalBottomSheet<bool>(
@@ -51,7 +52,7 @@ class PlannedComposer extends ConsumerStatefulWidget {
     required this.accent,
     this.task,
     this.startAt,
-    this.kind = PlannedDraftKind.task,
+    this.kind = PlannedDraftKind.habit,
   });
 
   final TodoTask? task;
@@ -206,7 +207,8 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
           isHabit: draftToSave.isHabit,
           dueAt: draftToSave.dueAt,
           startAt: draftToSave.startAt,
-          durationMinutes: draftToSave.isAllDay ? null : draftToSave.durationMinutes,
+          durationMinutes:
+              draftToSave.isAllDay ? null : draftToSave.durationMinutes,
           reminderAt: draftToSave.reminderAt,
           recurrence: draftToSave.recurrence,
           steps: draftToSave.steps,
@@ -316,6 +318,8 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                             onPickDate: _pickDate,
                             onPickRepeat: _pickRepeat,
                             onPickDuration: _pickDuration,
+                            lists: ref.watch(listsProvider).value ??
+                                const <TaskList>[],
                           ),
                   ),
                 ),

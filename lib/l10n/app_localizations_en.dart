@@ -129,10 +129,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerContinue => 'Continue';
 
   @override
-  String get composerCreateTask => 'Create plan';
+  String get composerCreateTask => 'Create';
 
   @override
-  String get composerCreateHabit => 'Create habit';
+  String get composerCreateHabit => 'Create';
 
   @override
   String get composerKindTask => 'Plan';

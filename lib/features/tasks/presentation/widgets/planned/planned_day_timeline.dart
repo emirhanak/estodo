@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -110,17 +111,21 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
       }
 
       children.add(
-        PlannedEntryRow(
-          key: ValueKey('planned-row-${entry.task.id}'),
-          entry: entry,
-          now: widget.now,
-          gutterWidth: _gutter,
-          connectorTop: i > 0,
-          connectorBottom: i < scheduled.length - 1,
-          onOpen: () => widget.onOpen(entry.task),
-          onToggle: () => widget.onToggle(entry.task),
-          onDropped:
-              start == null ? null : (task) => widget.onSchedule(task, start),
+        _EntranceBubble(
+          key: ValueKey('planned-enter-${entry.task.id}'),
+          delay: Duration(milliseconds: 40 * (i > 8 ? 8 : i)),
+          child: PlannedEntryRow(
+            key: ValueKey('planned-row-${entry.task.id}'),
+            entry: entry,
+            now: widget.now,
+            gutterWidth: _gutter,
+            connectorTop: i > 0,
+            connectorBottom: i < scheduled.length - 1,
+            onOpen: () => widget.onOpen(entry.task),
+            onToggle: () => widget.onToggle(entry.task),
+            onDropped:
+                start == null ? null : (task) => widget.onSchedule(task, start),
+          ),
         ),
       );
 
@@ -472,7 +477,8 @@ class _GapSlotState extends State<_GapSlot> {
                         width: 2,
                         child: CustomPaint(
                           painter: _DashedLinePainter(
-                            color: scheme.outlineVariant.withValues(alpha: 0.65),
+                            color:
+                                scheme.outlineVariant.withValues(alpha: 0.65),
                           ),
                         ),
                       ),
@@ -612,6 +618,70 @@ class _DayCompletedBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// One-shot entrance: rows pop in with a soft scale, slide and fade, staggered
+/// by [delay].
+class _EntranceBubble extends StatefulWidget {
+  const _EntranceBubble({super.key, required this.child, required this.delay});
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<_EntranceBubble> createState() => _EntranceBubbleState();
+}
+
+class _EntranceBubbleState extends State<_EntranceBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 460),
+  );
+  late final Animation<double> _curve =
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.delay == Duration.zero) {
+      _controller.forward();
+    } else {
+      _timer = Timer(widget.delay, () {
+        if (mounted) _controller.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final t = _curve.value;
+        return Opacity(
+          opacity: _controller.value.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, 24 * (1 - t)),
+            child: Transform.scale(
+              scale: 0.92 + 0.08 * t,
+              alignment: Alignment.centerLeft,
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }

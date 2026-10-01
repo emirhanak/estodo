@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../../l10n/app_localizations.dart';
 import '../../../../domain/entities/recurrence_rule.dart';
+import '../../../../domain/entities/task_list.dart';
 import '../../../../domain/entities/task_step.dart';
 import '../../../utils/planned_draft.dart';
 import '../../../utils/planned_layout.dart';
@@ -20,6 +21,7 @@ class ComposerScheduleStep extends StatefulWidget {
     required this.onPickDate,
     required this.onPickRepeat,
     required this.onPickDuration,
+    this.lists = const <TaskList>[],
   });
 
   final PlannedDraft draft;
@@ -27,6 +29,7 @@ class ComposerScheduleStep extends StatefulWidget {
   final VoidCallback onPickDate;
   final VoidCallback onPickRepeat;
   final VoidCallback onPickDuration;
+  final List<TaskList> lists;
 
   @override
   State<ComposerScheduleStep> createState() => _ComposerScheduleStepState();
@@ -74,6 +77,18 @@ class _ComposerScheduleStepState extends State<ComposerScheduleStep> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
+        if (widget.lists.isNotEmpty) ...[
+          _CategoryBubbles(
+            lists: widget.lists,
+            selectedId: _draft.listId,
+            onSelected: (list) => _update(
+              list == null
+                  ? _draft.copyWith(listId: null)
+                  : _draft.copyWith(listId: list.id, colorValue: list.color),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
         _Card(
           children: [
             _Row(
@@ -645,6 +660,61 @@ class _StepRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Category picker: picking one paints the entry in the category color, so
+/// everything in the same category looks the same on the timeline.
+class _CategoryBubbles extends StatelessWidget {
+  const _CategoryBubbles({
+    required this.lists,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  final List<TaskList> lists;
+  final String? selectedId;
+  final ValueChanged<TaskList?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final list in lists)
+          Builder(builder: (context) {
+            final color = Color(list.color);
+            final selected = list.id == selectedId;
+            return InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onSelected(selected ? null : list);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: selected ? color : color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  list.name,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color:
+                        selected ? PlannedCapsule.foregroundOn(color) : color,
+                  ),
+                ),
+              ),
+            );
+          }),
+      ],
     );
   }
 }

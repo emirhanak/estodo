@@ -329,13 +329,13 @@ abstract class AppLocalizations {
   /// No description provided for @composerCreateTask.
   ///
   /// In en, this message translates to:
-  /// **'Create plan'**
+  /// **'Create'**
   String get composerCreateTask;
 
   /// No description provided for @composerCreateHabit.
   ///
   /// In en, this message translates to:
-  /// **'Create habit'**
+  /// **'Create'**
   String get composerCreateHabit;
 
   /// No description provided for @composerKindTask.

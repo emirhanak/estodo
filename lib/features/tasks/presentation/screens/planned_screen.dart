@@ -117,12 +117,12 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           context,
           date: PlannedLayout.dayOf(start),
           startAt: start,
-          kind: kind ?? PlannedDraftKind.task,
+          kind: kind ?? PlannedDraftKind.habit,
         ),
       );
 
   /// Opens the composer for the selected day, at the next sensible slot.
-  void _compose({PlannedDraftKind kind = PlannedDraftKind.task}) {
+  void _compose({PlannedDraftKind kind = PlannedDraftKind.habit}) {
     final now = DateTime.now();
     final start = PlannedLayout.isSameDay(_selectedDate, now)
         ? PlannedLayout.roundToQuarter(now)

@@ -84,7 +84,7 @@ class TaskRepositoryImpl implements TaskRepository {
     unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
       // Remote sync failure handled gracefully by offline Firestore queue
     }));
-    await _syncReminder(task);
+    _syncReminderInBackground(task);
   }
 
   @override
@@ -93,7 +93,7 @@ class TaskRepositoryImpl implements TaskRepository {
     unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
       // Remote sync failure handled gracefully by offline Firestore queue
     }));
-    await _syncReminder(task);
+    _syncReminderInBackground(task);
   }
 
   @override
@@ -149,6 +149,11 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> registerDeviceToken(String userId, String token) {
     return _remote.registerDeviceToken(userId, token);
+  }
+
+  /// Reminder scheduling can block on a permission prompt; saving must not.
+  void _syncReminderInBackground(TodoTask task) {
+    unawaited(_syncReminder(task).catchError((Object error) {}));
   }
 
   Future<void> _syncReminder(TodoTask task) async {

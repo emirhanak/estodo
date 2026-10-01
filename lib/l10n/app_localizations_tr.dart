@@ -129,10 +129,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get composerContinue => 'Devam';
 
   @override
-  String get composerCreateTask => 'Planı oluştur';
+  String get composerCreateTask => 'Oluştur';
 
   @override
-  String get composerCreateHabit => 'Alışkanlığı oluştur';
+  String get composerCreateHabit => 'Oluştur';
 
   @override
   String get composerKindTask => 'Plan';

@@ -84,7 +84,7 @@ void main() {
     await tapContinue(tester);
 
     expect(find.byType(ComposerTimeWheel), findsOneWidget);
-    expect(find.text('Planı oluştur'), findsOneWidget);
+    expect(find.text('Oluştur'), findsOneWidget);
     expect(find.text('Süre'), findsOneWidget);
   });
 
@@ -105,7 +105,7 @@ void main() {
     await type(tester, 'Su iç');
     await tapContinue(tester);
 
-    expect(find.text('Alışkanlığı oluştur'), findsOneWidget);
+    expect(find.text('Oluştur'), findsOneWidget);
     // A daily rhythm is preselected, so the repeat row is already listed.
     expect(find.text('Her gün'), findsNothing);
     expect(find.byIcon(Icons.autorenew_rounded), findsWidgets);
