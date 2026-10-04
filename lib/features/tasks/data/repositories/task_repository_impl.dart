@@ -19,6 +19,48 @@ class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource _remote;
   final TaskLocalDataSource _local;
   final NotificationService _notifications;
+  final _pendingTasks = <String, TodoTask>{};
+  final _pendingDeletes = <String>{};
+  Future<void> _taskWrites = Future<void>.value();
+
+  // Reconciliation and local writes must not interleave across Hive awaits.
+  Future<void> _writeTasks(Future<void> Function() write) {
+    final result = _taskWrites.then((_) => write());
+    _taskWrites = result.catchError((Object _) {});
+    return result;
+  }
+
+  Future<void> _cacheRemoteTasks(String userId, List<TodoTask> tasks) {
+    return _writeTasks(() async {
+      final merged = {for (final task in tasks) task.id: task};
+      final prefix = '$userId:';
+      for (final key in _pendingTasks.keys.toList()) {
+        if (!key.startsWith(prefix)) continue;
+        final pending = _pendingTasks[key]!;
+        final remote = merged[pending.id];
+        if (remote != null && !remote.updatedAt.isBefore(pending.updatedAt)) {
+          _pendingTasks.remove(key);
+        } else {
+          merged[pending.id] = pending;
+        }
+      }
+      for (final key in _pendingDeletes.toList()) {
+        if (!key.startsWith(prefix)) continue;
+        final id = key.substring(prefix.length);
+        if (merged.remove(id) == null) _pendingDeletes.remove(key);
+      }
+      await _local.replaceTasks(userId, merged.values.toList());
+    });
+  }
+
+  Future<void> _saveLocalTask(String userId, TodoTask task) {
+    return _writeTasks(() async {
+      await _local.upsertTask(userId, task);
+      final key = '$userId:${task.id}';
+      _pendingTasks[key] = task;
+      _pendingDeletes.remove(key);
+    });
+  }
 
   @override
   Stream<List<TodoTask>> watchTasks(String userId) {
@@ -33,9 +75,7 @@ class TaskRepositoryImpl implements TaskRepository {
               onError: controller.addError,
             );
         remoteSub = _remote.watchTasks(userId).listen(
-          (tasks) async {
-            await _local.replaceTasks(userId, tasks);
-          },
+          (tasks) => _runInBackground(_cacheRemoteTasks(userId, tasks)),
           onError: (Object error) {
             // Keep streaming from local storage even if remote encounters errors
           },
@@ -80,7 +120,7 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<void> createTask(String userId, TodoTask task) async {
-    await _local.upsertTask(userId, task);
+    await _saveLocalTask(userId, task);
     unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
       // Remote sync failure handled gracefully by offline Firestore queue
     }));
@@ -89,7 +129,7 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<void> updateTask(String userId, TodoTask task) async {
-    await _local.upsertTask(userId, task);
+    await _saveLocalTask(userId, task);
     unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
       // Remote sync failure handled gracefully by offline Firestore queue
     }));
@@ -98,7 +138,12 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<void> deleteTask(String userId, String taskId) async {
-    await _local.deleteTask(userId, taskId);
+    await _writeTasks(() async {
+      await _local.deleteTask(userId, taskId);
+      final key = '$userId:$taskId';
+      _pendingTasks.remove(key);
+      _pendingDeletes.add(key);
+    });
     unawaited(_remote.deleteTask(userId, taskId).catchError((Object error) {}));
     _runInBackground(_notifications.cancelTaskReminder(taskId));
   }

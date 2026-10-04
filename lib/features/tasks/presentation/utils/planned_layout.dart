@@ -151,11 +151,15 @@ class PlannedLayout {
 
   /// Stable page index for a day, so PageViews can be virtually infinite.
   static int pageIndexOf(DateTime date) =>
-      dayOf(date).difference(_epoch).inDays;
+      DateTime.utc(date.year, date.month, date.day).difference(_epoch).inDays;
 
-  static DateTime dateOfPage(int index) => _epoch.add(Duration(days: index));
+  static DateTime dateOfPage(int index) {
+    final date = _epoch.add(Duration(days: index));
+    return DateTime(date.year, date.month, date.day);
+  }
 
-  static final DateTime _epoch = DateTime(2000);
+  // Page numbers are calendar days, independent of historical UTC offsets/DST.
+  static final DateTime _epoch = DateTime.utc(2000);
 
   static Color colorFor(
     TodoTask task,

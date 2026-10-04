@@ -19,8 +19,16 @@ class TaskLocalDataSource {
   final Box _listBox;
 
   Stream<List<TodoTask>> watchTasks(String userId) async* {
-    yield await getTasks(userId);
-    yield* _taskBox.watch().asyncMap((_) => getTasks(userId));
+    // Listen before the initial read so a save during startup is not missed.
+    final changes = StreamController<void>();
+    final subscription = _taskBox.watch().listen((_) => changes.add(null));
+    try {
+      yield await getTasks(userId);
+      yield* changes.stream.asyncMap((_) => getTasks(userId));
+    } finally {
+      await subscription.cancel();
+      unawaited(changes.close());
+    }
   }
 
   Stream<List<TaskList>> watchLists(String userId) async* {
@@ -69,12 +77,14 @@ class TaskLocalDataSource {
   }
 
   Future<void> replaceTasks(String userId, List<TodoTask> tasks) async {
-    final staleKeys =
-        _taskBox.keys.where((key) => _ownsKey(userId, key)).toList();
-    await _taskBox.deleteAll(staleKeys);
+    final incomingKeys = {for (final task in tasks) _key(userId, task.id)};
+    final staleKeys = _taskBox.keys
+        .where((key) => _ownsKey(userId, key) && !incomingKeys.contains(key))
+        .toList();
     await _taskBox.putAll({
       for (final task in tasks) _key(userId, task.id): TaskDto.toLocal(task),
     });
+    await _taskBox.deleteAll(staleKeys);
   }
 
   Future<void> replaceLists(String userId, List<TaskList> lists) async {

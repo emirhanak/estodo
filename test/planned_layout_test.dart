@@ -3,10 +3,31 @@ import 'package:estodo/features/tasks/domain/entities/todo_task.dart';
 import 'package:estodo/features/tasks/presentation/utils/planned_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   final day = DateTime(2026, 8, 22);
   const accent = Color(0xFF8E8CD8);
+
+  test('page indices count calendar days across historical timezone changes',
+      () {
+    tz_data.initializeTimeZones();
+    for (final name in [
+      'Europe/Istanbul',
+      'Europe/Berlin',
+      'America/New_York'
+    ]) {
+      final location = tz.getLocation(name);
+      for (final month in [1, 3, 8, 10, 12]) {
+        final date = tz.TZDateTime(location, 2026, month, 4);
+        final expected =
+            DateTime.utc(2026, month, 4).difference(DateTime.utc(2000)).inDays;
+        expect(PlannedLayout.pageIndexOf(date), expected, reason: name);
+        expect(PlannedLayout.dateOfPage(expected), DateTime(2026, month, 4));
+      }
+    }
+  });
 
   TaskList list(String id, int color) => TaskList(
         id: id,
