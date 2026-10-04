@@ -508,7 +508,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           bottom: 24 + MediaQuery.viewPaddingOf(context).bottom,
           child: _ComposerButton(
             accent: accent,
-            onTask: _compose,
+            onTask: () => _compose(kind: PlannedDraftKind.task),
             onHabit: () => _compose(kind: PlannedDraftKind.habit),
           ),
         ),

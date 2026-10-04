@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/task_list.dart';
 import '../../domain/entities/todo_task.dart';
@@ -19,8 +21,6 @@ class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource _remote;
   final TaskLocalDataSource _local;
   final NotificationService _notifications;
-  final _pendingTasks = <String, TodoTask>{};
-  final _pendingDeletes = <String>{};
   Future<void> _taskWrites = Future<void>.value();
 
   // Reconciliation and local writes must not interleave across Hive awaits.
@@ -33,21 +33,16 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<void> _cacheRemoteTasks(String userId, List<TodoTask> tasks) {
     return _writeTasks(() async {
       final merged = {for (final task in tasks) task.id: task};
-      final prefix = '$userId:';
-      for (final key in _pendingTasks.keys.toList()) {
-        if (!key.startsWith(prefix)) continue;
-        final pending = _pendingTasks[key]!;
+      for (final pending in await _local.getPendingTasks(userId)) {
         final remote = merged[pending.id];
         if (remote != null && !remote.updatedAt.isBefore(pending.updatedAt)) {
-          _pendingTasks.remove(key);
+          await _local.acknowledgeTask(userId, pending.id);
         } else {
           merged[pending.id] = pending;
         }
       }
-      for (final key in _pendingDeletes.toList()) {
-        if (!key.startsWith(prefix)) continue;
-        final id = key.substring(prefix.length);
-        if (merged.remove(id) == null) _pendingDeletes.remove(key);
+      for (final id in _local.getPendingDeletes(userId)) {
+        if (merged.remove(id) == null) await _local.acknowledgeTask(userId, id);
       }
       await _local.replaceTasks(userId, merged.values.toList());
     });
@@ -55,11 +50,27 @@ class TaskRepositoryImpl implements TaskRepository {
 
   Future<void> _saveLocalTask(String userId, TodoTask task) {
     return _writeTasks(() async {
-      await _local.upsertTask(userId, task);
-      final key = '$userId:${task.id}';
-      _pendingTasks[key] = task;
-      _pendingDeletes.remove(key);
+      await _local.upsertTask(userId, task, pending: true);
     });
+  }
+
+  Future<void> _uploadTask(String userId, TodoTask task) async {
+    try {
+      await _remote.upsertTask(userId, task);
+    } catch (error) {
+      // Permission errors are not retried by Firestore's offline queue.
+      // Keep the durable local entry for the next subscription/retry.
+      debugPrint('Task sync failed: $error');
+    }
+  }
+
+  Future<void> _retryPending(String userId) async {
+    for (final task in await _local.getPendingTasks(userId)) {
+      unawaited(_uploadTask(userId, task));
+    }
+    for (final id in _local.getPendingDeletes(userId)) {
+      _runInBackground(_remote.deleteTask(userId, id));
+    }
   }
 
   @override
@@ -80,6 +91,7 @@ class TaskRepositoryImpl implements TaskRepository {
             // Keep streaming from local storage even if remote encounters errors
           },
         );
+        _runInBackground(_retryPending(userId));
       },
       onCancel: () {
         localSub?.cancel();
@@ -121,28 +133,21 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<void> createTask(String userId, TodoTask task) async {
     await _saveLocalTask(userId, task);
-    unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
-      // Remote sync failure handled gracefully by offline Firestore queue
-    }));
+    unawaited(_uploadTask(userId, task));
     _syncReminderInBackground(task);
   }
 
   @override
   Future<void> updateTask(String userId, TodoTask task) async {
     await _saveLocalTask(userId, task);
-    unawaited(_remote.upsertTask(userId, task).catchError((Object error) {
-      // Remote sync failure handled gracefully by offline Firestore queue
-    }));
+    unawaited(_uploadTask(userId, task));
     _syncReminderInBackground(task);
   }
 
   @override
   Future<void> deleteTask(String userId, String taskId) async {
     await _writeTasks(() async {
-      await _local.deleteTask(userId, taskId);
-      final key = '$userId:$taskId';
-      _pendingTasks.remove(key);
-      _pendingDeletes.add(key);
+      await _local.deleteTask(userId, taskId, pending: true);
     });
     unawaited(_remote.deleteTask(userId, taskId).catchError((Object error) {}));
     _runInBackground(_notifications.cancelTaskReminder(taskId));

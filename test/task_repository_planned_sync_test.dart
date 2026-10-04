@@ -148,6 +148,70 @@ void main() {
     expect((await local.getTasks('u')).map((task) => task.id), ['other']);
   });
 
+  test('rejected planned write survives Hive reopen and empty server result',
+      () async {
+    final date = DateTime(2026, 10, 4);
+    final task = TodoTask(
+        id: 'rejected',
+        userId: 'u',
+        title: 'Persisted',
+        dueAt: date,
+        createdAt: date,
+        updatedAt: date);
+    await repository.createTask('u', task);
+    remote.pendingWrite.completeError(StateError('permission-denied'));
+    await Future<void>.delayed(Duration.zero);
+    await Hive.close();
+    local = TaskLocalDataSource(
+        taskBox: await Hive.openBox('tasks'),
+        listBox: await Hive.openBox('lists'));
+    repository = TaskRepositoryImpl(
+        remote: remote, local: local, notifications: _Notifications());
+    final emissions = <List<TodoTask>>[];
+    final subscription = repository.watchTasks('u').listen(emissions.add);
+    addTearDown(subscription.cancel);
+    await _waitFor(() => emissions.isNotEmpty);
+    expect(emissions.last.single.id, task.id);
+    final before = emissions.length;
+    remote.snapshots.add([]);
+    await _waitFor(() => emissions.length > before);
+    expect(emissions.last.single.id, task.id);
+    expect((await local.getPendingTasks('u')).single.id, task.id);
+    remote.snapshots.add([task]);
+    await _waitFor(() => emissions.length > before + 1);
+    expect(await local.getPendingTasks('u'), isEmpty);
+  });
+
+  test('pending deletion survives Hive reopen and a stale server result',
+      () async {
+    final date = DateTime(2026, 10, 4);
+    final task = TodoTask(
+        id: 'deleted',
+        userId: 'u',
+        title: 'Deleted',
+        dueAt: date,
+        createdAt: date,
+        updatedAt: date);
+    await local.upsertTask('u', task);
+    await repository.deleteTask('u', task.id);
+    await Hive.close();
+    local = TaskLocalDataSource(
+        taskBox: await Hive.openBox('tasks'),
+        listBox: await Hive.openBox('lists'));
+    repository = TaskRepositoryImpl(
+        remote: remote, local: local, notifications: _Notifications());
+    final emissions = <List<TodoTask>>[];
+    final subscription = repository.watchTasks('u').listen(emissions.add);
+    addTearDown(subscription.cancel);
+    await _waitFor(() => emissions.isNotEmpty);
+    remote.snapshots.add([task]);
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    expect(await local.getTasks('u'), isEmpty);
+    expect(local.getPendingDeletes('u'), [task.id]);
+    remote.snapshots.add([]);
+    await _waitFor(() => local.getPendingDeletes('u').isEmpty);
+  });
+
   test('save during initial stream delivery is observed', () async {
     final date = DateTime(2026, 10, 4);
     final task = TodoTask(

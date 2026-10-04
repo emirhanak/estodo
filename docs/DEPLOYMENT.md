@@ -1,5 +1,28 @@
 # Deployment
 
+## Firestore schema releases
+
+Deploy the repository's rules before distributing builds that write new task
+fields. Codemagic builds the app; it does not deploy Firestore rules.
+
+```bash
+firebase deploy --only firestore:rules --project estodo-app
+```
+
+Run the planned screen smoke test on an Android emulator with a dedicated guest
+account. It drives the actual title → Continue → Create flow, waits for the real
+backend, reads the saved document directly from the server, and reopens the app
+screen to check that the entry remains visible.
+
+```bash
+flutter test integration_test/planned_live_test.dart -d emulator-5554 --dart-define-from-file=config/firebase.prod.json
+flutter test integration_test/planned_live_test.dart -d emulator-5554 --dart-define-from-file=config/firebase.prod.json --dart-define=TEST_HABIT=true
+```
+
+Use `--dart-define=EXPECT_REJECTED=true` only when deliberately testing rejected
+writes against a restrictive test ruleset. That mode checks that the local entry
+survives rejection and reopening even though no server document is created.
+
 ## Android
 
 Package name: `com.estodo.app`

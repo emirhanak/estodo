@@ -20,6 +20,9 @@ class TaskRemoteDataSource {
         .collection('tasks')
         .orderBy('updatedAt', descending: true)
         .snapshots(includeMetadataChanges: true)
+        // Local echoes can be rolled back when the backend rejects a write.
+        // Only committed server results may acknowledge or remove local data.
+        .where((s) => !s.metadata.isFromCache && !s.metadata.hasPendingWrites)
         .map((s) => s.docs.map(TaskDto.fromFirestore).toList());
   }
 
