@@ -525,25 +525,35 @@ class SettingsScreen extends ConsumerWidget {
   }) async {
     final l10n = AppLocalizations.of(context);
     final user = ref.read(authStateProvider).value;
+    final locale = Localizations.localeOf(context).languageCode;
     try {
-      final userEmail = user?.email ?? 'unknown';
+      // The worker verifies this token and reads the sender's identity from it.
+      final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (idToken == null) {
+        throw StateError('Feedback requires a signed-in user.');
+      }
       final displayName = user?.displayName ?? 'unknown';
       final response = await http.post(
         Uri.parse(_feedbackEndpoint),
-        headers: const {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
         body: jsonEncode({
           'message': message,
-          'userEmail': userEmail,
           'displayName': displayName,
           'type': type,
-          'locale': Localizations.localeOf(context).languageCode,
+          'locale': locale,
         }),
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw StateError('Feedback worker rejected the request.');
+        throw StateError(
+          'Feedback worker rejected the request: ${response.statusCode}',
+        );
       }
       if (context.mounted) await _showFeedbackThanks(context);
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Feedback submission failed: $error');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.feedbackError)),
@@ -863,10 +873,8 @@ class SettingsScreen extends ConsumerWidget {
 
     try {
       final controller = ref.read(taskControllerProvider);
-      final existingLists =
-          ref.read(listsProvider).value ?? const <TaskList>[];
-      final existingTasks =
-          ref.read(tasksProvider).value ?? const <TodoTask>[];
+      final existingLists = ref.read(listsProvider).value ?? const <TaskList>[];
+      final existingTasks = ref.read(tasksProvider).value ?? const <TodoTask>[];
 
       final result = await BackupService.importFromJson(
         input,
@@ -881,7 +889,8 @@ class SettingsScreen extends ConsumerWidget {
           content: Text(l10n.backupImportSuccess(result.restoredTasksCount)),
         ),
       );
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Backup import failed: $error');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
