@@ -47,3 +47,6 @@ Thumbs.db
 # Local Firebase environment files (examples stay public)
 config/firebase.dev.json
 config/firebase.prod.json
+
+# Test coverage output
+coverage/
