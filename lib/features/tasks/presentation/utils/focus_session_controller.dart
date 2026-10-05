@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/notification_provider.dart';
 import '../../domain/entities/todo_task.dart';
 import '../providers/task_providers.dart';
+import '../../../../core/utils/error_reporter.dart';
 
 enum FocusTimerStatus { idle, running, paused, completed }
 
@@ -242,7 +243,9 @@ class FocusTimerController extends Notifier<FocusTimerState> {
                 ? '${state.task?.title ?? "Görev"} üzerinde harika bir ilerleme kaydettin.'
                 : 'Yenilendin! Bir sonraki odak seansına başlamaya hazır mısın?',
           );
-    } catch (_) {}
+    } catch (error, stack) {
+      reportError(error, stack, reason: 'Focus session notification failed');
+    }
   }
 }
 

@@ -8,6 +8,7 @@ import '../../domain/entities/todo_task.dart';
 import '../../domain/repositories/task_repository.dart';
 import '../datasources/task_local_data_source.dart';
 import '../datasources/task_remote_data_source.dart';
+import '../../../../core/utils/error_reporter.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   TaskRepositoryImpl({
@@ -173,9 +174,26 @@ class TaskRepositoryImpl implements TaskRepository {
       _saveTask(userId, task);
 
   Future<void> _saveTask(String userId, TodoTask task) async {
-    await _serialized(() => _local.upsertTask(userId, task, pending: true));
-    unawaited(_uploadTask(userId, task));
-    _syncReminderInBackground(task);
+    late TodoTask saved;
+    await _serialized(() {
+      saved = task.copyWith(
+        updatedAt: _afterPrevious(
+          task.updatedAt,
+          _local.getTask(userId, task.id)?.updatedAt,
+        ),
+      );
+      return _local.upsertTask(userId, saved, pending: true);
+    });
+    unawaited(_uploadTask(userId, saved));
+    _syncReminderInBackground(saved);
+  }
+
+  /// Conflicts are resolved by `updatedAt`, which comes from the device
+  /// clock. An edit must always be newer than the version it was made from,
+  /// even when this device's clock runs behind the one that saved it.
+  static DateTime _afterPrevious(DateTime updatedAt, DateTime? previous) {
+    if (previous == null || updatedAt.isAfter(previous)) return updatedAt;
+    return previous.add(const Duration(milliseconds: 1));
   }
 
   @override
@@ -197,7 +215,10 @@ class TaskRepositoryImpl implements TaskRepository {
     await _serialized(() async {
       final now = DateTime.now();
       for (final task in (await _local.getTasks(userId)).where(where)) {
-        final updated = change(task, now);
+        final changed = change(task, now);
+        final updated = changed.copyWith(
+          updatedAt: _afterPrevious(changed.updatedAt, task.updatedAt),
+        );
         await _local.upsertTask(userId, updated, pending: true);
         edited.add(updated);
       }
@@ -226,8 +247,17 @@ class TaskRepositoryImpl implements TaskRepository {
       _saveList(userId, list);
 
   Future<void> _saveList(String userId, TaskList list) async {
-    await _serialized(() => _local.upsertList(userId, list, pending: true));
-    unawaited(_uploadList(userId, list));
+    late TaskList saved;
+    await _serialized(() {
+      saved = list.copyWith(
+        updatedAt: _afterPrevious(
+          list.updatedAt,
+          _local.getList(userId, list.id)?.updatedAt,
+        ),
+      );
+      return _local.upsertList(userId, saved, pending: true);
+    });
+    unawaited(_uploadList(userId, saved));
   }
 
   @override
@@ -251,7 +281,12 @@ class TaskRepositoryImpl implements TaskRepository {
       _runInBackground(_syncReminder(task));
 
   void _runInBackground(Future<void> work) {
-    unawaited(work.catchError((Object error) {}));
+    unawaited(
+      work.catchError(
+        (Object error, StackTrace stack) =>
+            reportError(error, stack, reason: 'Background sync failed'),
+      ),
+    );
   }
 
   Future<void> _syncReminder(TodoTask task) async {

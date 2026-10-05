@@ -37,6 +37,9 @@ class TaskLocalDataSource {
     return tasks;
   }
 
+  TodoTask? getTask(String userId, String taskId) =>
+      _readOne(_taskBox, userId, taskId, TaskDto.fromLocal);
+
   Future<void> upsertTask(String userId, TodoTask task, {bool? pending}) =>
       _upsert(_taskBox, userId, task.id, TaskDto.toLocal(task), pending);
 
@@ -69,6 +72,9 @@ class TaskLocalDataSource {
     lists.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return lists;
   }
+
+  TaskList? getList(String userId, String listId) =>
+      _readOne(_listBox, userId, listId, TaskListDto.fromLocal);
 
   Future<void> upsertList(String userId, TaskList list, {bool? pending}) =>
       _upsert(_listBox, userId, list.id, TaskListDto.toLocal(list), pending);
@@ -127,6 +133,17 @@ class TaskLocalDataSource {
       items.add(decode(_idFromKey(key), value));
     }
     return items;
+  }
+
+  T? _readOne<T>(
+    Box box,
+    String userId,
+    String id,
+    T Function(String id, Map<dynamic, dynamic> data) decode,
+  ) {
+    final value = box.get(_key(userId, id));
+    if (value is! Map || value[_pendingDelete] == true) return null;
+    return decode(id, value);
   }
 
   Future<void> _upsert(

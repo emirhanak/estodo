@@ -193,4 +193,47 @@ void main() {
     remote.listSnapshots.add([_list('other')]);
     await _waitFor(() => local.getPendingListDeletes('u').isEmpty);
   });
+
+  test(
+      'edit from a device with a slow clock still wins over the version it edits',
+      () async {
+    final emissions = <List<TodoTask>>[];
+    final subscription = repository.watchTasks('u').listen(emissions.add);
+    addTearDown(subscription.cancel);
+    await _waitFor(() => emissions.isNotEmpty);
+
+    // Another device saved the task at 09:00; this device's clock says 08:50.
+    final server = _task('skew');
+    remote.taskSnapshots.add([server]);
+    await _waitFor(() => emissions.last.isNotEmpty);
+    final edit = server.copyWith(
+      title: 'Edited here',
+      updatedAt: _date.subtract(const Duration(minutes: 10)),
+    );
+    await repository.updateTask('u', edit);
+
+    final saved = (await local.getTasks('u')).single;
+    expect(saved.updatedAt.isAfter(server.updatedAt), isTrue);
+    expect(remote.uploadedTasks.last.updatedAt, saved.updatedAt);
+
+    // A repeated server snapshot of the old version must not undo the edit.
+    final before = emissions.length;
+    remote.taskSnapshots.add([server]);
+    await _waitFor(() => emissions.length > before);
+    expect((await local.getTasks('u')).single.title, 'Edited here');
+  });
+
+  test('list edit from a device with a slow clock is not lost', () async {
+    await local.upsertList('u', _list('l'));
+    await repository.updateList(
+      'u',
+      _list('l').copyWith(
+        name: 'Renamed',
+        updatedAt: _date.subtract(const Duration(minutes: 10)),
+      ),
+    );
+    final saved = (await local.getLists('u')).single;
+    expect(saved.name, 'Renamed');
+    expect(saved.updatedAt.isAfter(_date), isTrue);
+  });
 }

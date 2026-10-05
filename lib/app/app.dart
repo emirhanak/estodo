@@ -22,6 +22,7 @@ import '../features/tasks/presentation/screens/home_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'widgets/animated_splash_screen.dart';
+import '../core/utils/error_reporter.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -66,7 +67,8 @@ class _BootstrapAppState extends State<BootstrapApp> {
 
       // If theme was not passed initially, resolve it now from Hive/prefs
       if (widget.initialThemeMode == null) {
-        final stored = Hive.box(AppConstants.settingsBox).get('themeMode') as String?;
+        final stored =
+            Hive.box(AppConstants.settingsBox).get('themeMode') as String?;
         final resolvedMode = switch (stored) {
           'light' => ThemeMode.light,
           'dark' => ThemeMode.dark,
@@ -102,10 +104,10 @@ class _BootstrapAppState extends State<BootstrapApp> {
 
       // Initialize notifications in background without blocking first render
       unawaited(
-        container
-            .read(notificationServiceProvider)
-            .initialize()
-            .catchError((Object _) {}),
+        container.read(notificationServiceProvider).initialize().catchError(
+              (Object error, StackTrace stack) => reportError(error, stack,
+                  reason: 'Notification initialization failed'),
+            ),
       );
 
       // Pre-warm auth state (from local cache) so destination screen is ready
@@ -114,7 +116,9 @@ class _BootstrapAppState extends State<BootstrapApp> {
               const Duration(milliseconds: 300),
               onTimeout: () => null,
             );
-      } catch (_) {}
+      } catch (error, stack) {
+        reportError(error, stack, reason: 'Auth state pre-warm failed');
+      }
 
       if (!mounted) {
         container.dispose();

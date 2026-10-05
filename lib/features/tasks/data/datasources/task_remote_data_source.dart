@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/entities/task_list.dart';
-import '../../domain/entities/task_list_group.dart';
 import '../../domain/entities/todo_task.dart';
 import '../models/task_dto.dart';
 import '../models/task_list_dto.dart';
-import '../models/task_list_group_dto.dart';
 
 class TaskRemoteDataSource {
   TaskRemoteDataSource(this._firestore);
@@ -73,37 +71,6 @@ class TaskRemoteDataSource {
   /// capped by a batch size.
   Future<void> deleteList(String userId, String listId) {
     return _userDoc(userId).collection('lists').doc(listId).delete();
-  }
-
-  // ── Groups ────────────────────────────────────────────────────────────────
-
-  Stream<List<TaskListGroup>> watchGroups(String userId) {
-    return _userDoc(userId)
-        .collection('list_groups')
-        .orderBy('position')
-        .snapshots(includeMetadataChanges: true)
-        .map((s) => s.docs.map(TaskListGroupDto.fromFirestore).toList());
-  }
-
-  Future<void> upsertGroup(String userId, TaskListGroup group) {
-    return _userDoc(userId)
-        .collection('list_groups')
-        .doc(group.id)
-        .set(TaskListGroupDto.toFirestore(group), SetOptions(merge: true));
-  }
-
-  Future<void> deleteGroup(String userId, String groupId) async {
-    // Ungroup all lists that belong to this group
-    final lists = await _userDoc(userId)
-        .collection('lists')
-        .where('groupId', isEqualTo: groupId)
-        .get();
-    final batch = _firestore.batch();
-    for (final doc in lists.docs) {
-      batch.update(doc.reference, {'groupId': null});
-    }
-    batch.delete(_userDoc(userId).collection('list_groups').doc(groupId));
-    await batch.commit();
   }
 
   DocumentReference<Map<String, dynamic>> _userDoc(String userId) {

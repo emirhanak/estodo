@@ -375,7 +375,8 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
       final events = CalendarImport.parseBytes(await file.readAsBytes());
       if (!mounted) return;
       await _processParsedEvents(events);
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Calendar import failed: $error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.plannedImportFailed)),
