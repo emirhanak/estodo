@@ -417,6 +417,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get plannedFreeSuffix => 'boş zaman';
 
   @override
+  String get replayIntro => 'Tanıtımı tekrar göster';
+
+  @override
   String plannedAddAt(String time) {
     return '$time için ekle';
   }

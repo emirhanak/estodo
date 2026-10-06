@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/services/preferences_provider.dart';
+import 'onboarding_intro.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,6 +15,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
+  bool _introDone = false;
 
   late final List<_Slide> _slides;
 
@@ -83,6 +85,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_introDone) {
+      return OnboardingIntro(
+        onContinue: () => setState(() => _introDone = true),
+        onSignIn: () => ref.read(onboardingSeenProvider.notifier).markSeen(),
+      );
+    }
     final scheme = Theme.of(context).colorScheme;
     final isLast = _index == _slides.length - 1;
     final isTr = Localizations.localeOf(context).languageCode == 'tr';
@@ -128,8 +136,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             color: scheme.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(slide.icon,
-                              size: 64, color: scheme.primary),
+                          child:
+                              Icon(slide.icon, size: 64, color: scheme.primary),
                         ),
                         const SizedBox(height: 32),
                         Text(

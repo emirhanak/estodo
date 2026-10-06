@@ -163,6 +163,7 @@
     "placeholders": { "minutes": { "type": "int" } }
   },
   "plannedFreeSuffix": "boş zaman",
+  "replayIntro": "Tanıtımı tekrar göster",
   "plannedAddAt": "{time} için ekle",
   "@plannedAddAt": {
     "placeholders": { "time": { "type": "String" } }

@@ -50,6 +50,13 @@ class OnboardingSeenController extends Notifier<bool> {
     final prefs = ref.read(sharedPreferencesProvider).value;
     await prefs?.setBool(_kOnboardingKey, true);
   }
+
+  /// Shows the first-launch intro again (Settings > Replay intro).
+  Future<void> replay() async {
+    state = false;
+    final prefs = ref.read(sharedPreferencesProvider).value;
+    await prefs?.setBool(_kOnboardingKey, false);
+  }
 }
 
 final hiddenSmartListsProvider =

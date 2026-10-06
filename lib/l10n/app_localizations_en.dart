@@ -419,6 +419,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedFreeSuffix => 'of free time';
 
   @override
+  String get replayIntro => 'Replay intro';
+
+  @override
   String plannedAddAt(String time) {
     return 'Add at $time';
   }

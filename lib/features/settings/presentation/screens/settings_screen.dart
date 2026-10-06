@@ -346,6 +346,18 @@ class SettingsScreen extends ConsumerWidget {
                 color: scheme.outlineVariant.withValues(alpha: 0.3),
               ),
               ListTile(
+                leading: const Icon(Icons.play_circle_outline_rounded),
+                title: Text(l10n.replayIntro),
+                onTap: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  ref.read(onboardingSeenProvider.notifier).replay();
+                },
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              ListTile(
                 leading: const Icon(Icons.info_outline_rounded),
                 title: Text(l10n.version),
                 subtitle: Text(

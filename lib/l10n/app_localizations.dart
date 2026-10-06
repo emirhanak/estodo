@@ -830,6 +830,12 @@ abstract class AppLocalizations {
   /// **'of free time'**
   String get plannedFreeSuffix;
 
+  /// No description provided for @replayIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay intro'**
+  String get replayIntro;
+
   /// No description provided for @plannedAddAt.
   ///
   /// In en, this message translates to:

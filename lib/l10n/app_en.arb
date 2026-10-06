@@ -166,6 +166,7 @@
     "placeholders": { "minutes": { "type": "int" } }
   },
   "plannedFreeSuffix": "of free time",
+  "replayIntro": "Replay intro",
   "plannedAddAt": "Add at {time}",
   "@plannedAddAt": {
     "placeholders": { "time": { "type": "String" } }
