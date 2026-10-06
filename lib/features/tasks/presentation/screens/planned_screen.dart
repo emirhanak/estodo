@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../../../core/services/preferences_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task_list.dart';
 import '../../domain/entities/todo_task.dart';
@@ -16,10 +15,8 @@ import '../widgets/empty_state.dart';
 import '../widgets/planned/planned_day_timeline.dart';
 import '../widgets/planned/planned_format.dart';
 import '../widgets/planned/planned_header.dart';
-import '../widgets/planned/planned_month_grid.dart';
+import '../widgets/planned/planned_month_dropdown.dart';
 import '../widgets/planned/planned_unscheduled.dart';
-import '../widgets/planned/planned_week_grid.dart';
-import '../widgets/planned/planned_week_strip.dart';
 import '../widgets/planned/composer/planned_composer.dart';
 import '../utils/planned_draft.dart';
 import '../utils/streak_calculator.dart';
@@ -45,7 +42,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     initialPage: PlannedLayout.pageIndexOf(_selectedDate),
   );
 
-  PlannedViewMode _mode = PlannedViewMode.day;
+  bool _calendarOpen = false;
   DateTime _now = DateTime.now();
   Timer? _clock;
 
@@ -69,7 +66,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     final day = PlannedLayout.dayOf(date);
     if (PlannedLayout.isSameDay(day, _selectedDate)) return;
     setState(() => _selectedDate = day);
-    if (_mode == PlannedViewMode.day && _dayController.hasClients) {
+    if (_dayController.hasClients) {
       final target = PlannedLayout.pageIndexOf(day);
       final current = _dayController.page?.round() ?? target;
       if (target == current) return;
@@ -85,28 +82,10 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     }
   }
 
-  void _changeMode(PlannedViewMode mode) {
-    setState(() => _mode = mode);
-    if (mode != PlannedViewMode.day) return;
-    // The pager keeps the page it had before the week view took over, so
-    // realign it with the day the user picked meanwhile.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_dayController.hasClients) return;
-      final target = PlannedLayout.pageIndexOf(_selectedDate);
-      if ((_dayController.page?.round() ?? target) != target) {
-        _dayController.jumpToPage(target);
-      }
-    });
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(DateTime.now().year - 3),
-      lastDate: DateTime(DateTime.now().year + 5),
-    );
-    if (picked != null) _selectDate(picked);
+  /// Picking a day in the month calendar jumps there and folds it away.
+  void _pickFromCalendar(DateTime day) {
+    setState(() => _calendarOpen = false);
+    _selectDate(day);
   }
 
   void _openTask(TodoTask task) =>
@@ -615,25 +594,18 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     required bool compact,
     required bool wide,
   }) {
-    final canShowWeek = _mode != PlannedViewMode.month;
-    final weekExpanded = ref.watch(plannedWeekStripExpandedProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlannedHeader(
           date: _selectedDate,
-          mode: _mode,
           accent: accent,
           compact: compact,
-          onModeChanged: _changeMode,
-          onPickDate: _pickDate,
           onToday: () => _selectDate(DateTime.now()),
           onAction: (action) => _handleAction(action, selectedDay),
-          weekExpanded: weekExpanded,
-          onToggleWeek: canShowWeek
-              ? () =>
-                  ref.read(plannedWeekStripExpandedProvider.notifier).toggle()
-              : null,
+          calendarOpen: _calendarOpen,
+          onToggleCalendar: () =>
+              setState(() => _calendarOpen = !_calendarOpen),
         ),
         _SummaryLine(day: selectedDay, accent: accent, compact: compact),
         AnimatedSwitcher(
@@ -644,56 +616,26 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           transitionBuilder: (child, animation) => SizeTransition(
             sizeFactor: animation,
             axisAlignment: -1,
-            child: FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, -0.12),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
+            child: FadeTransition(opacity: animation, child: child),
           ),
-          child: canShowWeek && weekExpanded
-              ? PlannedWeekStrip(
-                  key: const ValueKey('planned-week-strip'),
+          child: _calendarOpen
+              ? PlannedMonthDropdown(
+                  key: const ValueKey('planned-month-dropdown'),
                   selectedDate: _selectedDate,
                   tasks: tasks,
                   lists: lists,
                   accent: accent,
-                  compact: compact,
-                  onSelect: _selectDate,
+                  onSelect: _pickFromCalendar,
                 )
               : const SizedBox(
-                  key: ValueKey('planned-week-strip-hidden'),
+                  key: ValueKey('planned-month-dropdown-hidden'),
                   width: double.infinity,
                 ),
         ),
         const SizedBox(height: 6),
         Expanded(
           child: _Sheet(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 240),
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: child,
-              ),
-              child: switch (_mode) {
-                PlannedViewMode.day => _dayPager(tasks, lists, accent, wide),
-                PlannedViewMode.week => _weekView(tasks, lists, accent),
-                PlannedViewMode.month => PlannedMonthGrid(
-                    key: ValueKey(
-                        'planned-month-${_selectedDate.year}-${_selectedDate.month}'),
-                    month: _selectedDate,
-                    selectedDate: _selectedDate,
-                    tasks: tasks,
-                    lists: lists,
-                    accent: accent,
-                    onSelectDay: _selectDate,
-                  ),
-              },
-            ),
+            child: _dayPager(tasks, lists, accent, wide),
           ),
         ),
       ],
@@ -732,32 +674,6 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           onSchedule: _schedule,
         );
       },
-    );
-  }
-
-  Widget _weekView(
-    List<TodoTask> tasks,
-    List<TaskList> lists,
-    Color accent,
-  ) {
-    final start = PlannedLayout.weekStart(
-      _selectedDate,
-      mondayFirst: PlannedFormat.mondayFirst(context),
-    );
-    final days = [
-      for (final date in PlannedLayout.weekDays(start))
-        _dayFor(date, tasks, lists, accent),
-    ];
-    return PlannedWeekGrid(
-      key: ValueKey('planned-week-${start.toIso8601String()}'),
-      days: days,
-      selectedDate: _selectedDate,
-      now: _now,
-      accent: accent,
-      onOpen: _openTask,
-      onAddAt: _addAt,
-      onSelectDay: _selectDate,
-      onSchedule: _schedule,
     );
   }
 }

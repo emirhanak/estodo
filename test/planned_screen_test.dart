@@ -5,9 +5,7 @@ import 'package:estodo/features/tasks/presentation/providers/task_providers.dart
 import 'package:estodo/features/tasks/presentation/screens/planned_screen.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_capsule.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_entry_row.dart';
-import 'package:estodo/features/tasks/presentation/widgets/planned/planned_month_grid.dart';
-import 'package:estodo/features/tasks/presentation/widgets/planned/planned_week_grid.dart';
-import 'package:estodo/features/tasks/presentation/widgets/planned/planned_week_strip.dart';
+import 'package:estodo/features/tasks/presentation/widgets/planned/planned_month_dropdown.dart';
 import 'package:estodo/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -115,51 +113,27 @@ void main() {
     expect(find.text('Market alışverişi'), findsOneWidget);
   });
 
-  testWidgets('switches to the week grid', (tester) async {
-    await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
-
-    await tester.tap(find.byTooltip('Hafta'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(PlannedWeekGrid), findsOneWidget);
-    expect(find.byType(PlannedEntryRow), findsNothing);
-  });
-
-  testWidgets('switches to the month grid', (tester) async {
-    await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
-
-    await tester.tap(find.byTooltip('Ay'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(PlannedMonthGrid), findsOneWidget);
-    expect(find.byType(PlannedEntryRow), findsNothing);
-  });
-
-  testWidgets('week strip starts hidden and opens from its toggle',
+  testWidgets('has no day/week/month switch, only the date title',
       (tester) async {
     await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
-    expect(find.byType(PlannedWeekStrip), findsNothing);
-
-    await tester.tap(find.byTooltip('Haftayı göster'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byType(PlannedWeekStrip), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Haftayı gizle'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byType(PlannedWeekStrip), findsNothing);
+    expect(find.byTooltip('Hafta'), findsNothing);
+    expect(find.byTooltip('Ay'), findsNothing);
   });
 
-  testWidgets('week strip toggle is hidden in month view', (tester) async {
+  testWidgets('month calendar drops down from the title and picks a day',
+      (tester) async {
     await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
-    expect(find.byTooltip('Haftayı göster'), findsOneWidget);
+    expect(find.byType(PlannedMonthDropdown), findsNothing);
 
-    await tester.tap(find.byTooltip('Ay'));
-    await tester.pumpAndSettle();
-    expect(find.byTooltip('Haftayı göster'), findsNothing);
+    await tester.tap(find.byTooltip('Takvimi göster'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(PlannedMonthDropdown), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Takvimi gizle'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(PlannedMonthDropdown), findsNothing);
   });
 
   testWidgets('shows the inbox pane on tablet widths', (tester) async {

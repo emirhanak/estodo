@@ -47,7 +47,11 @@ class PlannedCapsule extends StatelessWidget {
             Theme.of(context).colorScheme.surface,
           )
         : entry.color;
-    final foreground = pale ? entry.color : foregroundOn(entry.color);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // On dark surfaces a deep list color reads too dim, so lift it.
+    final paleIcon =
+        isDark ? Color.lerp(entry.color, Colors.white, 0.45)! : entry.color;
+    final foreground = pale ? paleIcon : foregroundOn(entry.color);
     final active = progress != null;
 
     return SizedBox(

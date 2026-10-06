@@ -9,7 +9,6 @@ const _kOnboardingKey = 'pref.onboarding_seen';
 const _kHiddenSmartListsKey = 'pref.hidden_smart_lists';
 const _kConfettiKey = 'pref.confetti_enabled';
 const _kOledModeKey = 'pref.oled_black_mode';
-const _kPlannedWeekStripKey = 'pref.planned_week_strip_expanded';
 
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
   return SharedPreferences.getInstance();
@@ -121,21 +120,3 @@ class OledModeController extends Notifier<bool> {
 
 /// Whether the planned tab shows its week strip. Collapsed by default to keep
 /// the planner simple; the user's choice is remembered.
-final plannedWeekStripExpandedProvider =
-    NotifierProvider<PlannedWeekStripController, bool>(
-  PlannedWeekStripController.new,
-);
-
-class PlannedWeekStripController extends Notifier<bool> {
-  @override
-  bool build() {
-    final prefs = ref.watch(sharedPreferencesProvider).value;
-    return prefs?.getBool(_kPlannedWeekStripKey) ?? false;
-  }
-
-  Future<void> toggle() async {
-    state = !state;
-    final prefs = ref.read(sharedPreferencesProvider).value;
-    await prefs?.setBool(_kPlannedWeekStripKey, state);
-  }
-}

@@ -301,19 +301,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get plannedDayShort => 'D';
+  String get plannedShowCalendar => 'Show calendar';
 
   @override
-  String get plannedWeekShort => 'W';
-
-  @override
-  String get plannedMonthShort => 'M';
-
-  @override
-  String get plannedShowWeek => 'Show week';
-
-  @override
-  String get plannedHideWeek => 'Hide week';
+  String get plannedHideCalendar => 'Hide calendar';
 
   @override
   String get plannedToday => 'Today';

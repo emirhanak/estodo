@@ -638,35 +638,17 @@ abstract class AppLocalizations {
   /// **'Added to {day}'**
   String plannedSavedOn(String day);
 
-  /// No description provided for @plannedDayShort.
+  /// No description provided for @plannedShowCalendar.
   ///
   /// In en, this message translates to:
-  /// **'D'**
-  String get plannedDayShort;
+  /// **'Show calendar'**
+  String get plannedShowCalendar;
 
-  /// No description provided for @plannedWeekShort.
+  /// No description provided for @plannedHideCalendar.
   ///
   /// In en, this message translates to:
-  /// **'W'**
-  String get plannedWeekShort;
-
-  /// No description provided for @plannedMonthShort.
-  ///
-  /// In en, this message translates to:
-  /// **'M'**
-  String get plannedMonthShort;
-
-  /// No description provided for @plannedShowWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'Show week'**
-  String get plannedShowWeek;
-
-  /// No description provided for @plannedHideWeek.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide week'**
-  String get plannedHideWeek;
+  /// **'Hide calendar'**
+  String get plannedHideCalendar;
 
   /// No description provided for @plannedToday.
   ///

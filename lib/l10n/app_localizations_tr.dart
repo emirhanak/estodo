@@ -301,19 +301,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get plannedDayShort => 'G';
+  String get plannedShowCalendar => 'Takvimi göster';
 
   @override
-  String get plannedWeekShort => 'H';
-
-  @override
-  String get plannedMonthShort => 'A';
-
-  @override
-  String get plannedShowWeek => 'Haftayı göster';
-
-  @override
-  String get plannedHideWeek => 'Haftayı gizle';
+  String get plannedHideCalendar => 'Takvimi gizle';
 
   @override
   String get plannedToday => 'Bugün';
