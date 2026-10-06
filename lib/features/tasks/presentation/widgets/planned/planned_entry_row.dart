@@ -24,7 +24,7 @@ class PlannedEntryRow extends ConsumerStatefulWidget {
     required this.onOpen,
     required this.onToggle,
     this.onDropped,
-    this.gutterWidth = 52,
+    this.gutterWidth = 0,
     this.connectorTop = true,
     this.connectorBottom = true,
   });
@@ -79,42 +79,45 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: widget.gutterWidth,
-          height: height,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: Text(
-                  start == null ? '' : PlannedFormat.time(start),
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.visible,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: active ? entry.color : scheme.onSurfaceVariant,
-                        fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                      ),
-                ),
-              ),
-              const Spacer(),
-              if (height >= 84 && end != null)
+        if (widget.gutterWidth > 0)
+          SizedBox(
+            width: widget.gutterWidth,
+            height: height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 10, bottom: 2),
+                  padding: const EdgeInsets.only(right: 10),
                   child: Text(
-                    PlannedFormat.time(end),
+                    start == null ? '' : PlannedFormat.time(start),
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.visible,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: active ? entry.color : scheme.onSurfaceVariant,
+                          fontWeight:
+                              active ? FontWeight.w800 : FontWeight.w600,
                         ),
                   ),
                 ),
-            ],
+                const Spacer(),
+                if (height >= 84 && end != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10, bottom: 2),
+                    child: Text(
+                      PlannedFormat.time(end),
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.visible,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color:
+                                scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
         PlannedCapsule(
           entry: entry,
           height: height,

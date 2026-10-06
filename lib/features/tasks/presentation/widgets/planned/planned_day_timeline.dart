@@ -46,7 +46,9 @@ class PlannedDayTimeline extends StatefulWidget {
 
 class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     with SingleTickerProviderStateMixin {
-  static const _gutter = 52.0;
+  // Structured style: no hour gutter, the capsule axis sits on the left edge
+  // and each row already shows its time range.
+  static const _gutter = 0.0;
 
   late final AnimationController _stagger = AnimationController(
     vsync: this,
@@ -232,29 +234,16 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
 
   Widget _emptyDay(AppLocalizations l10n) {
     final scheme = Theme.of(context).colorScheme;
-    final base = PlannedLayout.dayOf(widget.day.date);
-    final suggested = _isToday
-        ? PlannedLayout.roundToQuarter(widget.now)
-        : base.add(const Duration(minutes: PlannedLayout.dayStartMinute + 120));
-
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 28, 4, 12),
+      padding: const EdgeInsets.fromLTRB(4, 36, 4, 12),
       child: Column(
         children: [
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              color: widget.accent.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.event_available_rounded,
-              size: 38,
-              color: widget.accent,
-            ),
+          Icon(
+            Icons.event_available_rounded,
+            size: 40,
+            color: widget.accent.withValues(alpha: 0.55),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             l10n.plannedEmptyDayTitle,
             textAlign: TextAlign.center,
@@ -263,7 +252,7 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
                 .titleMedium
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             l10n.plannedEmptyDayBody,
             textAlign: TextAlign.center,
@@ -271,16 +260,6 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
                 .textTheme
                 .bodyMedium
                 ?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () => widget.onAddAt(suggested),
-            style: FilledButton.styleFrom(
-              backgroundColor: widget.accent,
-              foregroundColor: PlannedCapsule.foregroundOn(widget.accent),
-            ),
-            icon: const Icon(Icons.add_rounded),
-            label: Text(l10n.newTask),
           ),
         ],
       ),
@@ -357,23 +336,6 @@ class _NowMarkerState extends State<_NowMarker>
       child: Row(
         children: [
           SizedBox(
-            width: widget.gutterWidth,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Text(
-                PlannedFormat.time(widget.now),
-                textAlign: TextAlign.end,
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.visible,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: widget.accent,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ),
-          ),
-          SizedBox(
             width: PlannedCapsule.columnWidth,
             child: Center(
               child: FadeTransition(
@@ -396,10 +358,18 @@ class _NowMarkerState extends State<_NowMarker>
               ),
             ),
           ),
+          const SizedBox(width: 12),
+          Text(
+            PlannedFormat.time(widget.now),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: widget.accent,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
           Expanded(
             child: Container(
               height: 2,
-              margin: const EdgeInsets.only(left: 4, right: 12),
+              margin: const EdgeInsets.only(left: 8, right: 12),
               decoration: BoxDecoration(
                 color: widget.accent.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(1),
@@ -463,70 +433,99 @@ class _GapSlotState extends State<_GapSlot> {
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            margin: const EdgeInsets.symmetric(vertical: 2),
-            padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               color: active
                   ? widget.accent.withValues(alpha: 0.12)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
-            // The add button hugs the left edge so the row reads as an
-            // action rather than part of the timeline axis.
-            child: Row(
-              children: [
-                const SizedBox(width: 2),
-                SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        width: active ? 44 : 40,
-                        height: active ? 44 : 40,
-                        decoration: BoxDecoration(
-                          color: active
-                              ? widget.accent
-                              : scheme.surfaceContainerHighest,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: widget.accent.withValues(alpha: 0.4),
-                            width: 1.2,
+            // Structured style: the dashed axis runs through the gap and a
+            // small add button sits on it, flush with the capsules.
+            child: SizedBox(
+              height: widget.minutes == null ? 48 : 40,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: PlannedCapsule.columnWidth,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: _DashedAxisPainter(
+                              color: scheme.outlineVariant,
+                            ),
                           ),
                         ),
-                        child: Icon(
-                          Icons.add_rounded,
-                          size: active ? 26 : 24,
-                          color: active
-                              ? PlannedCapsule.foregroundOn(widget.accent)
-                              : widget.accent,
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: active ? 34 : 30,
+                          height: active ? 34 : 30,
+                          decoration: BoxDecoration(
+                            color: active ? widget.accent : scheme.surface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: widget.accent.withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.add_rounded,
+                            size: 20,
+                            color: active
+                                ? PlannedCapsule.foregroundOn(widget.accent)
+                                : widget.accent,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: active
-                              ? widget.accent
-                              : scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                          fontWeight:
-                              active ? FontWeight.w700 : FontWeight.w600,
-                        ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: active
+                                ? widget.accent
+                                : scheme.onSurfaceVariant
+                                    .withValues(alpha: 0.75),
+                            fontWeight:
+                                active ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
+}
+
+/// Dashed vertical line through a free slot, continuing the capsule axis.
+class _DashedAxisPainter extends CustomPainter {
+  _DashedAxisPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const dash = 4.0;
+    const gap = 4.0;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    final x = size.width / 2;
+    for (var y = 0.0; y < size.height; y += dash + gap) {
+      canvas.drawLine(Offset(x, y), Offset(x, y + dash), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedAxisPainter old) => old.color != color;
 }
 
 class _DayCompletedBanner extends StatelessWidget {

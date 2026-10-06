@@ -724,7 +724,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           now: _now,
           accent: accent,
           showUnscheduled: !wide,
-          horizontalPadding: wide ? 18 : 12,
+          horizontalPadding: wide ? 18 : 8,
           maxContentWidth: wide ? 880 : double.infinity,
           onOpen: _openTask,
           onToggle: _toggleTask,
