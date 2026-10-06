@@ -227,7 +227,7 @@ class _SideNavigation extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
               child: Text(
-                user.displayName ?? user.email,
+                user.visibleName(AppLocalizations.of(context)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -399,6 +399,11 @@ class _NavTile extends StatelessWidget {
         leading: Icon(icon, size: 20),
         title: AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
+          // The default layout centers the label; keep it next to the icon.
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.centerLeft,
+            children: [...previous, if (current != null) current],
+          ),
           child: compact
               ? const SizedBox.shrink()
               : Text(label, key: ValueKey(label)),

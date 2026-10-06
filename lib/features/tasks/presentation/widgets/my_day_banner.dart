@@ -5,6 +5,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../utils/streak_calculator.dart';
+import '../../../auth/presentation/user_display.dart';
 
 class MyDayBanner extends ConsumerWidget {
   const MyDayBanner({super.key, required this.accent});
@@ -20,9 +21,7 @@ class MyDayBanner extends ConsumerWidget {
     final locale = Localizations.localeOf(context).languageCode;
     final now = DateTime.now();
     final greeting = _greeting(now.hour, l10n);
-    final name =
-        (user?.displayName?.split(' ').first ?? user?.email.split('@').first) ??
-            '';
+    final name = user?.shortName(l10n) ?? '';
     final dateLabel = DateTimeFormatter.fullDayLabel(now, locale: locale);
 
     return Padding(

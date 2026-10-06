@@ -109,6 +109,9 @@
   "plannedDayView": "Gün",
   "plannedWeekView": "Hafta",
   "plannedMonthView": "Ay",
+  "guestName": "Misafir",
+  "plannedSavedOn": "{day} gününe eklendi",
+  "@plannedSavedOn": { "placeholders": { "day": { "type": "String" } } },
   "plannedDayShort": "G",
   "plannedWeekShort": "H",
   "plannedMonthShort": "A",
@@ -163,7 +166,7 @@
   "@plannedScheduledAt": {
     "placeholders": { "time": { "type": "String" } }
   },
-  "plannedProgressSummary": "{total} görevin {done} tanesi tamam",
+  "plannedProgressSummary": "{done}/{total} tamamlandı",
   "@plannedProgressSummary": {
     "placeholders": {
       "done": { "type": "int" },

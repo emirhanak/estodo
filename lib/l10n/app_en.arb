@@ -112,6 +112,9 @@
   "plannedDayView": "Day",
   "plannedWeekView": "Week",
   "plannedMonthView": "Month",
+  "guestName": "Guest",
+  "plannedSavedOn": "Added to {day}",
+  "@plannedSavedOn": { "placeholders": { "day": { "type": "String" } } },
   "plannedDayShort": "D",
   "plannedWeekShort": "W",
   "plannedMonthShort": "M",
@@ -166,7 +169,7 @@
   "@plannedScheduledAt": {
     "placeholders": { "time": { "type": "String" } }
   },
-  "plannedProgressSummary": "{done} of {total} done",
+  "plannedProgressSummary": "{done}/{total} done",
   "@plannedProgressSummary": {
     "placeholders": {
       "done": { "type": "int" },

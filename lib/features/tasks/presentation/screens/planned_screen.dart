@@ -110,19 +110,42 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
   }
 
   void _openTask(TodoTask task) =>
-      unawaited(showPlannedComposer(context, task: task));
+      unawaited(_composeAndFollow(showPlannedComposer(context, task: task)));
 
   void _toggleTask(TodoTask task) =>
       ref.read(taskControllerProvider).toggleComplete(task);
 
   void _addAt(DateTime start, {PlannedDraftKind? kind}) => unawaited(
-        showPlannedComposer(
-          context,
-          date: PlannedLayout.dayOf(start),
-          startAt: start,
-          kind: kind ?? PlannedDraftKind.habit,
+        _composeAndFollow(
+          showPlannedComposer(
+            context,
+            date: PlannedLayout.dayOf(start),
+            startAt: start,
+            kind: kind ?? PlannedDraftKind.habit,
+          ),
         ),
       );
+
+  /// When an entry is saved on another day, jump there and say so, so the
+  /// new entry never seems to vanish.
+  Future<void> _composeAndFollow(Future<DateTime?> composer) async {
+    final savedDay = await composer;
+    if (savedDay == null || !mounted) return;
+    if (PlannedLayout.isSameDay(savedDay, _selectedDate)) return;
+    _selectDate(savedDay);
+    final l10n = AppLocalizations.of(context);
+    final locale = PlannedFormat.intlLocale(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            l10n.plannedSavedOn(PlannedFormat.fullDay(savedDay, locale)),
+          ),
+        ),
+      );
+  }
 
   /// Opens the composer for the selected day, at the next sensible slot.
   void _compose({PlannedDraftKind kind = PlannedDraftKind.habit}) {

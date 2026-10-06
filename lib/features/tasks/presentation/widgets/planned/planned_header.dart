@@ -51,6 +51,9 @@ class PlannedHeader extends StatelessWidget {
     // On phones the planned tab has no app bar, so the drawer button lives
     // at the start of this row.
     final showMenu = Scaffold.maybeOf(context)?.hasDrawer ?? false;
+    // Phones have little room once the "Today" button appears, so the
+    // current year is implied there.
+    final showYear = !compact || date.year != DateTime.now().year;
 
     final title = Text.rich(
       TextSpan(
@@ -61,10 +64,13 @@ class PlannedHeader extends StatelessWidget {
               style: TextStyle(color: scheme.onSurface),
             ),
           TextSpan(
-            text: '${PlannedFormat.monthYear(date, locale)} ',
+            text: showYear
+                ? '${PlannedFormat.monthYear(date, locale)} '
+                : PlannedFormat.monthYear(date, locale),
             style: TextStyle(color: scheme.onSurface),
           ),
-          TextSpan(text: '${date.year}', style: TextStyle(color: accent)),
+          if (showYear)
+            TextSpan(text: '${date.year}', style: TextStyle(color: accent)),
         ],
       ),
       maxLines: 1,

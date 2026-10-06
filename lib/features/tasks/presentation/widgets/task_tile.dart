@@ -242,7 +242,10 @@ class _TaskTileState extends ConsumerState<TaskTile> {
       items.add(
         _metaText(
           Icons.event_outlined,
-          DateTimeFormatter.dueLabel(task.dueAt!, locale: locale),
+          // Timed entries (from the planner) show their start: "Yarın 08:00".
+          task.startAt != null
+              ? DateTimeFormatter.reminderLabel(task.startAt!, locale: locale)
+              : DateTimeFormatter.dueLabel(task.dueAt!, locale: locale),
           scheme,
           textStyle?.copyWith(
             color: overdue ? scheme.error : scheme.onSurfaceVariant,

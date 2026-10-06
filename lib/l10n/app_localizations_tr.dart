@@ -293,6 +293,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String get plannedMonthView => 'Ay';
 
   @override
+  String get guestName => 'Misafir';
+
+  @override
+  String plannedSavedOn(String day) {
+    return '$day gününe eklendi';
+  }
+
+  @override
   String get plannedDayShort => 'G';
 
   @override
@@ -412,7 +420,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String plannedProgressSummary(int done, int total) {
-    return '$total görevin $done tanesi tamam';
+    return '$done/$total tamamlandı';
   }
 
   @override

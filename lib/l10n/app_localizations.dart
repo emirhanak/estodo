@@ -626,6 +626,18 @@ abstract class AppLocalizations {
   /// **'Month'**
   String get plannedMonthView;
 
+  /// No description provided for @guestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get guestName;
+
+  /// No description provided for @plannedSavedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {day}'**
+  String plannedSavedOn(String day);
+
   /// No description provided for @plannedDayShort.
   ///
   /// In en, this message translates to:
@@ -821,7 +833,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannedProgressSummary.
   ///
   /// In en, this message translates to:
-  /// **'{done} of {total} done'**
+  /// **'{done}/{total} done'**
   String plannedProgressSummary(int done, int total);
 
   /// No description provided for @plannedPickMonth.

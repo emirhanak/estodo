@@ -201,7 +201,8 @@ class TaskIconCatalog {
       key: 'run',
       icon: Icons.directions_run_rounded,
       category: TaskIconCategory.health,
-      keywords: ['koş', 'run', 'jog', 'maraton'],
+      // ASCII spellings too: 'kosu' otherwise matches 'su' (water).
+      keywords: ['koş', 'kos', 'kosu', 'run', 'jog', 'maraton'],
     ),
     TaskIconEntry(
       key: 'walk',

@@ -28,6 +28,7 @@ import 'planned_screen.dart';
 import 'search_screen.dart';
 import 'task_collection_screen.dart';
 import '../utils/list_palette.dart';
+import '../../../auth/presentation/user_display.dart';
 
 part 'home_navigation.dart';
 

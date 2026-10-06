@@ -21,7 +21,9 @@ import '../../focus_mode_sheet.dart';
 
 /// Opens the planned tab's own creation flow: name it, then place it on the
 /// timeline. Returns true when something was saved.
-Future<bool?> showPlannedComposer(
+/// Opens the composer. Completes with the saved entry's day, or null when
+/// the sheet was dismissed without saving.
+Future<DateTime?> showPlannedComposer(
   BuildContext context, {
   TodoTask? task,
   DateTime? date,
@@ -29,7 +31,7 @@ Future<bool?> showPlannedComposer(
   PlannedDraftKind kind = PlannedDraftKind.habit,
 }) {
   final accent = Theme.of(context).colorScheme.primary;
-  return showModalBottomSheet<bool>(
+  return showModalBottomSheet<DateTime>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -219,7 +221,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
           isImportant: draftToSave.isImportant,
         );
       }
-      if (mounted) Navigator.of(context).pop(true);
+      if (mounted) Navigator.of(context).pop(draftToSave.dueAt);
     } catch (e) {
       debugPrint('Error saving planned task: $e');
       if (mounted) setState(() => _error = e.toString());

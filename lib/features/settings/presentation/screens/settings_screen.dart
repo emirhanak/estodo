@@ -20,6 +20,7 @@ import '../../../tasks/domain/entities/todo_task.dart';
 import '../../../tasks/presentation/providers/task_providers.dart';
 import '../../../tasks/presentation/widgets/sync_status_badge.dart';
 import '../providers/theme_mode_provider.dart';
+import '../../../auth/presentation/user_display.dart';
 
 part 'settings_actions.dart';
 
@@ -68,8 +69,8 @@ class SettingsScreen extends ConsumerWidget {
                     radius: 22,
                     backgroundColor: accent,
                     child: Text(
-                      (user.displayName ?? user.email).isNotEmpty
-                          ? (user.displayName ?? user.email)[0].toUpperCase()
+                      user.visibleName(l10n).isNotEmpty
+                          ? user.visibleName(l10n)[0].toUpperCase()
                           : '?',
                       style: const TextStyle(
                         color: Colors.white,
@@ -83,7 +84,7 @@ class SettingsScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.displayName ?? l10n.name,
+                          user.visibleName(l10n),
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium

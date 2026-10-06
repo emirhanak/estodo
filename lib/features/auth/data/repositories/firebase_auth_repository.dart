@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../presentation/user_display.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   FirebaseAuthRepository({
@@ -196,7 +197,7 @@ class FirebaseAuthRepository implements AuthRepository {
       id: user.uid,
       email: user.email ?? '',
       isAnonymous: user.isAnonymous,
-      displayName: user.isAnonymous ? 'Guest' : user.displayName,
+      displayName: user.isAnonymous ? guestDisplayNameMarker : user.displayName,
     );
   }
 }

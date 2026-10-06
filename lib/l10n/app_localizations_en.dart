@@ -293,6 +293,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedMonthView => 'Month';
 
   @override
+  String get guestName => 'Guest';
+
+  @override
+  String plannedSavedOn(String day) {
+    return 'Added to $day';
+  }
+
+  @override
   String get plannedDayShort => 'D';
 
   @override
@@ -414,7 +422,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String plannedProgressSummary(int done, int total) {
-    return '$done of $total done';
+    return '$done/$total done';
   }
 
   @override
