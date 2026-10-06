@@ -163,18 +163,27 @@ class PlannedHeader extends StatelessWidget {
             curve: Curves.easeOutCubic,
             child: isToday
                 ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: TextButton(
-                      onPressed: onToday,
-                      style: TextButton.styleFrom(
-                        foregroundColor: accent,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                : compact
+                    // A text button would squeeze the date title on phones.
+                    ? IconButton(
+                        tooltip: l10n.plannedToday,
+                        onPressed: onToday,
+                        color: accent,
                         visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.today_rounded),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: TextButton(
+                          onPressed: onToday,
+                          style: TextButton.styleFrom(
+                            foregroundColor: accent,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          child: Text(l10n.plannedToday),
+                        ),
                       ),
-                      child: Text(l10n.plannedToday),
-                    ),
-                  ),
           ),
           _ModeSwitch(
             mode: mode,

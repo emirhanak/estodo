@@ -149,12 +149,12 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
       final dayStart = PlannedLayout.dayOf(day.date).add(
         const Duration(minutes: PlannedLayout.dayStartMinute),
       );
-      children.add(_gapSlot(dayStart, null));
+      children.add(_gapSlot(_notBeforeNow(dayStart), null));
       children.add(_emptyDay(l10n));
     } else {
       if (!nowInserted) children.add(_nowMarker());
       final last = scheduled.last.end;
-      if (last != null) children.add(_gapSlot(last, null));
+      if (last != null) children.add(_gapSlot(_notBeforeNow(last), null));
     }
 
     final allScheduledDone =
@@ -200,6 +200,15 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
         ),
       ),
     );
+  }
+
+  /// On today, never suggest adding at a time that has already passed.
+  DateTime _notBeforeNow(DateTime start) {
+    final now = widget.now;
+    if (!PlannedLayout.isSameDay(start, now) || !start.isBefore(now)) {
+      return start;
+    }
+    return PlannedLayout.roundToQuarter(now);
   }
 
   Widget _nowMarker() {
@@ -519,6 +528,7 @@ class _GapSlotState extends State<_GapSlot> {
     );
   }
 }
+
 class _DayCompletedBanner extends StatelessWidget {
   const _DayCompletedBanner({
     required this.accent,
