@@ -126,6 +126,7 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
           entry: entry,
           height: height,
           progress: active ? entry.progressAt(widget.now) : null,
+          upcoming: !active && start != null && widget.now.isBefore(start),
         ),
         const SizedBox(width: 12),
         Expanded(

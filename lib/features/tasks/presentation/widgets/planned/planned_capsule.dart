@@ -10,6 +10,7 @@ class PlannedCapsule extends StatelessWidget {
     required this.height,
     this.width = columnWidth,
     this.progress,
+    this.upcoming = false,
     this.iconSize = 20,
   });
 
@@ -22,6 +23,10 @@ class PlannedCapsule extends StatelessWidget {
 
   /// Elapsed fraction for an in-progress task, or null when not running.
   final double? progress;
+
+  /// Not started yet: drawn as a pale capsule with a colored icon, like
+  /// Structured, so the filled ones mark what is already behind you.
+  final bool upcoming;
   final double iconSize;
 
   static Color foregroundOn(Color color) =>
@@ -31,8 +36,15 @@ class PlannedCapsule extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(width / 2);
     final completed = entry.isCompleted;
-    final base = completed ? entry.color.withValues(alpha: 0.18) : entry.color;
-    final foreground = completed ? entry.color : foregroundOn(entry.color);
+    final pale = completed || upcoming;
+    // Opaque tint so the timeline axis does not show through.
+    final base = pale
+        ? Color.alphaBlend(
+            entry.color.withValues(alpha: 0.16),
+            Theme.of(context).colorScheme.surface,
+          )
+        : entry.color;
+    final foreground = pale ? entry.color : foregroundOn(entry.color);
     final active = progress != null;
 
     return SizedBox(
@@ -44,7 +56,7 @@ class PlannedCapsule extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? entry.color.withValues(alpha: 0.28) : base,
           borderRadius: radius,
-          boxShadow: completed || active
+          boxShadow: pale || active
               ? null
               : [
                   BoxShadow(
