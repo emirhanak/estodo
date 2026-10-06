@@ -293,6 +293,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedMonthView => 'Month';
 
   @override
+  String get plannedDayShort => 'D';
+
+  @override
+  String get plannedWeekShort => 'W';
+
+  @override
+  String get plannedMonthShort => 'M';
+
+  @override
+  String get plannedShowWeek => 'Show week';
+
+  @override
+  String get plannedHideWeek => 'Hide week';
+
+  @override
   String get plannedToday => 'Today';
 
   @override

@@ -13,6 +13,7 @@ import '../../domain/entities/todo_task.dart';
 import '../providers/task_providers.dart';
 import 'animated_check_circle.dart';
 import 'focus_mode_sheet.dart';
+import '../utils/list_palette.dart';
 
 part 'task_editor_sections.dart';
 

@@ -506,9 +506,12 @@ class _CustomListTile extends StatelessWidget {
 enum _ListAction { rename, delete }
 
 class _ListEditorDialog extends StatefulWidget {
-  const _ListEditorDialog({this.existing});
+  const _ListEditorDialog({this.existing, this.defaultColor});
 
   final TaskList? existing;
+
+  /// Color preselected for a new list; the user can still pick another.
+  final int? defaultColor;
 
   @override
   State<_ListEditorDialog> createState() => _ListEditorDialogState();
@@ -522,7 +525,7 @@ class _ListEditorDialogState extends State<_ListEditorDialog> {
   void initState() {
     super.initState();
     final existing = widget.existing;
-    _color = _palette.first;
+    _color = widget.defaultColor ?? ListPalette.colors.first;
     if (existing != null) {
       _controller.text = existing.name;
       _color = existing.color;
@@ -534,21 +537,6 @@ class _ListEditorDialogState extends State<_ListEditorDialog> {
     _controller.dispose();
     super.dispose();
   }
-
-  static const _palette = <int>[
-    0xFF8E8CD8,
-    0xFF5B5FC7,
-    0xFF0078D4,
-    0xFF00B7C3,
-    0xFF107C10,
-    0xFFFFB900,
-    0xFFD83B01,
-    0xFFE3008C,
-    0xFFC239B3,
-    0xFF8764B8,
-    0xFFAF8B6B,
-    0xFF69797E,
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -572,7 +560,7 @@ class _ListEditorDialogState extends State<_ListEditorDialog> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final color in _palette)
+              for (final color in ListPalette.colors)
                 GestureDetector(
                   onTap: () => setState(() => _color = color),
                   child: Container(

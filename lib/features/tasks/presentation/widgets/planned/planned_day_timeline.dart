@@ -462,30 +462,21 @@ class _GapSlotState extends State<_GapSlot> {
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
+            // The add button hugs the left edge so the row reads as an
+            // action rather than part of the timeline axis.
             child: Row(
               children: [
-                SizedBox(width: widget.gutterWidth),
+                const SizedBox(width: 2),
                 SizedBox(
-                  width: PlannedCapsule.columnWidth,
-                  height: 38,
+                  width: 44,
+                  height: 44,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Positioned(
-                        top: 0,
-                        bottom: 0,
-                        width: 2,
-                        child: CustomPaint(
-                          painter: _DashedLinePainter(
-                            color:
-                                scheme.outlineVariant.withValues(alpha: 0.65),
-                          ),
-                        ),
-                      ),
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
-                        width: active ? 30 : 24,
-                        height: active ? 30 : 24,
+                        width: active ? 44 : 40,
+                        height: active ? 44 : 40,
                         decoration: BoxDecoration(
                           color: active
                               ? widget.accent
@@ -498,7 +489,7 @@ class _GapSlotState extends State<_GapSlot> {
                         ),
                         child: Icon(
                           Icons.add_rounded,
-                          size: active ? 18 : 14,
+                          size: active ? 26 : 24,
                           color: active
                               ? PlannedCapsule.foregroundOn(widget.accent)
                               : widget.accent,
@@ -511,12 +502,12 @@ class _GapSlotState extends State<_GapSlot> {
                 Expanded(
                   child: Text(
                     label,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: active
                               ? widget.accent
                               : scheme.onSurfaceVariant.withValues(alpha: 0.8),
                           fontWeight:
-                              active ? FontWeight.w700 : FontWeight.w500,
+                              active ? FontWeight.w700 : FontWeight.w600,
                         ),
                   ),
                 ),
@@ -528,36 +519,6 @@ class _GapSlotState extends State<_GapSlot> {
     );
   }
 }
-
-class _DashedLinePainter extends CustomPainter {
-  const _DashedLinePainter({required this.color});
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-
-    const dashHeight = 4.0;
-    const dashSpace = 4.0;
-    var startY = 0.0;
-    while (startY < size.height) {
-      canvas.drawLine(
-        Offset(size.width / 2, startY),
-        Offset(size.width / 2, (startY + dashHeight).clamp(0.0, size.height)),
-        paint,
-      );
-      startY += dashHeight + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
 class _DayCompletedBanner extends StatelessWidget {
   const _DayCompletedBanner({
     required this.accent,

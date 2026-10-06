@@ -626,6 +626,36 @@ abstract class AppLocalizations {
   /// **'Month'**
   String get plannedMonthView;
 
+  /// No description provided for @plannedDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'D'**
+  String get plannedDayShort;
+
+  /// No description provided for @plannedWeekShort.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get plannedWeekShort;
+
+  /// No description provided for @plannedMonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get plannedMonthShort;
+
+  /// No description provided for @plannedShowWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Show week'**
+  String get plannedShowWeek;
+
+  /// No description provided for @plannedHideWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide week'**
+  String get plannedHideWeek;
+
   /// No description provided for @plannedToday.
   ///
   /// In en, this message translates to:

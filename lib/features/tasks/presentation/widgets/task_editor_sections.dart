@@ -25,9 +25,12 @@ Future<String?> _createListFromEditor(BuildContext context) async {
   );
   controller.dispose();
   if (name == null || name.isEmpty || !context.mounted) return null;
-  final list = await ProviderScope.containerOf(context, listen: false)
+  final container = ProviderScope.containerOf(context, listen: false);
+  final usedColors = (container.read(listsProvider).value ?? const <TaskList>[])
+      .map((list) => list.color);
+  final list = await container
       .read(taskControllerProvider)
-      .createList(name, 0xFF5B5FC7);
+      .createList(name, ListPalette.nextDefault(usedColors));
   return list.id;
 }
 

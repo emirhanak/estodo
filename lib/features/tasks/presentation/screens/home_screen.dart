@@ -27,6 +27,7 @@ import '../utils/focus_session_controller.dart';
 import 'planned_screen.dart';
 import 'search_screen.dart';
 import 'task_collection_screen.dart';
+import '../utils/list_palette.dart';
 
 part 'home_navigation.dart';
 
@@ -218,36 +219,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         }
 
+        final isPlanned = _section == HomeSection.planned;
         return Scaffold(
           key: _scaffoldKey,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            // The planned tab carries its own Structured-style date headline,
-            // so the app bar only keeps the menu affordance there.
-            toolbarHeight: _section == HomeSection.planned ? 48 : null,
-            title: _section == HomeSection.planned
-                ? null
-                : Text(
+          // The planned tab puts the menu inside its own date header, so the
+          // whole top row belongs to planning controls.
+          appBar: isPlanned
+              ? null
+              : AppBar(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  title: Text(
                     _title(selectedList, AppLocalizations.of(context)),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-            leading: IconButton(
-              tooltip: Localizations.localeOf(context).languageCode == 'tr'
-                  ? 'Menüyü aç'
-                  : 'Open menu',
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-            actions: const [
-              SyncStatusBadge(),
-              SizedBox(width: 8),
-            ],
-          ),
+                  leading: IconButton(
+                    tooltip:
+                        Localizations.localeOf(context).languageCode == 'tr'
+                            ? 'Menüyü aç'
+                            : 'Open menu',
+                    icon: const Icon(Icons.menu_rounded),
+                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                  actions: const [
+                    SyncStatusBadge(),
+                    SizedBox(width: 8),
+                  ],
+                ),
           drawer: Drawer(
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: navigation,
           ),
-          body: body,
+          body: isPlanned ? SafeArea(bottom: false, child: body) : body,
           bottomNavigationBar:
               _buildMobileBottomBar(context, AppLocalizations.of(context)),
           floatingActionButton: canAddTask ? _addTaskButton() : null,
@@ -449,7 +451,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context: context,
       useRootNavigator: true,
       barrierColor: Colors.black54,
-      builder: (context) => const _ListEditorDialog(),
+      builder: (context) => _ListEditorDialog(
+        defaultColor: ListPalette.nextDefault(
+          (ref.read(listsProvider).value ?? const <TaskList>[])
+              .map((list) => list.color),
+        ),
+      ),
     );
     if (!mounted) return;
     if (draft == null) return;

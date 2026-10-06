@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../utils/planned_layout.dart';
 import 'planned_format.dart';
+import 'planned_mode_glyph.dart';
 
 enum PlannedViewMode { day, week, month }
 
@@ -21,6 +22,8 @@ class PlannedHeader extends StatelessWidget {
     required this.onPickDate,
     required this.onToday,
     required this.onAction,
+    this.weekExpanded,
+    this.onToggleWeek,
     this.compact = false,
   });
 
@@ -31,6 +34,11 @@ class PlannedHeader extends StatelessWidget {
   final VoidCallback onPickDate;
   final VoidCallback onToday;
   final ValueChanged<PlannedHeaderAction> onAction;
+
+  /// When [onToggleWeek] is set, the chevron next to the title collapses and
+  /// expands the week strip instead of being part of the date button.
+  final bool? weekExpanded;
+  final VoidCallback? onToggleWeek;
   final bool compact;
 
   @override
@@ -39,7 +47,10 @@ class PlannedHeader extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final locale = PlannedFormat.intlLocale(context);
     final isToday = PlannedLayout.isSameDay(date, DateTime.now());
-    final titleSize = compact ? 22.0 : 28.0;
+    final titleSize = compact ? 21.0 : 28.0;
+    // On phones the planned tab has no app bar, so the drawer button lives
+    // at the start of this row.
+    final showMenu = Scaffold.maybeOf(context)?.hasDrawer ?? false;
 
     final title = Text.rich(
       TextSpan(
@@ -67,58 +78,83 @@ class PlannedHeader extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(compact ? 16 : 24, 8, compact ? 10 : 16, 4),
+      padding: EdgeInsets.fromLTRB(
+        showMenu ? 4 : (compact ? 16 : 24),
+        showMenu ? 6 : 8,
+        compact ? 6 : 16,
+        4,
+      ),
       child: Row(
         children: [
+          if (showMenu)
+            IconButton(
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+              icon: const Icon(Icons.menu_rounded),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
           Expanded(
-            child: Semantics(
-              button: true,
-              label: l10n.plannedPickMonth,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: onPickDate,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 220),
-                          transitionBuilder: (child, animation) =>
-                              FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.25),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
+            child: Row(
+              children: [
+                Flexible(
+                  child: Semantics(
+                    button: true,
+                    label: l10n.plannedPickMonth,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: onPickDate,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 4,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 220),
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.25),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                ),
+                                child: KeyedSubtree(
+                                  key: ValueKey(
+                                    '${mode.name}-${date.year}-${date.month}-${date.day}',
+                                  ),
+                                  child: title,
+                                ),
+                              ),
                             ),
-                          ),
-                          child: KeyedSubtree(
-                            key: ValueKey(
-                              '${mode.name}-${date.year}-${date.month}-${date.day}',
-                            ),
-                            child: title,
-                          ),
+                            if (onToggleWeek == null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2),
+                                child: Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: accent,
+                                  size: titleSize - 2,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 2),
-                        child: Icon(
-                          Icons.chevron_right_rounded,
-                          color: accent,
-                          size: titleSize - 2,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                if (onToggleWeek != null)
+                  _WeekChevron(
+                    expanded: weekExpanded ?? false,
+                    accent: accent,
+                    size: titleSize + 2,
+                    onTap: onToggleWeek!,
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 4),
@@ -174,6 +210,57 @@ class PlannedHeader extends StatelessWidget {
   }
 }
 
+/// Chevron beside the title that collapses and expands the week strip.
+/// Points right when closed and turns down when the strip is open.
+class _WeekChevron extends StatelessWidget {
+  const _WeekChevron({
+    required this.expanded,
+    required this.accent,
+    required this.size,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final Color accent;
+  final double size;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final label = expanded ? l10n.plannedHideWeek : l10n.plannedShowWeek;
+    return Semantics(
+      button: true,
+      expanded: expanded,
+      label: label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: InkResponse(
+          radius: size,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: AnimatedRotation(
+              turns: expanded ? 0.25 : 0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: accent,
+                size: size,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ModeSwitch extends StatelessWidget {
   const _ModeSwitch({
     required this.mode,
@@ -191,9 +278,9 @@ class _ModeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final segmentWidth = compact ? 36.0 : 72.0;
-    const outerHeight = 36.0;
-    const padding = 2.5;
+    final segmentWidth = compact ? 42.0 : 80.0;
+    const outerHeight = 38.0;
+    const padding = 3.0;
     const innerHeight = outerHeight - (padding * 2);
 
     return Container(
@@ -235,7 +322,7 @@ class _ModeSwitch extends StatelessWidget {
               _segment(
                 context,
                 width: segmentWidth,
-                icon: Icons.view_agenda_rounded,
+                shortLabel: l10n.plannedDayShort,
                 label: l10n.plannedDayView,
                 selected: mode == PlannedViewMode.day,
                 onTap: () => onChanged(PlannedViewMode.day),
@@ -243,7 +330,7 @@ class _ModeSwitch extends StatelessWidget {
               _segment(
                 context,
                 width: segmentWidth,
-                icon: Icons.calendar_view_week_rounded,
+                shortLabel: l10n.plannedWeekShort,
                 label: l10n.plannedWeekView,
                 selected: mode == PlannedViewMode.week,
                 onTap: () => onChanged(PlannedViewMode.week),
@@ -251,7 +338,7 @@ class _ModeSwitch extends StatelessWidget {
               _segment(
                 context,
                 width: segmentWidth,
-                icon: Icons.calendar_month_rounded,
+                shortLabel: l10n.plannedMonthShort,
                 label: l10n.plannedMonthView,
                 selected: mode == PlannedViewMode.month,
                 onTap: () => onChanged(PlannedViewMode.month),
@@ -266,7 +353,7 @@ class _ModeSwitch extends StatelessWidget {
   Widget _segment(
     BuildContext context, {
     required double width,
-    required IconData icon,
+    required String shortLabel,
     required String label,
     required bool selected,
     required VoidCallback onTap,
@@ -279,31 +366,48 @@ class _ModeSwitch extends StatelessWidget {
         button: true,
         selected: selected,
         label: label,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(19),
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onTap();
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: foreground),
-              if (!compact) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: foreground,
-                          fontWeight: FontWeight.w700,
+        child: Tooltip(
+          message: label,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(19),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
+            // A calendar page with the view's letter (G/H/A, D/W/M); wider
+            // layouts add the full word next to it.
+            child: TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: foreground),
+              duration: const Duration(milliseconds: 200),
+              builder: (context, color, _) {
+                final tint = color ?? foreground;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    PlannedModeGlyph(
+                      letter: shortLabel,
+                      color: tint,
+                      size: compact ? 26 : 22,
+                    ),
+                    if (!compact) ...[
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: tint,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                         ),
-                  ),
-                ),
-              ],
-            ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

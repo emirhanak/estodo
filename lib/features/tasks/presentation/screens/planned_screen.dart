@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../../../core/services/preferences_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/task_list.dart';
 import '../../domain/entities/todo_task.dart';
@@ -591,6 +592,8 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     required bool compact,
     required bool wide,
   }) {
+    final canShowWeek = _mode != PlannedViewMode.month;
+    final weekExpanded = ref.watch(plannedWeekStripExpandedProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -603,17 +606,47 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           onPickDate: _pickDate,
           onToday: () => _selectDate(DateTime.now()),
           onAction: (action) => _handleAction(action, selectedDay),
+          weekExpanded: weekExpanded,
+          onToggleWeek: canShowWeek
+              ? () =>
+                  ref.read(plannedWeekStripExpandedProvider.notifier).toggle()
+              : null,
         ),
         _SummaryLine(day: selectedDay, accent: accent, compact: compact),
-        if (_mode != PlannedViewMode.month)
-          PlannedWeekStrip(
-            selectedDate: _selectedDate,
-            tasks: tasks,
-            lists: lists,
-            accent: accent,
-            compact: compact,
-            onSelect: _selectDate,
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 320),
+          reverseDuration: const Duration(milliseconds: 240),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) => SizeTransition(
+            sizeFactor: animation,
+            axisAlignment: -1,
+            child: FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.12),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
           ),
+          child: canShowWeek && weekExpanded
+              ? PlannedWeekStrip(
+                  key: const ValueKey('planned-week-strip'),
+                  selectedDate: _selectedDate,
+                  tasks: tasks,
+                  lists: lists,
+                  accent: accent,
+                  compact: compact,
+                  onSelect: _selectDate,
+                )
+              : const SizedBox(
+                  key: ValueKey('planned-week-strip-hidden'),
+                  width: double.infinity,
+                ),
+        ),
         const SizedBox(height: 6),
         Expanded(
           child: _Sheet(

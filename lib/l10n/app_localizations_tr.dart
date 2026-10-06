@@ -293,6 +293,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String get plannedMonthView => 'Ay';
 
   @override
+  String get plannedDayShort => 'G';
+
+  @override
+  String get plannedWeekShort => 'H';
+
+  @override
+  String get plannedMonthShort => 'A';
+
+  @override
+  String get plannedShowWeek => 'Haftayı göster';
+
+  @override
+  String get plannedHideWeek => 'Haftayı gizle';
+
+  @override
   String get plannedToday => 'Bugün';
 
   @override
