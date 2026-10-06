@@ -40,7 +40,10 @@ class PlannedCapsule extends StatelessWidget {
     // Opaque tint so the timeline axis does not show through.
     final base = pale
         ? Color.alphaBlend(
-            entry.color.withValues(alpha: 0.16),
+            entry.color.withValues(
+              alpha:
+                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.16,
+            ),
             Theme.of(context).colorScheme.surface,
           )
         : entry.color;

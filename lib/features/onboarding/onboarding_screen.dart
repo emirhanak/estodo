@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/services/preferences_provider.dart';
-import 'onboarding_intro.dart';
+import 'onboarding_cards_scene.dart';
+import 'onboarding_start_page.dart';
+import 'onboarding_timeline_scene.dart';
 
+/// First-launch intro, told in steps like Structured's:
+/// 0. sample tasks pop in around "your day is finite";
+/// 1. they collapse into a pile – a calendar never warns you;
+/// 2. the pile clears – estodo shows how the day fits together;
+/// 3. a timeline fills in and gets checked off;
+/// 4. "let's start by planning today".
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -13,203 +20,197 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  final _controller = PageController();
-  int _index = 0;
-  bool _introDone = false;
+  static const _lastStep = 4;
 
-  late final List<_Slide> _slides;
+  int _step = 0;
+  bool _cardsRevealed = false;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final isTr = Localizations.localeOf(context).languageCode == 'tr';
-    _slides = isTr
-        ? const [
-            _Slide(
-              icon: Icons.wb_sunny_outlined,
-              title: 'Bugüne odaklan',
-              body:
-                  'Günüm listesi her sabah tertemiz başlar. Buraya bugün için önemli görevlerini ekle.',
-            ),
-            _Slide(
-              icon: Icons.swipe_rounded,
-              title: 'Hızlıca işle',
-              body:
-                  'Görevi sağa kaydır → tamamla. Sola kaydır → Günüme ekle ya da çıkar.',
-            ),
-            _Slide(
-              icon: Icons.cloud_done_outlined,
-              title: 'Her cihazda senkron',
-              body:
-                  'Görevlerin tüm cihazların arasında otomatik eşitlenir, çevrimdışı bile çalışır.',
-            ),
-          ]
-        : const [
-            _Slide(
-              icon: Icons.wb_sunny_outlined,
-              title: 'Focus on today',
-              body:
-                  'My Day starts fresh every morning. Add what matters most today.',
-            ),
-            _Slide(
-              icon: Icons.swipe_rounded,
-              title: 'Swipe to act',
-              body:
-                  'Swipe right to complete. Swipe left to add or remove from My Day.',
-            ),
-            _Slide(
-              icon: Icons.cloud_done_outlined,
-              title: 'Synced everywhere',
-              body:
-                  'Tasks sync through the cloud across your devices and work offline too.',
-            ),
-          ];
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  void _finish() => ref.read(onboardingSeenProvider.notifier).markSeen();
 
   void _next() {
-    if (_index < _slides.length - 1) {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOut,
-      );
-    } else {
-      ref.read(onboardingSeenProvider.notifier).markSeen();
-    }
+    if (_step == _lastStep) return _finish();
+    setState(() => _step++);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_introDone) {
-      return OnboardingIntro(
-        onContinue: () => setState(() => _introDone = true),
-        onSignIn: () => ref.read(onboardingSeenProvider.notifier).markSeen(),
-      );
-    }
-    final scheme = Theme.of(context).colorScheme;
-    final isLast = _index == _slides.length - 1;
     final isTr = Localizations.localeOf(context).languageCode == 'tr';
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    'assets/branding/estodo_uzun.svg',
-                    height: 28,
-                    placeholderBuilder: (_) => const SizedBox(height: 28),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () =>
-                        ref.read(onboardingSeenProvider.notifier).markSeen(),
-                    child: Text(isTr ? 'Atla' : 'Skip'),
-                  ),
-                ],
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 450),
+          child: switch (_step) {
+            _lastStep => OnboardingStartPage(
+                key: const ValueKey('start'),
+                onStart: _finish,
               ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _controller,
-                onPageChanged: (i) => setState(() => _index = i),
-                itemCount: _slides.length,
-                itemBuilder: (context, i) {
-                  final slide = _slides[i];
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            color: scheme.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child:
-                              Icon(slide.icon, size: 64, color: scheme.primary),
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          slide.title,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          slide.body,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(color: scheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+            3 => _Framed(
+                key: const ValueKey('timeline'),
+                buttonLabel: isTr ? 'Hadi başlayalım' : "Let's begin",
+                onNext: _next,
+                onSignIn: _finish,
+                child: const OnboardingTimelineScene(),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 0; i < _slides.length; i++)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    width: _index == i ? 24 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: _index == i
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4),
+            _ => _Framed(
+                key: const ValueKey('cards'),
+                buttonLabel: isTr ? 'Devam et' : 'Continue',
+                showButton: _cardsRevealed,
+                onNext: _next,
+                onSignIn: _finish,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: OnboardingCardsScene(
+                        phase: CardsPhase.values[_step],
+                        onRevealed: () => setState(() => _cardsRevealed = true),
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                onPressed: _next,
-                child: Text(
-                  isLast
-                      ? (isTr ? 'Hadi başlayalım' : 'Get started')
-                      : (isTr ? 'İleri' : 'Next'),
+                    _Headline(step: _step, visible: _cardsRevealed),
+                  ],
                 ),
               ),
-            ),
-          ],
+          },
         ),
       ),
     );
   }
 }
 
-class _Slide {
-  const _Slide({
-    required this.icon,
-    required this.title,
-    required this.body,
+class _Headline extends StatelessWidget {
+  const _Headline({required this.step, required this.visible});
+
+  final int step;
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    final text = switch (step) {
+      0 => isTr
+          ? 'Günün sınırlı.\nPlanın net olsun.'
+          : 'Your day is finite.\nMake the plan clear.',
+      1 => isTr
+          ? 'Ama takvim, yükün ne zaman\nfazlalaştığını söylemez.'
+          : "But a calendar won't tell you\nwhen it's too much.",
+      _ => isTr
+          ? 'estodo, gününün nasıl\nbir araya geldiğini gösterir.'
+          : 'estodo shows how your\nwhole day fits together.',
+    };
+
+    return AnimatedAlign(
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeInOutCubic,
+      alignment: Alignment(0, step == 1 ? -0.25 : 0.02),
+      child: AnimatedOpacity(
+        opacity: visible ? 1 : 0,
+        duration: const Duration(milliseconds: 500),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 450),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0, 0.15),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          child: Padding(
+            key: ValueKey(step),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                    letterSpacing: -0.5,
+                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Scene plus the shared footer: primary button and a sign-in link.
+class _Framed extends StatelessWidget {
+  const _Framed({
+    super.key,
+    required this.child,
+    required this.buttonLabel,
+    required this.onNext,
+    required this.onSignIn,
+    this.showButton = true,
   });
 
-  final IconData icon;
-  final String title;
-  final String body;
+  final Widget child;
+  final String buttonLabel;
+  final VoidCallback onNext;
+  final VoidCallback onSignIn;
+  final bool showButton;
+
+  @override
+  Widget build(BuildContext context) {
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Column(
+      children: [
+        Expanded(child: child),
+        AnimatedOpacity(
+          opacity: showButton ? 1 : 0,
+          duration: const Duration(milliseconds: 400),
+          child: IgnorePointer(
+            ignoring: !showButton,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+              child: Column(
+                children: [
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(56),
+                      shape: const StadiumBorder(),
+                      textStyle: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: onNext,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: Text(buttonLabel, key: ValueKey(buttonLabel)),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: onSignIn,
+                    child: Text.rich(
+                      TextSpan(
+                        text: isTr
+                            ? 'Zaten hesabın var mı? '
+                            : 'Already have an account? ',
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                        children: [
+                          TextSpan(
+                            text: isTr ? 'Giriş yap' : 'Sign in',
+                            style: TextStyle(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
