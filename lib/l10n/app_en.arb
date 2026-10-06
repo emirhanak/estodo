@@ -161,6 +161,11 @@
   "@plannedFreeMinutes": {
     "placeholders": { "minutes": { "type": "int" } }
   },
+  "plannedFreeAmount": "{minutes} min",
+  "@plannedFreeAmount": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedFreeSuffix": "of free time",
   "plannedAddAt": "Add at {time}",
   "@plannedAddAt": {
     "placeholders": { "time": { "type": "String" } }

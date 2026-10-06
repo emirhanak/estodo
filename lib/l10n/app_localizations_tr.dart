@@ -409,6 +409,14 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String plannedFreeAmount(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String get plannedFreeSuffix => 'boş zaman';
+
+  @override
   String plannedAddAt(String time) {
     return '$time için ekle';
   }

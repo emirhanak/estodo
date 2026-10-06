@@ -158,6 +158,11 @@
   "@plannedFreeMinutes": {
     "placeholders": { "minutes": { "type": "int" } }
   },
+  "plannedFreeAmount": "{minutes} dk",
+  "@plannedFreeAmount": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "plannedFreeSuffix": "boş zaman",
   "plannedAddAt": "{time} için ekle",
   "@plannedAddAt": {
     "placeholders": { "time": { "type": "String" } }

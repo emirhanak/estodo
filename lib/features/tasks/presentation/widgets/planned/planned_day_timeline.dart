@@ -46,9 +46,8 @@ class PlannedDayTimeline extends StatefulWidget {
 
 class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     with SingleTickerProviderStateMixin {
-  // Structured style: no hour gutter, the capsule axis sits on the left edge
-  // and each row already shows its time range.
-  static const _gutter = 0.0;
+  // Slim, light hour column like Structured.
+  static const _gutter = 40.0;
 
   late final AnimationController _stagger = AnimationController(
     vsync: this,
@@ -336,44 +335,44 @@ class _NowMarkerState extends State<_NowMarker>
       child: Row(
         children: [
           SizedBox(
+            width: widget.gutterWidth,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Text(
+                PlannedFormat.time(widget.now),
+                textAlign: TextAlign.end,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.visible,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontSize: 11,
+                      color: widget.accent,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ),
+          ),
+          SizedBox(
             width: PlannedCapsule.columnWidth,
             child: Center(
               child: FadeTransition(
                 opacity: Tween<double>(begin: 0.45, end: 1).animate(_pulse),
                 child: Container(
-                  width: 12,
-                  height: 12,
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
                     color: widget.accent,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.accent.withValues(alpha: 0.5),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Text(
-            PlannedFormat.time(widget.now),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: widget.accent,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
           Expanded(
             child: Container(
-              height: 2,
-              margin: const EdgeInsets.only(left: 8, right: 12),
-              decoration: BoxDecoration(
-                color: widget.accent.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(1),
-              ),
+              height: 1.5,
+              margin: const EdgeInsets.only(right: 12),
+              color: widget.accent.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -410,9 +409,27 @@ class _GapSlotState extends State<_GapSlot> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final muted = scheme.onSurfaceVariant.withValues(alpha: 0.8);
+    final baseStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: muted,
+          fontWeight: FontWeight.w500,
+        );
+    // Structured style: free time reads as a gentle prompt on the dashed
+    // axis ("60 min of free time") rather than a button.
     final label = widget.minutes == null
-        ? l10n.plannedAddAt(PlannedFormat.time(widget.start))
-        : l10n.plannedFreeMinutes(widget.minutes!);
+        ? TextSpan(text: l10n.plannedAddAt(PlannedFormat.time(widget.start)))
+        : TextSpan(
+            children: [
+              TextSpan(
+                text: l10n.plannedFreeAmount(widget.minutes!),
+                style: TextStyle(
+                  color: widget.accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              TextSpan(text: ' ${l10n.plannedFreeSuffix}'),
+            ],
+          );
 
     return DragTarget<TodoTask>(
       onWillAcceptWithDetails: (_) {
@@ -439,59 +456,40 @@ class _GapSlotState extends State<_GapSlot> {
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
-            // Structured style: the dashed axis runs through the gap and a
-            // small add button sits on it, flush with the capsules.
             child: SizedBox(
-              height: widget.minutes == null ? 48 : 40,
+              height: widget.minutes == null ? 44 : 52,
               child: Row(
                 children: [
+                  SizedBox(width: widget.gutterWidth),
                   SizedBox(
                     width: PlannedCapsule.columnWidth,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _DashedAxisPainter(
-                              color: scheme.outlineVariant,
-                            ),
-                          ),
-                        ),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          width: active ? 34 : 30,
-                          height: active ? 34 : 30,
-                          decoration: BoxDecoration(
-                            color: active ? widget.accent : scheme.surface,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: widget.accent.withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.add_rounded,
-                            size: 20,
-                            color: active
-                                ? PlannedCapsule.foregroundOn(widget.accent)
-                                : widget.accent,
-                          ),
-                        ),
-                      ],
+                    child: CustomPaint(
+                      size: Size.infinite,
+                      painter: _DashedAxisPainter(
+                        color: scheme.outlineVariant,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
+                  Icon(
+                    widget.minutes == null
+                        ? Icons.add_circle_outline_rounded
+                        : Icons.timer_outlined,
+                    size: 16,
+                    color: active ? widget.accent : muted,
+                  ),
+                  const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
+                    child: Text.rich(
                       label,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: active
-                                ? widget.accent
-                                : scheme.onSurfaceVariant
-                                    .withValues(alpha: 0.75),
-                            fontWeight:
-                                active ? FontWeight.w700 : FontWeight.w500,
-                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: active
+                          ? baseStyle?.copyWith(
+                              color: widget.accent,
+                              fontWeight: FontWeight.w700,
+                            )
+                          : baseStyle,
                     ),
                   ),
                 ],

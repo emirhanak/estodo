@@ -87,31 +87,35 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.only(right: 6, top: 4),
                   child: Text(
                     start == null ? '' : PlannedFormat.time(start),
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.visible,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: active ? entry.color : scheme.onSurfaceVariant,
+                          fontSize: 11,
+                          color: active
+                              ? entry.color
+                              : scheme.onSurfaceVariant.withValues(alpha: 0.6),
                           fontWeight:
-                              active ? FontWeight.w800 : FontWeight.w600,
+                              active ? FontWeight.w800 : FontWeight.w500,
                         ),
                   ),
                 ),
                 const Spacer(),
                 if (height >= 84 && end != null)
                   Padding(
-                    padding: const EdgeInsets.only(right: 10, bottom: 2),
+                    padding: const EdgeInsets.only(right: 6, bottom: 4),
                     child: Text(
                       PlannedFormat.time(end),
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.visible,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontSize: 11,
                             color:
-                                scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                scheme.onSurfaceVariant.withValues(alpha: 0.45),
                           ),
                     ),
                   ),

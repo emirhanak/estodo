@@ -411,6 +411,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannedFreeAmount(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get plannedFreeSuffix => 'of free time';
+
+  @override
   String plannedAddAt(String time) {
     return 'Add at $time';
   }

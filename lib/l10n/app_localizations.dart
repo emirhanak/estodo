@@ -818,6 +818,18 @@ abstract class AppLocalizations {
   /// **'{minutes} min free'**
   String plannedFreeMinutes(int minutes);
 
+  /// No description provided for @plannedFreeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String plannedFreeAmount(int minutes);
+
+  /// No description provided for @plannedFreeSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'of free time'**
+  String get plannedFreeSuffix;
+
   /// No description provided for @plannedAddAt.
   ///
   /// In en, this message translates to:
