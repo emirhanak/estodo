@@ -1,3 +1,18 @@
 name = "estodo-feedback"
 main = "src/index.js"
 compatibility_date = "2026-08-16"
+
+[vars]
+FIREBASE_PROJECT_ID = "estodo-app"
+FEEDBACK_RECIPIENT = "flashemirhan@gmail.com"
+
+# Workers Rate Limiting API. namespace_id is any unique integer per account.
+[[ratelimits]]
+name = "IP_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+[[ratelimits]]
+name = "USER_LIMITER"
+namespace_id = "1002"
+simple = { limit = 5, period = 60 }

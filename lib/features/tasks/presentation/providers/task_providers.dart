@@ -18,6 +18,7 @@ import '../../domain/entities/task_priority.dart';
 import '../../domain/entities/task_step.dart';
 import '../../domain/entities/todo_task.dart';
 import '../../domain/repositories/task_repository.dart';
+import '../../../../core/utils/error_reporter.dart';
 
 final uuidProvider = Provider<Uuid>((ref) => const Uuid());
 
@@ -72,12 +73,18 @@ final deviceTokenRegistrationProvider = Provider<void>((ref) {
         return repository.registerDeviceToken(user.id, token);
       }
       return null;
-    }).catchError((Object _) {}),
+    }).catchError(
+      (Object error, StackTrace stack) =>
+          reportError(error, stack, reason: 'FCM token registration failed'),
+    ),
   );
 
   final subscription = notifications.onTokenRefresh.listen((token) {
     unawaited(
-      repository.registerDeviceToken(user.id, token).catchError((Object _) {}),
+      repository.registerDeviceToken(user.id, token).catchError(
+            (Object error, StackTrace stack) => reportError(error, stack,
+                reason: 'FCM token refresh registration failed'),
+          ),
     );
   });
   ref.onDispose(subscription.cancel);

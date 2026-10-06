@@ -10,6 +10,7 @@ import 'app/app.dart';
 import 'app/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'core/services/bootstrap.dart';
+import 'core/utils/error_reporter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,10 @@ void main() async {
     initialOled = prefs.getBool('pref.oled_black_mode') ?? false;
     final accentVal = prefs.getInt('pref.accent_color');
     if (accentVal != null) initialAccent = Color(accentVal);
-  } catch (_) {}
+  } catch (error, stack) {
+    // The app still starts with defaults; BootstrapApp retries what it needs.
+    reportError(error, stack, reason: 'Bootstrap failed');
+  }
 
   runZonedGuarded(
     () => runApp(
