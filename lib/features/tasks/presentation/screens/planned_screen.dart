@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -17,22 +19,51 @@ import '../widgets/planned/planned_format.dart';
 import '../widgets/planned/planned_header.dart';
 import '../widgets/planned/planned_month_dropdown.dart';
 import '../widgets/planned/planned_unscheduled.dart';
+import '../widgets/planned/planned_week_overview.dart';
+import '../widgets/planned/planned_week_strip.dart';
 import '../widgets/planned/composer/planned_composer.dart';
 import '../utils/planned_draft.dart';
-import '../utils/streak_calculator.dart';
 
 part 'planned_screen_parts.dart';
 
+/// Holds the currently selected date in the Planned tab so the global
+/// bottom-right `+` button in [HomeScreen] can open the composer on that day.
+class SelectedPlannedDateNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() => PlannedLayout.dayOf(DateTime.now());
+
+  void select(DateTime date) {
+    final day = PlannedLayout.dayOf(date);
+    if (!PlannedLayout.isSameDay(state, day)) {
+      state = day;
+    }
+  }
+}
+
+final selectedPlannedDateProvider =
+    NotifierProvider<SelectedPlannedDateNotifier, DateTime>(
+  SelectedPlannedDateNotifier.new,
+);
+
 /// The planned tab: a Structured-style visual timeline of everything that has
-/// a due date, with a day and a week view.
+/// a due date, with a day timeline and a pull-down week overview.
 class PlannedScreen extends ConsumerStatefulWidget {
-  const PlannedScreen({super.key});
+  const PlannedScreen({
+    super.key,
+    this.showFloatingComposerButton = true,
+  });
+
+  /// Whether to render the internal floating `+` button. False on mobile
+  /// [HomeScreen] where the Structured-style bottom bar provides the large
+  /// bottom-right `+` button.
+  final bool showFloatingComposerButton;
 
   @override
   ConsumerState<PlannedScreen> createState() => _PlannedScreenState();
 }
 
-class _PlannedScreenState extends ConsumerState<PlannedScreen> {
+class _PlannedScreenState extends ConsumerState<PlannedScreen>
+    with SingleTickerProviderStateMixin {
   /// Two-pane (inbox + timeline) above this width, single pane below.
   static const _wideBreakpoint = 760.0;
   static const _compactBreakpoint = 460.0;
@@ -42,13 +73,37 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     initialPage: PlannedLayout.pageIndexOf(_selectedDate),
   );
 
+  /// `0.0` = Day timeline sheet expanded up (Screenshot 3).
+  /// `1.0` = Sheet pulled down to reveal [PlannedWeekOverview] (Screenshot 2).
+  late final AnimationController _sheetController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 340),
+    value: 0.0,
+  );
+
   bool _calendarOpen = false;
   DateTime _now = DateTime.now();
   Timer? _clock;
 
+  bool get _isWeekOverview => _sheetController.value > 0.5;
+
+  PlannedViewMode get _viewMode {
+    if (_calendarOpen) return PlannedViewMode.month;
+    if (_isWeekOverview) return PlannedViewMode.week;
+    return PlannedViewMode.day;
+  }
+
   @override
   void initState() {
     super.initState();
+    _sheetController.addListener(() {
+      if (mounted) setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(selectedPlannedDateProvider.notifier).select(_selectedDate);
+      }
+    });
     _clock = Timer.periodic(
       const Duration(seconds: 30),
       (_) => setState(() => _now = DateTime.now()),
@@ -58,12 +113,14 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
   @override
   void dispose() {
     _clock?.cancel();
+    _sheetController.dispose();
     _dayController.dispose();
     super.dispose();
   }
 
   void _selectDate(DateTime date) {
     final day = PlannedLayout.dayOf(date);
+    ref.read(selectedPlannedDateProvider.notifier).select(day);
     if (PlannedLayout.isSameDay(day, _selectedDate)) return;
     setState(() => _selectedDate = day);
     if (_dayController.hasClients) {
@@ -79,6 +136,54 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           curve: Curves.easeOutCubic,
         );
       }
+    }
+  }
+
+  void _setViewMode(PlannedViewMode mode) {
+    switch (mode) {
+      case PlannedViewMode.day:
+        if (_calendarOpen) setState(() => _calendarOpen = false);
+        _animateSheetTo(0.0);
+      case PlannedViewMode.week:
+        if (_calendarOpen) setState(() => _calendarOpen = false);
+        _animateSheetTo(1.0);
+      case PlannedViewMode.month:
+        setState(() => _calendarOpen = !_calendarOpen);
+    }
+  }
+
+  void _animateSheetTo(double target) {
+    HapticFeedback.selectionClick();
+    _sheetController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 340),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _toggleSheetPosition() {
+    if (_calendarOpen) {
+      setState(() => _calendarOpen = false);
+    }
+    _animateSheetTo(_isWeekOverview ? 0.0 : 1.0);
+  }
+
+  void _onSheetDragUpdate(DragUpdateDetails details, double travelDistance) {
+    if (travelDistance <= 0) return;
+    final delta = (details.primaryDelta ?? 0) / travelDistance;
+    _sheetController.value = (_sheetController.value + delta).clamp(0.0, 1.0);
+  }
+
+  void _onSheetDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity > 280) {
+      _animateSheetTo(1.0);
+    } else if (velocity < -280) {
+      _animateSheetTo(0.0);
+    } else if (_sheetController.value > 0.45) {
+      _animateSheetTo(1.0);
+    } else {
+      _animateSheetTo(0.0);
     }
   }
 
@@ -503,21 +608,28 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     final tasksAsync = ref.watch(tasksProvider);
     final lists = ref.watch(listsProvider).value ?? const <TaskList>[];
 
+    ref.listen<DateTime>(selectedPlannedDateProvider, (prev, next) {
+      if (!PlannedLayout.isSameDay(next, _selectedDate)) {
+        _selectDate(next);
+      }
+    });
+
     return Stack(
       children: [
         Container(
           color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
           child: _body(tasksAsync, lists, accent),
         ),
-        Positioned(
-          right: 20,
-          bottom: 24 + MediaQuery.viewPaddingOf(context).bottom,
-          child: _ComposerButton(
-            accent: accent,
-            onTask: () => _compose(kind: PlannedDraftKind.task),
-            onHabit: () => _compose(kind: PlannedDraftKind.habit),
+        if (widget.showFloatingComposerButton)
+          Positioned(
+            right: 20,
+            bottom: 24 + MediaQuery.viewPaddingOf(context).bottom,
+            child: _ComposerButton(
+              accent: accent,
+              onTask: () => _compose(kind: PlannedDraftKind.task),
+              onHabit: () => _compose(kind: PlannedDraftKind.habit),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -594,6 +706,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
     required bool compact,
     required bool wide,
   }) {
+    final t = _sheetController.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -606,6 +719,8 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
           calendarOpen: _calendarOpen,
           onToggleCalendar: () =>
               setState(() => _calendarOpen = !_calendarOpen),
+          viewMode: _viewMode,
+          onSelectViewMode: _setViewMode,
         ),
         _SummaryLine(day: selectedDay, accent: accent, compact: compact),
         AnimatedSwitcher(
@@ -627,15 +742,72 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
                   accent: accent,
                   onSelect: _pickFromCalendar,
                 )
-              : const SizedBox(
-                  key: ValueKey('planned-month-dropdown-hidden'),
-                  width: double.infinity,
+              : PlannedWeekStrip(
+                  key: const ValueKey('planned-week-strip'),
+                  selectedDate: _selectedDate,
+                  tasks: tasks,
+                  lists: lists,
+                  accent: accent,
+                  compact: compact,
+                  onSelect: _selectDate,
                 ),
         ),
         const SizedBox(height: 6),
         Expanded(
-          child: _Sheet(
-            child: _dayPager(tasks, lists, accent, wide),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxHeight = constraints.maxHeight;
+              final peekHeight = math.min(132.0, maxHeight * 0.34);
+              final travel = math.max(1.0, maxHeight - peekHeight);
+              final sheetTop = travel * t;
+
+              return Stack(
+                children: [
+                  if (t > 0.005)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: math.max(0, peekHeight - 16),
+                      child: Opacity(
+                        opacity: t.clamp(0.0, 1.0),
+                        child: Transform.translate(
+                          offset: Offset(0, -10 * (1 - t)),
+                          child: PlannedWeekOverview(
+                            days: PlannedLayout.weekDays(
+                              PlannedLayout.weekStart(
+                                _selectedDate,
+                                mondayFirst: true,
+                              ),
+                            )
+                                .map((d) => _dayFor(d, tasks, lists, accent))
+                                .toList(),
+                            selectedDate: _selectedDate,
+                            accent: accent,
+                            compact: compact,
+                            onSelectDay: _selectDate,
+                            onOpenTask: _openTask,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    top: sheetTop,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: _Sheet(
+                      isCollapsed: _isWeekOverview,
+                      onHandleTap: _toggleSheetPosition,
+                      onHandleVerticalDragUpdate: (details) =>
+                          _onSheetDragUpdate(details, travel),
+                      onHandleVerticalDragEnd: _onSheetDragEnd,
+                      child: _dayPager(tasks, lists, accent, wide),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -655,6 +827,7 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
         final date = PlannedLayout.dateOfPage(page);
         if (!PlannedLayout.isSameDay(date, _selectedDate)) {
           setState(() => _selectedDate = date);
+          ref.read(selectedPlannedDateProvider.notifier).select(date);
         }
       },
       itemBuilder: (context, page) {
@@ -678,4 +851,3 @@ class _PlannedScreenState extends ConsumerState<PlannedScreen> {
   }
 }
 
-/// Rounded panel the timeline lives in, echoing Structured's sheet.

@@ -5,7 +5,10 @@ import 'package:estodo/features/tasks/presentation/providers/task_providers.dart
 import 'package:estodo/features/tasks/presentation/screens/planned_screen.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_capsule.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_entry_row.dart';
+import 'package:estodo/features/tasks/presentation/widgets/planned/planned_mode_glyph.dart';
 import 'package:estodo/features/tasks/presentation/widgets/planned/planned_month_dropdown.dart';
+import 'package:estodo/features/tasks/presentation/widgets/planned/planned_week_overview.dart';
+import 'package:estodo/features/tasks/presentation/widgets/planned/planned_week_strip.dart';
 import 'package:estodo/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -113,11 +116,28 @@ void main() {
     expect(find.text('Market alışverişi'), findsOneWidget);
   });
 
-  testWidgets('has no day/week/month switch, only the date title',
+  testWidgets('shows G/H/A calendar mode switch, week strip, and full year',
       (tester) async {
     await pump(tester, [task('1', 'Sabah koşusu', start: at(7, 0))]);
-    expect(find.byTooltip('Hafta'), findsNothing);
-    expect(find.byTooltip('Ay'), findsNothing);
+    expect(find.byType(PlannedModeGlyph), findsNWidgets(3));
+    expect(find.byType(PlannedWeekStrip), findsOneWidget);
+    expect(find.textContaining('${now.year}'), findsWidgets);
+  });
+
+  testWidgets('sheet handle toggles the Structured week overview',
+      (tester) async {
+    await pump(tester, [task('1', 'Sabah koşusu', start: at(9, 0))]);
+    expect(find.byType(PlannedWeekOverview), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('planned-sheet-handle')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(PlannedWeekOverview), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('planned-sheet-handle')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(PlannedWeekOverview), findsNothing);
   });
 
   testWidgets('month calendar drops down from the title and picks a day',
@@ -148,3 +168,4 @@ void main() {
     expect(find.byIcon(Icons.inbox_rounded), findsOneWidget);
   });
 }
+

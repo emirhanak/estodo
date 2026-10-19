@@ -11,7 +11,6 @@ import '../confetti_burst.dart';
 import 'planned_capsule.dart';
 import 'planned_format.dart';
 import 'planned_unscheduled.dart';
-import '../../utils/streak_calculator.dart';
 import '../focus_mode_sheet.dart';
 
 /// A single scheduled task on the day timeline: time gutter, duration capsule
@@ -311,17 +310,16 @@ class _PlannedEntryRowState extends ConsumerState<PlannedEntryRow> {
   }
 }
 
-class _MetaRow extends ConsumerWidget {
+class _MetaRow extends StatelessWidget {
   const _MetaRow({required this.entry});
 
   final PlannedEntry entry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final task = entry.task;
     final chips = <Widget>[];
-    final streakSummary = ref.watch(streakProvider);
 
     if (entry.listName != null) {
       chips.add(
@@ -383,7 +381,6 @@ class _MetaRow extends ConsumerWidget {
       chips.add(_icon(context, Icons.notifications_none_rounded, null));
     }
     if (task.isHabit) {
-      final habitStreak = streakSummary.habitStreak(task);
       chips.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -403,27 +400,12 @@ class _MetaRow extends ConsumerWidget {
                       fontWeight: FontWeight.w700,
                     ),
               ),
-              if (habitStreak > 0) ...[
-                const SizedBox(width: 4),
-                Text(
-                  '· 🔥$habitStreak',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: entry.color,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ],
             ],
           ),
         ),
       );
     } else if (task.recurrence != null) {
-      final streak = streakSummary.habitStreak(task);
-      chips.add(_icon(
-        context,
-        Icons.repeat_rounded,
-        streak > 0 ? '🔥$streak' : null,
-      ));
+      chips.add(_icon(context, Icons.repeat_rounded, null));
     }
     if (task.isImportant) {
       chips.add(Icon(Icons.star_rounded, size: 14, color: scheme.tertiary));

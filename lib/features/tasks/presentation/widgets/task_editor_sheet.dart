@@ -27,20 +27,69 @@ Future<void> showTaskEditorSheet(
   bool initialMyDay = false,
   bool initialImportant = false,
 }) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Theme.of(context).colorScheme.surface,
-    showDragHandle: true,
-    builder: (_) => TaskEditorSheet(
-      task: task,
-      initialTitle: initialTitle,
-      initialListId: initialListId,
-      initialDueDate: initialDueDate,
-      initialStartAt: initialStartAt,
-      initialMyDay: initialMyDay,
-      initialImportant: initialImportant,
+  final surface = Theme.of(context).colorScheme.surface;
+  return Navigator.of(context).push<void>(
+    PageRouteBuilder<void>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.48),
+      transitionDuration: const Duration(milliseconds: 360),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (routeContext, _, __) => SafeArea(
+        top: true,
+        bottom: false,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              child: Material(
+                color: surface,
+                child: TaskEditorSheet(
+                  task: task,
+                  initialTitle: initialTitle,
+                  initialListId: initialListId,
+                  initialDueDate: initialDueDate,
+                  initialStartAt: initialStartAt,
+                  initialMyDay: initialMyDay,
+                  initialImportant: initialImportant,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      transitionsBuilder: (routeContext, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        final fade = CurvedAnimation(
+          parent: animation,
+          curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+          reverseCurve: Curves.easeIn,
+        );
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.32, 0.36),
+              end: Offset.zero,
+            ).animate(curved),
+            child: ScaleTransition(
+              alignment: Alignment.bottomRight,
+              scale: Tween<double>(
+                begin: 0.24,
+                end: 1.0,
+              ).animate(curved),
+              child: child,
+            ),
+          ),
+        );
+      },
     ),
   );
 }

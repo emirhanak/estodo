@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../utils/streak_calculator.dart';
 import '../../../auth/presentation/user_display.dart';
 
 class MyDayBanner extends ConsumerWidget {
@@ -16,7 +15,6 @@ class MyDayBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final user = ref.watch(authStateProvider).value;
-    final streak = ref.watch(streakProvider);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final now = DateTime.now();
@@ -38,45 +36,12 @@ class MyDayBanner extends ConsumerWidget {
                 ),
           ),
           const SizedBox(height: 2),
-          Row(
-            children: [
-              Text(
-                dateLabel,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-              if (streak.currentStreak > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.deepOrange.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.deepOrange.withValues(alpha: 0.35),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🔥', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 3.5),
-                      Text(
-                        l10n.streakDays(streak.currentStreak),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Colors.deepOrange,
-                              fontWeight: FontWeight.w800,
-                            ),
-                      ),
-                    ],
-                  ),
+          Text(
+            dateLabel,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ],
           ),
         ],
       ),

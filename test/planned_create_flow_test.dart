@@ -80,12 +80,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       if (!habitFirst) {
-        await tester.tap(find.text('Plan'));
+        await tester.tap(find.text('Tek Seferlik Plan'));
         await tester.pump(const Duration(milliseconds: 300));
       }
       await tester.enterText(find.byType(TextField).first, 'Su iç');
       await tester.pump(const Duration(milliseconds: 200));
-      await tester.tap(find.text('Devam'));
+      await tester.tap(find.text('Devam Et'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       await tester.tap(find.text('Oluştur'));
@@ -94,8 +94,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 800));
 
       expect(repo._tasks.length, 1);
+      expect(repo._tasks.single.isHabit, habitFirst);
       expect(find.text('Oluştur'), findsNothing, reason: 'sheet should close');
       expect(find.text('Su iç'), findsWidgets);
     });
   }
 }
+

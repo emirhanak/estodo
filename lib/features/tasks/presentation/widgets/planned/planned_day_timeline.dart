@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../../l10n/app_localizations.dart';
 import '../../../domain/entities/todo_task.dart';
@@ -78,29 +77,8 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
       );
     }
 
-    if (widget.showUnscheduled && day.habits.isNotEmpty) {
-      children.add(
-        PlannedHabitSection(
-          entries: day.habits,
-          accent: widget.accent,
-          onOpen: widget.onOpen,
-          onToggle: widget.onToggle,
-        ),
-      );
-    }
-
     final scheduled = day.scheduled;
     var nowInserted = !_isToday;
-
-    if (scheduled.isNotEmpty && scheduled.first.start != null) {
-      final dayStart = PlannedLayout.dayOf(day.date).add(
-        const Duration(minutes: PlannedLayout.dayStartMinute),
-      );
-      final free = scheduled.first.start!.difference(dayStart).inMinutes;
-      if (free >= PlannedLayout.minGapMinutes) {
-        children.add(_gapSlot(dayStart, free));
-      }
-    }
 
     for (var i = 0; i < scheduled.length; i++) {
       final entry = scheduled[i];
@@ -140,22 +118,17 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
               widget.now.isBefore(next)) {
             nowInserted = true;
             children.add(_nowMarker());
+          } else {
+            children.add(_axisConnector());
           }
-          children.add(_gapSlot(end, free));
         }
       }
     }
 
     if (scheduled.isEmpty) {
-      final dayStart = PlannedLayout.dayOf(day.date).add(
-        const Duration(minutes: PlannedLayout.dayStartMinute),
-      );
-      children.add(_gapSlot(_notBeforeNow(dayStart), null));
       children.add(_emptyDay(l10n));
-    } else {
-      if (!nowInserted) children.add(_nowMarker());
-      final last = scheduled.last.end;
-      if (last != null) children.add(_gapSlot(_notBeforeNow(last), null));
+    } else if (!nowInserted) {
+      children.add(_nowMarker());
     }
 
     final allScheduledDone =
@@ -203,15 +176,6 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     );
   }
 
-  /// On today, never suggest adding at a time that has already passed.
-  DateTime _notBeforeNow(DateTime start) {
-    final now = widget.now;
-    if (!PlannedLayout.isSameDay(start, now) || !start.isBefore(now)) {
-      return start;
-    }
-    return PlannedLayout.roundToQuarter(now);
-  }
-
   Widget _nowMarker() {
     return _NowMarker(
       now: widget.now,
@@ -220,14 +184,22 @@ class _PlannedDayTimelineState extends State<PlannedDayTimeline>
     );
   }
 
-  Widget _gapSlot(DateTime start, int? minutes) {
-    return _GapSlot(
-      start: start,
-      minutes: minutes,
-      accent: widget.accent,
-      gutterWidth: _gutter,
-      onTap: () => widget.onAddAt(start),
-      onDropped: (task) => widget.onSchedule(task, start),
+  Widget _axisConnector() {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 20,
+      child: Row(
+        children: [
+          const SizedBox(width: _gutter),
+          SizedBox(
+            width: PlannedCapsule.columnWidth,
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _DashedAxisPainter(color: scheme.outlineVariant),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -377,127 +349,6 @@ class _NowMarkerState extends State<_NowMarker>
           ),
         ],
       ),
-    );
-  }
-}
-
-class _GapSlot extends StatefulWidget {
-  const _GapSlot({
-    required this.start,
-    required this.minutes,
-    required this.accent,
-    required this.gutterWidth,
-    required this.onTap,
-    required this.onDropped,
-  });
-
-  final DateTime start;
-  final int? minutes;
-  final Color accent;
-  final double gutterWidth;
-  final VoidCallback onTap;
-  final void Function(TodoTask task) onDropped;
-
-  @override
-  State<_GapSlot> createState() => _GapSlotState();
-}
-
-class _GapSlotState extends State<_GapSlot> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final scheme = Theme.of(context).colorScheme;
-    final muted = scheme.onSurfaceVariant.withValues(alpha: 0.8);
-    final baseStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: muted,
-          fontWeight: FontWeight.w500,
-        );
-    // Structured style: free time reads as a gentle prompt on the dashed
-    // axis ("60 min of free time") rather than a button.
-    final label = widget.minutes == null
-        ? TextSpan(text: l10n.plannedAddAt(PlannedFormat.time(widget.start)))
-        : TextSpan(
-            children: [
-              TextSpan(
-                text: l10n.plannedFreeAmount(widget.minutes!),
-                style: TextStyle(
-                  color: widget.accent,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              TextSpan(text: ' ${l10n.plannedFreeSuffix}'),
-            ],
-          );
-
-    return DragTarget<TodoTask>(
-      onWillAcceptWithDetails: (_) {
-        HapticFeedback.selectionClick();
-        setState(() => _hovering = true);
-        return true;
-      },
-      onLeave: (_) => setState(() => _hovering = false),
-      onAcceptWithDetails: (details) {
-        HapticFeedback.mediumImpact();
-        setState(() => _hovering = false);
-        widget.onDropped(details.data);
-      },
-      builder: (context, candidate, __) {
-        final active = _hovering || candidate.isNotEmpty;
-        return InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            decoration: BoxDecoration(
-              color: active
-                  ? widget.accent.withValues(alpha: 0.12)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: SizedBox(
-              height: widget.minutes == null ? 44 : 52,
-              child: Row(
-                children: [
-                  SizedBox(width: widget.gutterWidth),
-                  SizedBox(
-                    width: PlannedCapsule.columnWidth,
-                    child: CustomPaint(
-                      size: Size.infinite,
-                      painter: _DashedAxisPainter(
-                        color: scheme.outlineVariant,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Icon(
-                    widget.minutes == null
-                        ? Icons.add_circle_outline_rounded
-                        : Icons.timer_outlined,
-                    size: 16,
-                    color: active ? widget.accent : muted,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text.rich(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: active
-                          ? baseStyle?.copyWith(
-                              color: widget.accent,
-                              fontWeight: FontWeight.w700,
-                            )
-                          : baseStyle,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

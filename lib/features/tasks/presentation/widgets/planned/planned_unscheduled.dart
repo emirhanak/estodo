@@ -242,7 +242,7 @@ class PlannedInboxPanel extends StatelessWidget {
                   onOpen: () => onOpen(entry.task),
                   onSchedule: () => onSchedule(entry.task),
                 ),
-              if (day.unscheduled.isEmpty && day.habits.isEmpty)
+              if (day.unscheduled.isEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
                   child: Text(
@@ -252,13 +252,6 @@ class PlannedInboxPanel extends StatelessWidget {
                         .bodySmall
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
-                ),
-              if (day.habits.isNotEmpty)
-                PlannedHabitSection(
-                  entries: day.habits,
-                  accent: accent,
-                  onOpen: onOpen,
-                  onToggle: onToggle,
                 ),
               if (day.completed.isNotEmpty)
                 PlannedCompletedSection(

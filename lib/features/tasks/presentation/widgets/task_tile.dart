@@ -6,7 +6,6 @@ import '../../../../core/services/preferences_provider.dart';
 import '../../../../core/utils/date_time_formatter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/todo_task.dart';
-import '../utils/streak_calculator.dart';
 import 'animated_check_circle.dart';
 import 'confetti_burst.dart';
 
@@ -224,8 +223,6 @@ class _TaskTileState extends ConsumerState<TaskTile> {
     final task = widget.task;
     final items = <Widget>[];
     final locale = Localizations.localeOf(context).languageCode;
-    final streakSummary = ref.watch(streakProvider);
-    final streak = streakSummary.habitStreak(task);
     final textStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
           color: scheme.onSurfaceVariant,
           fontWeight: FontWeight.w500,
@@ -265,15 +262,15 @@ class _TaskTileState extends ConsumerState<TaskTile> {
       );
     }
     if (task.isHabit) {
+      final habitColor =
+          task.colorValue != null ? Color(task.colorValue!) : widget.accent;
       items.add(
         _metaText(
           Icons.autorenew_rounded,
-          streak > 0
-              ? '${AppLocalizations.of(context).composerKindHabit} · 🔥$streak'
-              : AppLocalizations.of(context).composerKindHabit,
+          AppLocalizations.of(context).composerKindHabit,
           scheme,
           textStyle?.copyWith(
-            color: Colors.deepOrange,
+            color: habitColor,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -282,9 +279,7 @@ class _TaskTileState extends ConsumerState<TaskTile> {
       items.add(
         _metaText(
           Icons.repeat_rounded,
-          streak > 0
-              ? '${task.recurrence!.label} · 🔥$streak'
-              : task.recurrence!.label,
+          task.recurrence!.label,
           scheme,
           textStyle,
         ),

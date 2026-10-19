@@ -169,43 +169,68 @@ class TaskController {
   Future<void> toggleComplete(TodoTask task) async {
     final now = DateTime.now();
     final completing = !task.isCompleted;
+    final allTasks = _ref.read(tasksProvider).value ?? const <TodoTask>[];
+    final normalizedTitle = task.title.trim().toLowerCase();
 
     final nextDue = completing && task.recurrence != null && task.dueAt != null
         ? task.recurrence!.nextOccurrenceOrNull(task.dueAt!)
         : null;
     if (nextDue != null) {
-      DateTime? nextReminder;
-      if (task.reminderAt != null) {
-        final delta = task.reminderAt!.difference(task.dueAt!);
-        nextReminder = nextDue.add(delta);
-      }
-      await createTask(
-        title: task.title,
-        notes: task.notes,
-        listId: task.listId,
-        iconKey: task.iconKey,
-        colorValue: task.colorValue,
-        isHabit: task.isHabit,
-        priority: task.priority,
-        dueAt: nextDue,
-        startAt: task.startAt == null
-            ? null
-            : nextDue.copyWith(
-                hour: task.startAt!.hour,
-                minute: task.startAt!.minute,
-                second: 0,
-                millisecond: 0,
-              ),
-        durationMinutes: task.durationMinutes,
-        reminderAt: nextReminder,
-        recurrence: task.recurrence,
-        steps: task.steps
-            .map((step) => step.copyWith(isCompleted: false))
-            .toList(),
-        tags: task.tags,
-        isImportant: task.isImportant,
-        isMyDay: false,
+      final alreadyHasNext = allTasks.any(
+        (other) =>
+            other.id != task.id &&
+            !other.isCompleted &&
+            other.title.trim().toLowerCase() == normalizedTitle &&
+            (other.isHabit == task.isHabit || other.recurrence != null),
       );
+      if (!alreadyHasNext) {
+        DateTime? nextReminder;
+        if (task.reminderAt != null) {
+          final delta = task.reminderAt!.difference(task.dueAt!);
+          nextReminder = nextDue.add(delta);
+        }
+        await createTask(
+          title: task.title,
+          notes: task.notes,
+          listId: task.listId,
+          iconKey: task.iconKey,
+          colorValue: task.colorValue,
+          isHabit: task.isHabit,
+          priority: task.priority,
+          dueAt: nextDue,
+          startAt: task.startAt == null
+              ? null
+              : nextDue.copyWith(
+                  hour: task.startAt!.hour,
+                  minute: task.startAt!.minute,
+                  second: 0,
+                  millisecond: 0,
+                ),
+          durationMinutes: task.durationMinutes,
+          reminderAt: nextReminder,
+          recurrence: task.recurrence,
+          steps: task.steps
+              .map((step) => step.copyWith(isCompleted: false))
+              .toList(),
+          tags: task.tags,
+          isImportant: task.isImportant,
+          isMyDay: false,
+        );
+      }
+    } else if (!completing && (task.recurrence != null || task.isHabit)) {
+      // If un-completing a recurring task, remove any uncompleted future
+      // copy that was spawned when it was completed so it does not duplicate.
+      for (final other in allTasks) {
+        if (other.id != task.id &&
+            !other.isCompleted &&
+            other.title.trim().toLowerCase() == normalizedTitle &&
+            (other.isHabit == task.isHabit || other.recurrence != null) &&
+            other.dueAt != null &&
+            task.dueAt != null &&
+            !other.dueAt!.isBefore(task.dueAt!)) {
+          await deleteTask(other);
+        }
+      }
     }
 
     return updateTask(

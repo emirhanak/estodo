@@ -180,21 +180,51 @@ class PlannedLayout {
     required Map<String, int> listColors,
     required Map<String, String> listNames,
     required Color fallback,
+    DateTime? forDate,
   }) {
+    var resolvedTask = task;
+    if (forDate != null) {
+      final targetDay = dayOf(forDate);
+      final rawStart = task.startAt;
+      final alignedStart = rawStart != null
+          ? DateTime(
+              targetDay.year,
+              targetDay.month,
+              targetDay.day,
+              rawStart.hour,
+              rawStart.minute,
+            )
+          : (task.isHabit
+              ? DateTime(targetDay.year, targetDay.month, targetDay.day, 9)
+              : null);
+      final alignedDue = alignedStart ?? targetDay;
+      if (task.dueAt != alignedDue || task.startAt != alignedStart) {
+        resolvedTask = task.copyWith(
+          dueAt: alignedDue,
+          startAt: alignedStart,
+        );
+      }
+    }
     return PlannedEntry(
-      task: task,
-      color: colorFor(task, listColors, fallback),
-      icon: TaskIcons.forTask(task),
-      listName: task.listId == null ? null : listNames[task.listId],
+      task: resolvedTask,
+      color: colorFor(resolvedTask, listColors, fallback),
+      icon: TaskIcons.forTask(resolvedTask),
+      listName: resolvedTask.listId == null
+          ? null
+          : listNames[resolvedTask.listId],
     );
   }
 
   /// Tasks belonging to [date] — a task counts for the day of its due date,
-  /// or any day it recurs on if it has a recurrence rule.
+  /// or any day it recurs on if it has a recurrence rule and is not already
+  /// a completed past occurrence.
   static bool belongsToDay(TodoTask task, DateTime date) {
     final due = task.dueAt;
     if (due == null) return false;
     if (isSameDay(due, date)) return true;
+
+    // Completed occurrences belong only to the day they were completed on.
+    if (task.isCompleted) return false;
 
     // Habits or repeating tasks should appear on recurring days
     final rule = task.recurrence;
@@ -238,20 +268,40 @@ class PlannedLayout {
     final scheduled = <PlannedEntry>[];
     final unscheduled = <PlannedEntry>[];
     final completed = <PlannedEntry>[];
-    final habits = <PlannedEntry>[];
 
-    for (final task in tasks) {
-      if (!belongsToDay(task, date)) continue;
+    // Sort so tasks explicitly due on [date] (and completed ones on [date])
+    // take precedence over projected recurring tasks with the same slot.
+    final matching = tasks.where((t) => belongsToDay(t, date)).toList()
+      ..sort((a, b) {
+        final aExact = a.dueAt != null && isSameDay(a.dueAt!, date) ? 0 : 1;
+        final bExact = b.dueAt != null && isSameDay(b.dueAt!, date) ? 0 : 1;
+        if (aExact != bExact) return aExact.compareTo(bExact);
+        if (a.isCompleted != b.isCompleted) {
+          return a.isCompleted ? -1 : 1;
+        }
+        return b.updatedAt.compareTo(a.updatedAt);
+      });
+
+    final seenRecurringSlots = <String>{};
+
+    for (final task in matching) {
       final entry = entryOf(
         task,
         listColors: listColors,
         listNames: listNames,
         fallback: fallback,
+        forDate: date,
       );
 
-      // Collect habits into their own list for the dedicated habit section.
-      if (task.isHabit) {
-        habits.add(entry);
+      final isRepeatingOrHabit = task.isHabit || task.recurrence != null;
+      final slotKey =
+          '${task.title.trim().toLowerCase()}@${entry.startMinuteOfDay}';
+      if (isRepeatingOrHabit) {
+        if (!seenRecurringSlots.add(slotKey)) {
+          continue;
+        }
+      } else if (seenRecurringSlots.contains(slotKey)) {
+        continue;
       }
 
       if (entry.isScheduled) {
@@ -274,18 +324,38 @@ class PlannedLayout {
       final bDate = b.task.completedAt ?? b.task.updatedAt;
       return bDate.compareTo(aDate);
     });
-    habits.sort((a, b) => a.task.position.compareTo(b.task.position));
 
     return PlannedDay(
       date: dayOf(date),
       scheduled: scheduled,
       unscheduled: unscheduled,
       completed: completed,
-      habits: habits,
     );
   }
 
-  /// Up to [max] colors previewing a day inside the week strip.
+  /// Up to [max] entries previewing a day inside the week strip (with icon & color).
+  static List<PlannedEntry> dayPreviewEntries(
+    DateTime date, {
+    required List<TodoTask> tasks,
+    required List<TaskList> lists,
+    required Color fallback,
+    int max = 4,
+  }) {
+    final day = buildDay(
+      date: date,
+      tasks: tasks,
+      lists: lists,
+      fallback: fallback,
+    );
+    final combined = <PlannedEntry>[
+      ...day.scheduled,
+      ...day.unscheduled,
+      ...day.completed,
+    ];
+    return combined.take(max).toList();
+  }
+
+  /// Up to [max] colors previewing a day inside the week strip or month grid.
   static List<Color> dayDots(
     DateTime date, {
     required List<TodoTask> tasks,
@@ -293,25 +363,13 @@ class PlannedLayout {
     required Color fallback,
     int max = 4,
   }) {
-    final listColors = <String, int>{
-      for (final list in lists) list.id: list.color,
-    };
-    final dots = <Color>[];
-    final sorted = tasks.where((t) => belongsToDay(t, date)).toList()
-      ..sort((a, b) {
-        final aMinute = a.startAt == null
-            ? 1 << 20
-            : a.startAt!.hour * 60 + a.startAt!.minute;
-        final bMinute = b.startAt == null
-            ? 1 << 20
-            : b.startAt!.hour * 60 + b.startAt!.minute;
-        return aMinute.compareTo(bMinute);
-      });
-    for (final task in sorted) {
-      if (dots.length >= max) break;
-      dots.add(colorFor(task, listColors, fallback));
-    }
-    return dots;
+    return dayPreviewEntries(
+      date,
+      tasks: tasks,
+      lists: lists,
+      fallback: fallback,
+      max: max,
+    ).map((e) => e.color).toList();
   }
 
   /// Free windows between the scheduled entries of [day].

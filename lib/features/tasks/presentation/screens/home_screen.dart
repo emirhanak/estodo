@@ -24,6 +24,10 @@ import '../widgets/task_editor_sheet.dart';
 import '../widgets/focus_mini_bar.dart';
 import '../widgets/sync_status_badge.dart';
 import '../utils/focus_session_controller.dart';
+import '../utils/planned_draft.dart';
+import '../utils/planned_layout.dart';
+import '../widgets/planned/composer/planned_composer.dart';
+import '../widgets/planned/planned_format.dart';
 import 'planned_screen.dart';
 import 'search_screen.dart';
 import 'task_collection_screen.dart';
@@ -125,22 +129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         break;
       }
     }
-    final body = _ConnectivityFrame(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) =>
-            FadeTransition(opacity: animation, child: child),
-        child: RepaintBoundary(
-          key: ValueKey('${_section.name}-${_selectedListId ?? ''}'),
-          child: _buildBody(selectedList),
-        ),
-      ),
-    );
     final canAddTask = switch (_section) {
-      // The planned tab brings its own composer button so the action can carry
-      // the selected day and offer habits.
       HomeSection.completed ||
       HomeSection.search ||
       HomeSection.planned ||
@@ -153,6 +142,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 720;
         final navigationWidth = constraints.maxWidth < 900 ? 264.0 : 296.0;
+        final body = _ConnectivityFrame(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) =>
+                FadeTransition(opacity: animation, child: child),
+            child: RepaintBoundary(
+              key: ValueKey('${_section.name}-${_selectedListId ?? ''}-$wide'),
+              child: _buildBody(selectedList, wide: wide),
+            ),
+          ),
+        );
         final navigation = _SideNavigation(
           section: _section,
           selectedListId: _selectedListId,
@@ -253,13 +255,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           body: isPlanned ? SafeArea(bottom: false, child: body) : body,
           bottomNavigationBar:
               _buildMobileBottomBar(context, AppLocalizations.of(context)),
-          floatingActionButton: canAddTask ? _addTaskButton() : null,
         );
       },
     );
   }
 
-  Widget _buildBody(TaskList? selectedList) {
+  Widget _buildBody(TaskList? selectedList, {required bool wide}) {
     final l10n = AppLocalizations.of(context);
     final todayKey = DateTimeFormatter.todayKey();
     return switch (_section) {
@@ -285,7 +286,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           filter: (task) => task.isImportant,
           quickAddPrefill: const QuickAddPrefill(isImportant: true),
         ),
-      HomeSection.planned => const PlannedScreen(),
+      HomeSection.planned => PlannedScreen(showFloatingComposerButton: wide),
       HomeSection.tasks => TaskCollectionScreen(
           title: l10n.tasks,
           icon: Icons.inbox_rounded,
@@ -319,16 +320,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   FloatingActionButton _addTaskButton() {
     return FloatingActionButton(
-      onPressed: () {
-        showTaskEditorSheet(
-          context,
-          initialListId:
-              _section == HomeSection.customList ? _selectedListId : null,
-          initialMyDay: _section == HomeSection.myDay,
-          initialImportant: _section == HomeSection.important,
-        );
-      },
+      onPressed: _onMobileAddPressed,
       child: const Icon(Icons.add_rounded),
+    );
+  }
+
+  Future<void> _onMobileAddPressed() async {
+    HapticFeedback.lightImpact();
+    if (_section == HomeSection.planned) {
+      final selectedDate = ref.read(selectedPlannedDateProvider);
+      final now = DateTime.now();
+      final start = PlannedLayout.isSameDay(selectedDate, now)
+          ? PlannedLayout.roundToQuarter(now)
+          : PlannedLayout.dayOf(selectedDate).add(const Duration(hours: 9));
+      final savedDay = await showPlannedComposer(
+        context,
+        date: selectedDate,
+        startAt: start,
+        kind: PlannedDraftKind.habit,
+      );
+      if (savedDay != null &&
+          mounted &&
+          !PlannedLayout.isSameDay(savedDay, selectedDate)) {
+        ref.read(selectedPlannedDateProvider.notifier).select(savedDay);
+        final l10n = AppLocalizations.of(context);
+        final locale = PlannedFormat.intlLocale(context);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                l10n.plannedSavedOn(PlannedFormat.fullDay(savedDay, locale)),
+              ),
+            ),
+          );
+      }
+      return;
+    }
+
+    await showTaskEditorSheet(
+      context,
+      initialListId:
+          _section == HomeSection.customList ? _selectedListId : null,
+      initialMyDay: _section == HomeSection.myDay,
+      initialImportant: _section == HomeSection.important,
     );
   }
 
@@ -344,52 +380,107 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return const SizedBox.shrink();
     }
 
+    final scheme = Theme.of(context).colorScheme;
+    final accent = scheme.primary;
+    final bottomPadding = MediaQuery.viewPaddingOf(context).bottom;
+
     final selectedIndex = switch (_section) {
       HomeSection.myDay => 0,
       HomeSection.planned => 1,
       HomeSection.important => 2,
-      HomeSection.tasks => 3,
-      HomeSection.customList || HomeSection.completed => 4,
+      HomeSection.tasks || HomeSection.customList || HomeSection.completed => 3,
       _ => 0,
     };
+
+    final items = <({
+      IconData icon,
+      IconData selectedIcon,
+      String label,
+    })>[
+      (
+        icon: Icons.wb_sunny_outlined,
+        selectedIcon: Icons.wb_sunny_rounded,
+        label: l10n.myDay,
+      ),
+      (
+        icon: Icons.calendar_month_outlined,
+        selectedIcon: Icons.calendar_month_rounded,
+        label: l10n.planned,
+      ),
+      (
+        icon: Icons.star_outline_rounded,
+        selectedIcon: Icons.star_rounded,
+        label: l10n.important,
+      ),
+      (
+        icon: Icons.check_circle_outline_rounded,
+        selectedIcon: Icons.check_circle_rounded,
+        label: l10n.tasks,
+      ),
+    ];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         const FocusMiniBar(),
         if (showBottomNav)
-          NavigationBar(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: _onBottomNavSelected,
-            height: 64,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.wb_sunny_outlined),
-                selectedIcon: const Icon(Icons.wb_sunny_rounded),
-                label: l10n.myDay,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.calendar_month_outlined),
-                selectedIcon: const Icon(Icons.calendar_month_rounded),
-                label: l10n.planned,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.star_outline_rounded),
-                selectedIcon: const Icon(Icons.star_rounded),
-                label: l10n.important,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.check_circle_outline_rounded),
-                selectedIcon: const Icon(Icons.check_circle_rounded),
-                label: l10n.tasks,
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.folder_outlined),
-                selectedIcon: const Icon(Icons.folder_rounded),
-                label: l10n.lists,
-              ),
-            ],
+          Container(
+            color: scheme.surface,
+            padding: EdgeInsets.fromLTRB(
+              14,
+              8,
+              14,
+              bottomPadding > 0 ? bottomPadding + 6 : 14,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 62,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.35),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < items.length; i++)
+                          Expanded(
+                            child: _MobilePillNavItem(
+                              icon: items[i].icon,
+                              selectedIcon: items[i].selectedIcon,
+                              label: items[i].label,
+                              selected: i == selectedIndex,
+                              accent: accent,
+                              onTap: () => _onBottomNavSelected(i),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _StructuredAddButton(
+                  accent: accent,
+                  tooltip: l10n.newTask,
+                  onTap: _onMobileAddPressed,
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -406,8 +497,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _selectSection(HomeSection.important);
       case 3:
         _selectSection(HomeSection.tasks);
-      case 4:
-        _scaffoldKey.currentState?.openDrawer();
     }
   }
 
@@ -511,3 +600,130 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 }
+
+class _MobilePillNavItem extends StatelessWidget {
+  const _MobilePillNavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fg = selected ? accent : scheme.onSurfaceVariant;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(26),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+          decoration: BoxDecoration(
+            color:
+                selected ? accent.withValues(alpha: 0.16) : Colors.transparent,
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? selectedIcon : icon,
+                size: 21,
+                color: fg,
+              ),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: fg,
+                    height: 1.1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StructuredAddButton extends StatelessWidget {
+  const _StructuredAddButton({
+    required this.accent,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final Color accent;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg =
+        ThemeData.estimateBrightnessForColor(accent) == Brightness.dark
+            ? Colors.white
+            : Colors.black87;
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 62,
+            height: 62,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accent.withValues(alpha: 0.22),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.28),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent,
+              ),
+              child: Icon(
+                Icons.add_rounded,
+                size: 32,
+                color: fg,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

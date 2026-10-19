@@ -341,7 +341,7 @@ abstract class AppLocalizations {
   /// No description provided for @composerKindTask.
   ///
   /// In en, this message translates to:
-  /// **'Plan'**
+  /// **'One-time Plan'**
   String get composerKindTask;
 
   /// No description provided for @composerKindHabit.
@@ -637,6 +637,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Added to {day}'**
   String plannedSavedOn(String day);
+
+  /// No description provided for @plannedDayShort.
+  ///
+  /// In en, this message translates to:
+  /// **'D'**
+  String get plannedDayShort;
+
+  /// No description provided for @plannedWeekShort.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get plannedWeekShort;
+
+  /// No description provided for @plannedMonthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get plannedMonthShort;
+
+  /// No description provided for @plannedShowWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Show week'**
+  String get plannedShowWeek;
+
+  /// No description provided for @plannedHideWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide week'**
+  String get plannedHideWeek;
 
   /// No description provided for @plannedShowCalendar.
   ///

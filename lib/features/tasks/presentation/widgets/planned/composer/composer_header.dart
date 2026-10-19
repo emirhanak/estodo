@@ -6,9 +6,9 @@ import '../../../utils/planned_draft.dart';
 import '../../../utils/task_icon_catalog.dart';
 import '../planned_capsule.dart';
 
-/// The colored composer head: close button, the icon that opens the appearance
-/// sheet, and the title field. It carries the task color, so picking a color
-/// repaints the whole top of the flow.
+/// The colored composer head: Cancel pill button, the ringed circular icon
+/// that opens the appearance sheet, and the title field. It carries the task
+/// color, so picking a color repaints the whole top of the flow.
 class ComposerHeader extends StatelessWidget {
   const ComposerHeader({
     super.key,
@@ -48,7 +48,7 @@ class ComposerHeader extends StatelessWidget {
       duration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
       color: color,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -56,17 +56,30 @@ class ComposerHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                _CircleButton(
-                  icon: Icons.close_rounded,
+                _CancelPillButton(
+                  label: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'İptal'
+                      : l10n.cancel,
                   foreground: foreground,
                   onTap: onClose,
-                  tooltip: l10n.cancel,
                 ),
-                const Spacer(),
-                if (kindSwitch != null) kindSwitch!,
+                const SizedBox(width: 8),
+                if (kindSwitch != null)
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: kindSwitch!,
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -88,13 +101,13 @@ class ComposerHeader extends StatelessWidget {
                         child: summary == null
                             ? const SizedBox(width: double.infinity)
                             : Padding(
-                                padding: const EdgeInsets.only(bottom: 2),
+                                padding: const EdgeInsets.only(bottom: 4),
                                 child: Text(
                                   summary!,
                                   style: TextStyle(
-                                    color: foreground.withValues(alpha: 0.75),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
+                                    color: foreground.withValues(alpha: 0.82),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
@@ -109,29 +122,33 @@ class ComposerHeader extends StatelessWidget {
                         cursorColor: foreground,
                         style: TextStyle(
                           color: foreground,
-                          fontSize: 20,
+                          fontSize: 21,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
+                          letterSpacing: -0.3,
                         ),
                         decoration: InputDecoration(
                           filled: false,
                           isDense: true,
-                          contentPadding: const EdgeInsets.only(bottom: 6),
+                          contentPadding: const EdgeInsets.only(bottom: 8),
                           hintText: draft.isHabit
                               ? l10n.composerHabitHint
                               : l10n.composerTitleHint,
                           hintStyle: TextStyle(
-                            color: foreground.withValues(alpha: 0.55),
-                            fontSize: 20,
+                            color: foreground.withValues(alpha: 0.6),
+                            fontSize: 21,
                             fontWeight: FontWeight.w700,
                           ),
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
-                              color: foreground.withValues(alpha: 0.45),
+                              color: foreground.withValues(alpha: 0.55),
+                              width: 1.5,
                             ),
                           ),
                           focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: foreground, width: 2),
+                            borderSide: BorderSide(
+                              color: foreground,
+                              width: 2.2,
+                            ),
                           ),
                         ),
                       ),
@@ -168,51 +185,29 @@ class _IconAvatar extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(30),
         onTap: onTap,
-        child: SizedBox(
-          width: 66,
-          height: 60,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: foreground.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: foreground.withValues(alpha: 0.35),
-                    width: 1.5,
-                  ),
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 240),
-                  transitionBuilder: (child, animation) => ScaleTransition(
-                    scale: animation,
-                    child: FadeTransition(opacity: animation, child: child),
-                  ),
-                  child: Icon(
-                    TaskIconCatalog.resolve(iconKey),
-                    key: ValueKey(iconKey),
-                    color: foreground,
-                    size: 26,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: foreground,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.palette_rounded, size: 13, color: color),
-                ),
-              ),
-            ],
+        child: Container(
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.28),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: foreground.withValues(alpha: 0.92),
+              width: 2.2,
+            ),
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: FadeTransition(opacity: animation, child: child),
+            ),
+            child: Icon(
+              TaskIconCatalog.resolve(iconKey),
+              key: ValueKey(iconKey),
+              color: foreground,
+              size: 26,
+            ),
           ),
         ),
       ),
@@ -220,41 +215,49 @@ class _IconAvatar extends StatelessWidget {
   }
 }
 
-class _CircleButton extends StatelessWidget {
-  const _CircleButton({
-    required this.icon,
+class _CancelPillButton extends StatelessWidget {
+  const _CancelPillButton({
+    required this.label,
     required this.foreground,
     required this.onTap,
-    required this.tooltip,
   });
 
-  final IconData icon;
+  final String label;
   final Color foreground;
   final VoidCallback onTap;
-  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: foreground.withValues(alpha: 0.18),
-            shape: BoxShape.circle,
+    return Semantics(
+      button: true,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.24),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-          child: Icon(icon, color: foreground, size: 20),
         ),
       ),
     );
   }
 }
 
-/// Plan / habit switch that lives in the header on the first step.
+/// Habit (left, default) / One-time Plan (right) switch in the composer header.
 class ComposerKindSwitch extends StatelessWidget {
   const ComposerKindSwitch({
     super.key,
@@ -277,7 +280,7 @@ class ComposerKindSwitch extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: foreground.withValues(alpha: 0.16),
+        color: Colors.black.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -294,7 +297,7 @@ class ComposerKindSwitch extends StatelessWidget {
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6.5),
                 decoration: BoxDecoration(
                   color: option == kind ? foreground : Colors.transparent,
                   borderRadius: BorderRadius.circular(18),
@@ -306,10 +309,10 @@ class ComposerKindSwitch extends StatelessWidget {
                       option == PlannedDraftKind.habit
                           ? Icons.autorenew_rounded
                           : Icons.event_available_rounded,
-                      size: 15,
+                      size: 14,
                       color: option == kind ? background : foreground,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
                       option == PlannedDraftKind.habit
                           ? l10n.composerKindHabit
@@ -329,3 +332,4 @@ class ComposerKindSwitch extends StatelessWidget {
     );
   }
 }
+

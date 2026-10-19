@@ -4,11 +4,14 @@ import 'package:flutter/services.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../utils/planned_layout.dart';
 import 'planned_format.dart';
+import 'planned_mode_glyph.dart';
 
 enum PlannedHeaderAction { smartPlan, importCalendar }
 
-/// Structured-style headline: big day + month and a chevron that drops
-/// down the month calendar.
+enum PlannedViewMode { day, week, month }
+
+/// Structured-style headline: big day + month + year, a chevron that drops
+/// down the month calendar, the Today button, and the G/H/A (D/W/M) mode switch.
 class PlannedHeader extends StatelessWidget {
   const PlannedHeader({
     super.key,
@@ -18,6 +21,8 @@ class PlannedHeader extends StatelessWidget {
     required this.onAction,
     required this.calendarOpen,
     required this.onToggleCalendar,
+    this.viewMode = PlannedViewMode.day,
+    this.onSelectViewMode,
     this.compact = false,
   });
 
@@ -30,6 +35,8 @@ class PlannedHeader extends StatelessWidget {
   /// or its chevron toggles it.
   final bool calendarOpen;
   final VoidCallback onToggleCalendar;
+  final PlannedViewMode viewMode;
+  final ValueChanged<PlannedViewMode>? onSelectViewMode;
   final bool compact;
 
   @override
@@ -38,13 +45,10 @@ class PlannedHeader extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final locale = PlannedFormat.intlLocale(context);
     final isToday = PlannedLayout.isSameDay(date, DateTime.now());
-    final titleSize = compact ? 21.0 : 28.0;
+    final titleSize = compact ? 20.0 : 26.0;
     // On phones the planned tab has no app bar, so the drawer button lives
     // at the start of this row.
     final showMenu = Scaffold.maybeOf(context)?.hasDrawer ?? false;
-    // Phones have little room once the "Today" button appears, so the
-    // current year is implied there.
-    final showYear = !compact || date.year != DateTime.now().year;
 
     final title = Text.rich(
       TextSpan(
@@ -54,17 +58,14 @@ class PlannedHeader extends StatelessWidget {
             style: TextStyle(color: scheme.onSurface),
           ),
           TextSpan(
-            text: showYear
-                ? '${PlannedFormat.monthYear(date, locale)} '
-                : PlannedFormat.monthYear(date, locale),
+            text: '${PlannedFormat.monthYear(date, locale)} ',
             style: TextStyle(color: scheme.onSurface),
           ),
-          if (showYear)
-            TextSpan(text: '${date.year}', style: TextStyle(color: accent)),
+          TextSpan(text: '${date.year}', style: TextStyle(color: accent)),
         ],
       ),
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      softWrap: false,
       style: TextStyle(
         fontSize: titleSize,
         fontWeight: FontWeight.w800,
@@ -75,7 +76,7 @@ class PlannedHeader extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        showMenu ? 4 : (compact ? 16 : 24),
+        showMenu ? 4 : (compact ? 14 : 24),
         showMenu ? 6 : 8,
         compact ? 6 : 16,
         4,
@@ -86,61 +87,61 @@ class PlannedHeader extends StatelessWidget {
             IconButton(
               tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
               icon: const Icon(Icons.menu_rounded),
+              visualDensity: VisualDensity.compact,
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Semantics(
-                    button: true,
-                    label: l10n.plannedPickMonth,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: onToggleCalendar,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 4,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 220),
-                                transitionBuilder: (child, animation) =>
-                                    FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.25),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: child,
-                                  ),
-                                ),
-                                child: KeyedSubtree(
-                                  key: ValueKey(
-                                    '${date.year}-${date.month}-${date.day}',
-                                  ),
-                                  child: title,
-                                ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: l10n.plannedPickMonth,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: onToggleCalendar,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 4,
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            transitionBuilder: (child, animation) =>
+                                FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.25),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
                               ),
                             ),
-                          ],
+                            child: KeyedSubtree(
+                              key: ValueKey(
+                                '${date.year}-${date.month}-${date.day}',
+                              ),
+                              child: title,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    _CalendarChevron(
+                      expanded: calendarOpen,
+                      accent: accent,
+                      size: titleSize + 2,
+                      onTap: onToggleCalendar,
+                    ),
+                  ],
                 ),
-                _CalendarChevron(
-                  expanded: calendarOpen,
-                  accent: accent,
-                  size: titleSize + 2,
-                  onTap: onToggleCalendar,
-                ),
-              ],
+              ),
             ),
           ),
           const SizedBox(width: 4),
@@ -149,30 +150,45 @@ class PlannedHeader extends StatelessWidget {
             curve: Curves.easeOutCubic,
             child: isToday
                 ? const SizedBox.shrink()
-                : compact
-                    // A text button would squeeze the date title on phones.
-                    ? IconButton(
-                        tooltip: l10n.plannedToday,
-                        onPressed: onToday,
-                        color: accent,
+                : Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: TextButton(
+                      onPressed: onToday,
+                      style: TextButton.styleFrom(
+                        foregroundColor: accent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.today_rounded),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: TextButton(
-                          onPressed: onToday,
-                          style: TextButton.styleFrom(
-                            foregroundColor: accent,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          child: Text(l10n.plannedToday),
+                      ),
+                      child: Text(
+                        l10n.plannedToday,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
                         ),
                       ),
+                    ),
+                  ),
+          ),
+          _ModeSwitch(
+            viewMode: calendarOpen ? PlannedViewMode.month : viewMode,
+            accent: accent,
+            onSelect: (mode) {
+              if (onSelectViewMode != null) {
+                onSelectViewMode!(mode);
+              } else if (mode == PlannedViewMode.month) {
+                onToggleCalendar();
+              }
+            },
           ),
           PopupMenuButton<PlannedHeaderAction>(
             tooltip: l10n.plannedMoreActions,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             onSelected: onAction,
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -194,6 +210,119 @@ class PlannedHeader extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 3-button segmented control with calendar icons containing G/H/A (TR) or D/W/M (EN).
+class _ModeSwitch extends StatelessWidget {
+  const _ModeSwitch({
+    required this.viewMode,
+    required this.accent,
+    required this.onSelect,
+  });
+
+  final PlannedViewMode viewMode;
+  final Color accent;
+  final ValueChanged<PlannedViewMode> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeOption(
+            letter: l10n.plannedDayShort,
+            tooltip: l10n.plannedHideWeek,
+            selected: viewMode == PlannedViewMode.day,
+            accent: accent,
+            onTap: () => onSelect(PlannedViewMode.day),
+          ),
+          _ModeOption(
+            letter: l10n.plannedWeekShort,
+            tooltip: l10n.plannedShowWeek,
+            selected: viewMode == PlannedViewMode.week,
+            accent: accent,
+            onTap: () => onSelect(PlannedViewMode.week),
+          ),
+          _ModeOption(
+            letter: l10n.plannedMonthShort,
+            tooltip: l10n.plannedPickMonth,
+            selected: viewMode == PlannedViewMode.month,
+            accent: accent,
+            onTap: () => onSelect(PlannedViewMode.month),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeOption extends StatelessWidget {
+  const _ModeOption({
+    required this.letter,
+    required this.tooltip,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final String letter;
+  final String tooltip;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fg = selected ? accent : scheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: tooltip,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(9),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              color: selected ? scheme.surface : Colors.transparent,
+              borderRadius: BorderRadius.circular(9),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: PlannedModeGlyph(
+              letter: letter,
+              color: fg,
+              size: 18,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -250,3 +379,4 @@ class _CalendarChevron extends StatelessWidget {
     );
   }
 }
+

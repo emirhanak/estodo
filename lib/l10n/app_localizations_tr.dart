@@ -126,7 +126,7 @@ class AppLocalizationsTr extends AppLocalizations {
       '“1 saat yoga cuma 16:00” yaz — saat, gün ve süre başlıktan okunur.';
 
   @override
-  String get composerContinue => 'Devam';
+  String get composerContinue => 'Devam Et';
 
   @override
   String get composerCreateTask => 'Oluştur';
@@ -135,7 +135,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get composerCreateHabit => 'Oluştur';
 
   @override
-  String get composerKindTask => 'Plan';
+  String get composerKindTask => 'Tek Seferlik Plan';
 
   @override
   String get composerKindHabit => 'Alışkanlık';
@@ -299,6 +299,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String plannedSavedOn(String day) {
     return '$day gününe eklendi';
   }
+
+  @override
+  String get plannedDayShort => 'G';
+
+  @override
+  String get plannedWeekShort => 'H';
+
+  @override
+  String get plannedMonthShort => 'A';
+
+  @override
+  String get plannedShowWeek => 'Haftayı göster';
+
+  @override
+  String get plannedHideWeek => 'Haftayı gizle';
 
   @override
   String get plannedShowCalendar => 'Takvimi göster';

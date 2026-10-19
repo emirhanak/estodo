@@ -1,3 +1,4 @@
+import 'package:estodo/features/tasks/domain/entities/recurrence_rule.dart';
 import 'package:estodo/features/tasks/domain/entities/task_list.dart';
 import 'package:estodo/features/tasks/domain/entities/todo_task.dart';
 import 'package:estodo/features/tasks/presentation/utils/planned_layout.dart';
@@ -45,6 +46,8 @@ void main() {
     int? duration,
     String? listId,
     bool completed = false,
+    bool isHabit = false,
+    RecurrenceRule? recurrence,
     int position = 0,
   }) =>
       TodoTask(
@@ -56,6 +59,8 @@ void main() {
         startAt: start,
         durationMinutes: duration,
         isCompleted: completed,
+        isHabit: isHabit,
+        recurrence: recurrence,
         position: position,
         createdAt: day,
         updatedAt: day,
@@ -113,6 +118,60 @@ void main() {
         fallback: accent,
       );
       expect(result.scheduled.map((e) => e.task.id), ['early', 'late']);
+    });
+
+    test('does not project completed recurring tasks onto future days', () {
+      const daily = RecurrenceRule(frequency: RecurrenceFrequency.daily);
+      final prevDay = DateTime(2026, 8, 21);
+      final result = PlannedLayout.buildDay(
+        date: day,
+        tasks: [
+          task(
+            'done-yesterday',
+            due: prevDay,
+            start: DateTime(2026, 8, 21, 18),
+            completed: true,
+            isHabit: true,
+            recurrence: daily,
+          ),
+          task(
+            'today-occurrence',
+            due: day,
+            start: DateTime(2026, 8, 22, 18),
+            completed: false,
+            isHabit: true,
+            recurrence: daily,
+          ),
+        ],
+        lists: const <TaskList>[],
+        fallback: accent,
+      );
+
+      expect(result.scheduled.length, 1);
+      expect(result.scheduled.single.task.id, 'today-occurrence');
+      expect(result.habits, isEmpty);
+    });
+
+    test('aligns projected recurring task startAt to target date', () {
+      const daily = RecurrenceRule(frequency: RecurrenceFrequency.daily);
+      final prevDay = DateTime(2026, 8, 21);
+      final result = PlannedLayout.buildDay(
+        date: day,
+        tasks: [
+          task(
+            'habit-1',
+            due: prevDay,
+            start: DateTime(2026, 8, 21, 18, 0),
+            isHabit: true,
+            recurrence: daily,
+          ),
+        ],
+        lists: const <TaskList>[],
+        fallback: accent,
+      );
+
+      expect(result.scheduled.length, 1);
+      expect(result.scheduled.single.start, DateTime(2026, 8, 22, 18, 0));
     });
 
     test('resolves the list color and falls back to the accent', () {
@@ -294,7 +353,7 @@ void main() {
     });
   });
 
-  group('day dots', () {
+  group('day dots and preview entries', () {
     test('previews at most four task colors, timed first', () {
       final dots = PlannedLayout.dayDots(
         day,
@@ -310,6 +369,19 @@ void main() {
       );
       expect(dots.length, 4);
       expect(dots.first, const Color(0xFF0078D4));
+    });
+
+    test('dayPreviewEntries returns entries with resolved colors and icons', () {
+      final previews = PlannedLayout.dayPreviewEntries(
+        day,
+        tasks: [
+          task('a', start: DateTime(2026, 8, 22, 8), listId: 'l2'),
+        ],
+        lists: [list('l2', 0xFF0078D4)],
+        fallback: accent,
+      );
+      expect(previews.length, 1);
+      expect(previews.single.color, const Color(0xFF0078D4));
     });
 
     test('is empty for a day without tasks', () {
@@ -336,3 +408,4 @@ void main() {
     });
   });
 }
+

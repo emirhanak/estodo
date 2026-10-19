@@ -135,7 +135,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get composerCreateHabit => 'Create';
 
   @override
-  String get composerKindTask => 'Plan';
+  String get composerKindTask => 'One-time Plan';
 
   @override
   String get composerKindHabit => 'Habit';
@@ -299,6 +299,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannedSavedOn(String day) {
     return 'Added to $day';
   }
+
+  @override
+  String get plannedDayShort => 'D';
+
+  @override
+  String get plannedWeekShort => 'W';
+
+  @override
+  String get plannedMonthShort => 'M';
+
+  @override
+  String get plannedShowWeek => 'Show week';
+
+  @override
+  String get plannedHideWeek => 'Hide week';
 
   @override
   String get plannedShowCalendar => 'Show calendar';

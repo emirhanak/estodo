@@ -4,9 +4,9 @@ import '../../domain/entities/todo_task.dart';
 import 'planned_layout.dart';
 import 'planned_nlp.dart';
 
-/// The planned tab creates two kinds of entries: one-off plans and habits that
-/// repeat by design.
-enum PlannedDraftKind { task, habit }
+/// The planned tab creates two kinds of entries: habits that repeat by design
+/// (left, default) and one-time plans (right).
+enum PlannedDraftKind { habit, task }
 
 /// Immutable state of the planned composer. Kept widget free so the flow can
 /// be unit tested end to end.
@@ -22,7 +22,7 @@ class PlannedDraft {
     this.steps = const <TaskStep>[],
     this.notes,
     this.reminderMinutesBefore,
-    this.kind = PlannedDraftKind.task,
+    this.kind = PlannedDraftKind.habit,
     this.listId,
     this.isImportant = false,
   });
@@ -122,7 +122,7 @@ class PlannedDraft {
     required int colorValue,
     DateTime? startAt,
     DateTime? now,
-    PlannedDraftKind kind = PlannedDraftKind.task,
+    PlannedDraftKind kind = PlannedDraftKind.habit,
   }) {
     final clock = now ?? DateTime.now();
     final start = startAt ??

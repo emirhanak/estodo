@@ -64,16 +64,23 @@ void main() {
   }
 
   Future<void> tapContinue(WidgetTester tester) async {
-    await tester.tap(find.text('Devam'));
+    await tester.tap(find.text('Devam Et'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
   }
 
-  testWidgets('opens on the naming step with the parser hint', (tester) async {
+  testWidgets('opens on the naming step with Structured-style quick suggestions',
+      (tester) async {
     await pump(tester);
 
-    expect(find.text('Devam'), findsOneWidget);
-    expect(find.textContaining('yoga cuma 16:00'), findsOneWidget);
+    expect(find.text('Devam Et'), findsOneWidget);
+    expect(find.text('İptal'), findsOneWidget);
+    expect(find.text('Alışkanlık'), findsOneWidget);
+    expect(find.text('Tek Seferlik Plan'), findsOneWidget);
+    expect(find.text('E-postalara Yanıt Ver'), findsOneWidget);
+    expect(find.text('Film İzle'), findsOneWidget);
+    expect(find.text('Koşuya Çık!'), findsOneWidget);
+    expect(find.text('Alışveriş Yap'), findsOneWidget);
     expect(find.byType(ComposerTimeWheel), findsNothing);
   });
 
@@ -114,7 +121,7 @@ void main() {
   testWidgets('the icon avatar opens the color and icon sheet', (tester) async {
     await pump(tester);
     await type(tester, 'Koşu');
-    await tester.tap(find.byIcon(Icons.palette_rounded));
+    await tester.tap(find.bySemanticsLabel('Renk ve simge'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
@@ -143,3 +150,4 @@ void main() {
     expect(find.textContaining('11:00 – 12:30'), findsWidgets);
   });
 }
+

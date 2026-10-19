@@ -80,7 +80,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.enterText(find.byType(TextField).first, 'Su iç');
     await tester.pump(const Duration(milliseconds: 200));
-    await tester.tap(find.text('Devam'));
+    await tester.tap(find.text('Devam Et'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     await tester.tap(find.text('Oluştur'));

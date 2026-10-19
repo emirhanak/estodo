@@ -20,9 +20,8 @@ import 'composer_schedule_step.dart';
 import '../../focus_mode_sheet.dart';
 
 /// Opens the planned tab's own creation flow: name it, then place it on the
-/// timeline. Returns true when something was saved.
-/// Opens the composer. Completes with the saved entry's day, or null when
-/// the sheet was dismissed without saving.
+/// timeline. Animates smoothly from bottom-right to top-left.
+/// Completes with the saved entry's day, or null when dismissed without saving.
 Future<DateTime?> showPlannedComposer(
   BuildContext context, {
   TodoTask? task,
@@ -31,18 +30,53 @@ Future<DateTime?> showPlannedComposer(
   PlannedDraftKind kind = PlannedDraftKind.habit,
 }) {
   final accent = Theme.of(context).colorScheme.primary;
-  return showModalBottomSheet<DateTime>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: 0.45),
-    builder: (_) => PlannedComposer(
-      task: task,
-      date: date ?? DateTime.now(),
-      startAt: startAt,
-      kind: kind,
-      accent: accent,
+  return Navigator.of(context).push<DateTime>(
+    PageRouteBuilder<DateTime>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.48),
+      transitionDuration: const Duration(milliseconds: 360),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (routeContext, _, __) => SafeArea(
+        top: false,
+        bottom: false,
+        child: PlannedComposer(
+          task: task,
+          date: date ?? DateTime.now(),
+          startAt: startAt,
+          kind: kind,
+          accent: accent,
+        ),
+      ),
+      transitionsBuilder: (routeContext, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        final fade = CurvedAnimation(
+          parent: animation,
+          curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+          reverseCurve: Curves.easeIn,
+        );
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.32, 0.36),
+              end: Offset.zero,
+            ).animate(curved),
+            child: ScaleTransition(
+              alignment: Alignment.bottomRight,
+              scale: Tween<double>(
+                begin: 0.24,
+                end: 1.0,
+              ).animate(curved),
+              child: child,
+            ),
+          ),
+        );
+      },
     ),
   );
 }
@@ -182,8 +216,8 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
       _draft.copyWith(
         kind: kind,
         recurrence: kind == PlannedDraftKind.habit
-            ? _draft.recurrence ?? PlannedNlp.dailyRule
-            : _draft.recurrence,
+            ? (_draft.recurrence ?? PlannedNlp.dailyRule)
+            : null,
       ),
     );
   }
@@ -271,7 +305,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                   controller: _titleController,
                   focusNode: _titleFocus,
                   summary: _summary,
-                  onClose: () => Navigator.of(context).pop(false),
+                  onClose: () => Navigator.of(context).pop(null),
                   onAppearance: _pickAppearance,
                   onTitleChanged: _onTitleChanged,
                   onSubmitted: _step == 0 ? _continue : _save,
@@ -306,6 +340,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                                 const <TodoTask>[],
                             onApply: (draft) {
                               _titleController.text = draft.title;
+                              _titleFocus.unfocus();
                               setState(() {
                                 _draft = draft;
                                 _step = 1;
@@ -362,7 +397,7 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.of(context).pop(false);
+                            Navigator.of(context).pop(null);
                             showFocusModeSheet(context, task: widget.task!);
                           },
                         ),
@@ -396,8 +431,8 @@ class _PlannedComposerState extends ConsumerState<PlannedComposer> {
   }
 }
 
-/// First step: what is it? Shows what the parser understood plus similar
-/// entries the user already has.
+/// First step: Structured-style quick suggestions (Screenshot 4) plus NLP
+/// parsing and similar user tasks.
 class _IntentStep extends StatelessWidget {
   const _IntentStep({
     super.key,
@@ -410,11 +445,52 @@ class _IntentStep extends StatelessWidget {
   final List<TodoTask> tasks;
   final ValueChanged<PlannedDraft> onApply;
 
+  static List<
+      ({
+        String title,
+        String iconKey,
+        int colorValue,
+        int startMinuteOfDay,
+        int durationMinutes,
+      })> _presets(bool isTr) {
+    return [
+      (
+        title: isTr ? 'E-postalara Yanıt Ver' : 'Reply to Emails',
+        iconKey: 'mail',
+        colorValue: 0xFFE05A47,
+        startMinuteOfDay: 10 * 60,
+        durationMinutes: 15,
+      ),
+      (
+        title: isTr ? 'Film İzle' : 'Watch a Movie',
+        iconKey: 'tv',
+        colorValue: 0xFF9B51E0,
+        startMinuteOfDay: 20 * 60,
+        durationMinutes: 90,
+      ),
+      (
+        title: isTr ? 'Koşuya Çık!' : 'Go for a Run!',
+        iconKey: 'run',
+        colorValue: 0xFF27AE60,
+        startMinuteOfDay: 12 * 60,
+        durationMinutes: 60,
+      ),
+      (
+        title: isTr ? 'Alışveriş Yap' : 'Go Grocery Shopping',
+        iconKey: 'groceries',
+        colorValue: 0xFF2D9CDB,
+        startMinuteOfDay: 17 * 60,
+        durationMinutes: 60,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final color = Color(draft.colorValue);
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
     final query = draft.title.trim().toLowerCase();
     final parsed = PlannedNlp.parse(draft.title);
 
@@ -427,80 +503,85 @@ class _IntentStep extends StatelessWidget {
             .take(3)
             .toList();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-      children: [
-        if (draft.isHabit)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: _Banner(
-              icon: Icons.autorenew_rounded,
-              color: color,
-              text: l10n.composerHabitBanner,
+    final presets = _presets(isTr);
+
+    final rows = <Widget>[
+      if (!parsed.isEmpty)
+        _SuggestionRow(
+          iconKey: draft.iconKey ??
+              TaskIconCatalog.suggestKeys(parsed.title, max: 1).firstOrNull,
+          color: color,
+          title: parsed.title,
+          subtitle: _parsedSummary(context, parsed, draft),
+          onTap: () => onApply(draft.applyNlp(parsed)),
+        ),
+      for (final task in similar)
+        _SuggestionRow(
+          iconKey: task.iconKey ??
+              TaskIconCatalog.suggestKeys(task.title, max: 1).firstOrNull,
+          color: task.colorValue == null ? color : Color(task.colorValue!),
+          title: task.title,
+          subtitle: _taskSummary(context, task),
+          onTap: () => onApply(
+            draft.copyWith(
+              title: task.title,
+              iconKey: task.iconKey ?? draft.iconKey,
+              colorValue: task.colorValue ?? draft.colorValue,
+              durationMinutes: task.durationMinutes ?? draft.durationMinutes,
+              startMinuteOfDay: task.startAt == null
+                  ? draft.startMinuteOfDay
+                  : task.startAt!.hour * 60 + task.startAt!.minute,
             ),
           ),
-        if (!parsed.isEmpty || similar.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
-            child: Text(
-              l10n.composerSuggestions,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
+        ),
+      for (final preset in presets)
+        _SuggestionRow(
+          iconKey: preset.iconKey,
+          color: Color(preset.colorValue),
+          title: preset.title,
+          subtitle: _rangeSummary(
+            l10n,
+            draft.date,
+            preset.startMinuteOfDay,
+            preset.durationMinutes,
+          ),
+          onTap: () => onApply(
+            draft.copyWith(
+              title: preset.title,
+              iconKey: preset.iconKey,
+              colorValue: preset.colorValue,
+              startMinuteOfDay: preset.startMinuteOfDay,
+              durationMinutes: preset.durationMinutes,
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              children: [
-                if (!parsed.isEmpty)
-                  _SuggestionRow(
-                    iconKey: draft.iconKey ??
-                        TaskIconCatalog.suggestKeys(parsed.title, max: 1)
-                            .firstOrNull,
-                    color: color,
-                    title: parsed.title,
-                    subtitle: _parsedSummary(context, parsed, draft),
-                    onTap: () => onApply(draft.applyNlp(parsed)),
-                  ),
-                for (final task in similar)
-                  _SuggestionRow(
-                    iconKey: task.iconKey ??
-                        TaskIconCatalog.suggestKeys(task.title, max: 1)
-                            .firstOrNull,
-                    color: task.colorValue == null
-                        ? color
-                        : Color(task.colorValue!),
-                    title: task.title,
-                    subtitle: _taskSummary(context, task),
-                    onTap: () => onApply(
-                      draft.copyWith(
-                        title: task.title,
-                        iconKey: task.iconKey ?? draft.iconKey,
-                        colorValue: task.colorValue ?? draft.colorValue,
-                        durationMinutes:
-                            task.durationMinutes ?? draft.durationMinutes,
-                        startMinuteOfDay: task.startAt == null
-                            ? draft.startMinuteOfDay
-                            : task.startAt!.hour * 60 + task.startAt!.minute,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ] else
-          _Banner(
-            icon: Icons.auto_awesome_rounded,
-            color: color,
-            text: l10n.composerNlpHint,
-          ),
-      ],
+        ),
+    ];
+
+    return ListView.separated(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      itemCount: rows.length,
+      separatorBuilder: (context, index) => Divider(
+        height: 1,
+        indent: 68,
+        endIndent: 16,
+        color: scheme.outlineVariant.withValues(alpha: 0.35),
+      ),
+      itemBuilder: (context, index) => rows[index],
     );
+  }
+
+  String _rangeSummary(
+    AppLocalizations l10n,
+    DateTime date,
+    int startMinuteOfDay,
+    int durationMinutes,
+  ) {
+    final start =
+        PlannedLayout.dayOf(date).add(Duration(minutes: startMinuteOfDay));
+    final end = start.add(Duration(minutes: durationMinutes));
+    return '${PlannedFormat.time(start)}–${PlannedFormat.time(end)} '
+        '(${PlannedFormat.duration(l10n, durationMinutes)})';
   }
 
   String _parsedSummary(
@@ -558,23 +639,24 @@ class _SuggestionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final iconFg = PlannedCapsule.foregroundOn(color);
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.16),
+                color: color,
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(
                 TaskIconCatalog.resolve(iconKey),
-                size: 19,
-                color: color,
+                size: 20,
+                color: iconFg,
               ),
             ),
             const SizedBox(width: 12),
@@ -585,19 +667,20 @@ class _SuggestionRow extends StatelessWidget {
                 children: [
                   Text(
                     subtitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
+                  const SizedBox(height: 1),
                   Text(
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15.5,
+                        ),
                   ),
                 ],
               ),
@@ -605,40 +688,6 @@ class _SuggestionRow extends StatelessWidget {
             Icon(Icons.arrow_outward_rounded, size: 18, color: scheme.outline),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Banner extends StatelessWidget {
-  const _Banner({required this.icon, required this.color, required this.text});
-
-  final IconData icon;
-  final Color color;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
-            ),
-          ),
-        ],
       ),
     );
   }
